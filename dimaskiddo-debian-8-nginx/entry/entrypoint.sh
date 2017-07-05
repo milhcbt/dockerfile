@@ -36,5 +36,9 @@ fi
 /usr/sbin/php5-fpm --deamonize
 
 
+# Try to start Nginx on non-daemonize mode
+/usr/sbin/nginx
+
+
 # End the script
 exit 0

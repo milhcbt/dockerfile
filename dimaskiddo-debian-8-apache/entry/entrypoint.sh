@@ -28,5 +28,9 @@ if [ ! -f /var/www/html/index.php ]; then
 fi
 
 
+# Try to start Apache on non-daemonize mode
+/usr/sbin/apache2ctl -D FOREGROUND
+
+
 # End the script
 exit 0

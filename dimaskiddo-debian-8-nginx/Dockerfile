@@ -61,7 +61,6 @@ RUN ln -sf /dev/stdout /var/log/nginx/access.log \
 # Backing-up Current Nginx Configuration File
 RUN cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup \
     && cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.backup \
-    && mv /var/www/html/index.html /var/www/html/index.html.backup \
     && mv /var/www/html/index.nginx-debian.html /var/www/html/index.nginx-debian.html.backup \
     && mkdir -p /var/www/config/nginx \
     && mkdir -p /var/www/config/nginx/sites-available \
@@ -99,7 +98,7 @@ COPY ./config/php5/fpm/pool.d/www.conf /etc/php5/fpm/pool.d/www.conf.docker
 # Layer 12
 # Update PHP Configuration
 RUN chmod 644 /etc/php5/fpm/php.ini.docker \
-    && chmod 644 /etc/php5/fpm/pool.d/www.conf.docker
+    && chmod 644 /etc/php5/fpm/pool.d/www.conf.docker \
     && cp /etc/php5/fpm/php.ini.docker /var/www/config/php5/fpm/php.ini \
     && cp /etc/php5/fpm/pool.d/www.conf.docker /var/www/config/php5/fpm/pool.d/www.conf \
     && rm -f /etc/php5/fpm/php.ini \
@@ -136,7 +135,4 @@ WORKDIR /var/www/html
 EXPOSE 8080
 
 # Entrypoint Preparation
-ENTRPOINT ["/usr/local/bin/entrypoint.sh"]
-
-# Execute Command
-CMD ["/usr/sbin/nginx"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

@@ -120,7 +120,7 @@ COPY ./config/php5/apache2/php.ini /etc/php5/apache2/php.ini.docker
 # Layer 13
 # Update PHP Configuration
 RUN chmod 644 /etc/php5/apache2/php.ini.docker \
-    && cp /etc/php5/apache/php.ini.docker /var/www/config/php5/apache2/php.ini
+    && cp /etc/php5/apache2/php.ini.docker /var/www/config/php5/apache2/php.ini \
     && rm -f /etc/php5/apache2/php.ini \
     && ln -sf /var/www/config/php5/apache2/php.ini /etc/php5/apache2/php.ini
 
@@ -152,8 +152,5 @@ WORKDIR /var/www/html
 # Expose Ports
 EXPOSE 8080
 
-# Entrypoint Preparation
-ENTRPOINT ["/usr/local/bin/entrypoint.sh"]
-
-# Execute Command
-CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
+# Entrypoint
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
