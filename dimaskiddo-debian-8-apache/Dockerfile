@@ -85,17 +85,20 @@ RUN cp /etc/apache2/apache2.conf /etc/apache2/apache2.conf.backup \
     && cp /etc/apache2/sites-available/default-ssl.conf /etc/apache2/sites-available/default-ssl.conf.backup \
     && mv /var/www/html/index.html /var/www/html/index.html.backup \
     && unlink /etc/apache2/sites-enabled/000-default.conf \
-    && mkdir -p /var/www/config/apache2/
+    && mkdir -p /var/www/config/apache2 \
+    && mkdir -p /var/www/docker
 
 # Layer 09
 # Update Apache Configuration File
-COPY ./config/apache2/apache2.conf /var/www/config/apache2/apache2.conf
-COPY ./config/apache2/ports.conf /var/www/config/apache2/ports.conf
+COPY ./config/apache2/apache2.conf /etc/apache2/apache2.conf.docker
+COPY ./config/apache2/ports.conf /etc/apache2/ports.conf.docker
 
 # Layer 10
 # Update Apache Configuration
-RUN chmod 644 /var/www/config/apache2/apache2.conf \
-    && chmod 644 /var/www/config/apache2/ports.conf \
+RUN chmod 644 /etc/apache2/apache2.conf.docker \
+    && chmod 644 /etc/apache2/ports.conf.docker \
+    && cp /etc/apache2/apache2.conf.docker /var/www/config/apache2/apache2.conf \
+    && cp /etc/apache2/ports.conf.docker /var/www/config/apache2/ports.conf \
     && rm -f /etc/apache2/apache2.conf \
     && rm -f /etc/apache2/ports.conf \    
     && ln -sf /var/www/config/apache2/apache2.conf /etc/apache2/apache2.conf \
@@ -108,35 +111,41 @@ RUN chmod 644 /var/www/config/apache2/apache2.conf \
 RUN php5enmod suhosin \
     && cp /etc/php5/cli/php.ini /etc/php5/cli/php.ini.backup \
     && cp /etc/php5/apache2/php.ini /etc/php5/apache2/php.ini.backup \
-    && mkdir -p /var/www/config/php5/apache2/
+    && mkdir -p /var/www/config/php5/apache2
 
 # Layer 12
 # Update PHP Configuration File
-COPY ./config/php5/apache2/php.ini /var/www/config/php5/apache2/php.ini
+COPY ./config/php5/apache2/php.ini /etc/php5/apache2/php.ini.docker
 
 # Layer 13
 # Update PHP Configuration
-RUN chmod 644 /var/www/config/php5/apache2/php.ini \
+RUN chmod 644 /etc/php5/apache2/php.ini.docker \
+    && cp /etc/php5/apache/php.ini.docker /var/www/config/php5/apache2/php.ini
     && rm -f /etc/php5/apache2/php.ini \
     && ln -sf /var/www/config/php5/apache2/php.ini /etc/php5/apache2/php.ini
 
 # Layer 14
 # Copy Default Web Content
-COPY ./content/html/index.php /var/www/html/index.php
-COPY ./content/html/info.php /var/www/html/info.php
+COPY ./content/html/index.php /var/www/docker/index.php
+COPY ./content/html/info.php /var/www/docker/info.php
 
 # Layer 15
 # Configuring Default Web Content
-RUN chmod 644 /var/www/html/index.php \
-    && chmod 644 /var/www/html/info.php \
-    && chown www-data:www-data /var/www/html/index.php \
-    && chown www-data:www-data /var/www/html/info.php
+RUN chmod 644 /var/www/docker/index.php \
+    && chmod 644 /var/www/docker/info.php \
+    && chown www-data:www-data /var/www/docker/index.php \
+    && chown www-data:www-data /var/www/docker/info.php \
+    && cp /var/www/docker/index.php /var/www/html/index.php \
+    && cp /var/www/docker/info.php /var/www/html/info.php
 
 # Setting-up Working Directory
 WORKDIR /var/www/html
 
 # Expose Ports
-EXPOSE 8080 8443
+EXPOSE 8080
+
+# Entrypoint Preparation
+ENTRPOINT ["/usr/local/bin/entrypoint.sh"]
 
 # Execute Command
 CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
