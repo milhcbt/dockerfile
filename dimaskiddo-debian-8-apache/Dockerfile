@@ -73,11 +73,6 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php -r "unlink('composer-setup.php');"
 
 # Layer 07
-# Configuring Logs Output
-RUN ln -sf /dev/stdout /var/log/apache2/access.log \
-    && ln -sf /dev/stderr /var/log/apache2/error.log
-
-# Layer 08
 # Backing-up Current Apache Configuration File
 RUN cp /etc/apache2/apache2.conf /etc/apache2/apache2.conf.backup \
     && cp /etc/apache2/ports.conf /etc/apache2/ports.conf.backup \
@@ -88,12 +83,12 @@ RUN cp /etc/apache2/apache2.conf /etc/apache2/apache2.conf.backup \
     && mkdir -p /var/www/config/apache2 \
     && mkdir -p /var/www/docker
 
-# Layer 09
+# Layer 08
 # Update Apache Configuration File
 COPY ./config/apache2/apache2.conf /etc/apache2/apache2.conf.docker
 COPY ./config/apache2/ports.conf /etc/apache2/ports.conf.docker
 
-# Layer 10
+# Layer 09
 # Update Apache Configuration
 RUN chmod 644 /etc/apache2/apache2.conf.docker \
     && chmod 644 /etc/apache2/ports.conf.docker \
@@ -106,30 +101,30 @@ RUN chmod 644 /etc/apache2/apache2.conf.docker \
     && chgrp -R root /var/run/apache2* /var/lock/apache2* \
     && chmod -R ug+rwx /var/run/apache2* /var/lock/apache2*
 
-# Layer 11
+# Layer 10
 # Backing-up Current PHP Configuration
 RUN php5enmod suhosin \
     && cp /etc/php5/cli/php.ini /etc/php5/cli/php.ini.backup \
     && cp /etc/php5/apache2/php.ini /etc/php5/apache2/php.ini.backup \
     && mkdir -p /var/www/config/php5/apache2
 
-# Layer 12
+# Layer 11
 # Update PHP Configuration File
 COPY ./config/php5/apache2/php.ini /etc/php5/apache2/php.ini.docker
 
-# Layer 13
+# Layer 12
 # Update PHP Configuration
 RUN chmod 644 /etc/php5/apache2/php.ini.docker \
     && cp /etc/php5/apache2/php.ini.docker /var/www/config/php5/apache2/php.ini \
     && rm -f /etc/php5/apache2/php.ini \
     && ln -sf /var/www/config/php5/apache2/php.ini /etc/php5/apache2/php.ini
 
-# Layer 14
+# Layer 13
 # Copy Default Web Content
 COPY ./content/html/index.php /var/www/docker/index.php
 COPY ./content/html/info.php /var/www/docker/info.php
 
-# Layer 15
+# Layer 14
 # Configuring Default Web Content
 RUN chmod 644 /var/www/docker/index.php \
     && chmod 644 /var/www/docker/info.php \
@@ -138,11 +133,11 @@ RUN chmod 644 /var/www/docker/index.php \
     && cp /var/www/docker/index.php /var/www/html/index.php \
     && cp /var/www/docker/info.php /var/www/html/info.php
 
-# Layer 16
+# Layer 15
 # Copy Entrypoint Script
 COPY ./entry/entrypoint.sh /usr/local/bin/entrypoint.sh
 
-# Layer 17
+# Layer 16
 # Change Entrypoint Permissions
 RUN chmod 755 /usr/local/bin/entrypoint.sh
 

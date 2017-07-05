@@ -32,8 +32,8 @@ if [ ! -f /var/www/html/index.php ]; then
 fi
 
 
-# Try to start PHP-FPM on deamonize mode
-/usr/sbin/php5-fpm --deamonize
+# Try to start PHP-FPM on daemonize mode
+/usr/sbin/php5-fpm --daemonize
 
 
 # Try to start Nginx on non-daemonize mode

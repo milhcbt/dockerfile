@@ -53,11 +53,6 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php -r "unlink('composer-setup.php');"
 
 # Layer 06
-# Configuring Logs Output
-RUN ln -sf /dev/stdout /var/log/nginx/access.log \
-    && ln -sf /dev/stderr /var/log/nginx/error.log
-
-# Layer 07
 # Backing-up Current Nginx Configuration File
 RUN cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup \
     && cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.backup \
@@ -66,12 +61,12 @@ RUN cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup \
     && mkdir -p /var/www/config/nginx/sites-available \
     && mkdir -p /var/www/docker
 
-# Layer 08
+# Layer 07
 # Update Nginx Configuration File
 COPY ./config/nginx/nginx.conf /etc/nginx/nginx.conf.docker
 COPY ./config/nginx/sites-available/default /etc/nginx/sites-available/default.docker
 
-# Layer 09
+# Layer 08
 # Update Nginx Configuration
 RUN chmod 644 /etc/nginx/nginx.conf.docker \
     && chmod 644 /etc/nginx/sites-available/default.docker \
@@ -82,7 +77,7 @@ RUN chmod 644 /etc/nginx/nginx.conf.docker \
     && ln -sf /var/www/config/nginx/nginx.conf /etc/nginx/nginx.conf \
     && ln -sf /var/www/config/nginx/sites-available/default /etc/nginx/sites-available/default
 
-# Layer 10
+# Layer 09
 # Backing-up Current PHP Configuration
 RUN php5enmod suhosin \
     && cp /etc/php5/cli/php.ini /etc/php5/cli/php.ini.backup \
@@ -90,12 +85,12 @@ RUN php5enmod suhosin \
     && mkdir -p /var/www/config/php5/fpm \
     && mkdir -p /var/www/config/php5/fpm/pool.d
 
-# Layer 11
+# Layer 10
 # Update PHP Configuration File
 COPY ./config/php5/fpm/php.ini /etc/php5/fpm/php.ini.docker
 COPY ./config/php5/fpm/pool.d/www.conf /etc/php5/fpm/pool.d/www.conf.docker
 
-# Layer 12
+# Layer 11
 # Update PHP Configuration
 RUN chmod 644 /etc/php5/fpm/php.ini.docker \
     && chmod 644 /etc/php5/fpm/pool.d/www.conf.docker \
@@ -106,12 +101,12 @@ RUN chmod 644 /etc/php5/fpm/php.ini.docker \
     && ln -sf /var/www/config/php5/fpm/php.ini /etc/php5/fpm/php.ini \
     && ln -sf /var/www/config/php5/fpm/pool.d/www.conf /etc/php5/fpm/pool.d/www.conf
 
-# Layer 13
+# Layer 12
 # Copy Default Web Content
 COPY ./content/html/index.php /var/www/docker/index.php
 COPY ./content/html/info.php /var/www/docker/info.php
 
-# Layer 14
+# Layer 13
 # Configuring Default Web Content
 RUN chmod 644 /var/www/docker/index.php \
     && chmod 644 /var/www/docker/info.php \
@@ -120,11 +115,11 @@ RUN chmod 644 /var/www/docker/index.php \
     && cp /var/www/docker/index.php /var/www/html/index.php \
     && cp /var/www/docker/info.php /var/www/html/info.php
 
-# Layer 15
+# Layer 14
 # Copy Entrypoint Script
 COPY ./entry/entrypoint.sh /usr/local/bin/entrypoint.sh
 
-# Layer 16
+# Layer 15
 # Change Entrypoint Permissions
 RUN chmod 755 /usr/local/bin/entrypoint.sh
 
