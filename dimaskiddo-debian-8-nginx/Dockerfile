@@ -88,25 +88,31 @@ RUN chmod 644 /etc/nginx/nginx.conf.docker \
 RUN php5enmod suhosin \
     && cp /etc/php5/cli/php.ini /etc/php5/cli/php.ini.backup \
     && cp /etc/php5/fpm/php.ini /etc/php5/fpm/php.ini.backup \
-    && mkdir -p /var/www/config/php5/fpm
+    && mkdir -p /var/www/config/php5/fpm \
+    && mkdir -p /var/www/config/php5/fpm/pool.d
 
 # Layer 11
 # Update PHP Configuration File
 COPY ./config/php5/fpm/php.ini /etc/php5/fpm/php.ini.docker
+COPY ./config/php5/fpm/pool.d/www.conf /etc/php5/fpm/pool.d/www.conf.docker
 
 # Layer 12
 # Update PHP Configuration
 RUN chmod 644 /etc/php5/fpm/php.ini.docker \
+    && chmod 644 /etc/php5/fpm/pool.d/www.conf.docker
     && cp /etc/php5/fpm/php.ini.docker /var/www/config/php5/fpm/php.ini \
+    && cp /etc/php5/fpm/pool.d/www.conf.docker /var/www/config/php5/fpm/pool.d/www.conf \
     && rm -f /etc/php5/fpm/php.ini \
-    && ln -sf /var/www/config/php5/fpm/php.ini /etc/php5/fpm/php.ini
+    && rm -f /etc/php5/fpm/pool.d/www.conf \
+    && ln -sf /var/www/config/php5/fpm/php.ini /etc/php5/fpm/php.ini \
+    && ln -sf /var/www/config/php5/fpm/pool.d/www.conf /etc/php5/fpm/pool.d/www.conf
 
-# Layer 14
+# Layer 13
 # Copy Default Web Content
 COPY ./content/html/index.php /var/www/docker/index.php
 COPY ./content/html/info.php /var/www/docker/info.php
 
-# Layer 15
+# Layer 14
 # Configuring Default Web Content
 RUN chmod 644 /var/www/docker/index.php \
     && chmod 644 /var/www/docker/info.php \
@@ -114,6 +120,14 @@ RUN chmod 644 /var/www/docker/index.php \
     && chown www-data:www-data /var/www/docker/info.php \
     && cp /var/www/docker/index.php /var/www/html/index.php \
     && cp /var/www/docker/info.php /var/www/html/info.php
+
+# Layer 15
+# Copy Entrypoint Script
+COPY ./entry/entrypoint.sh /usr/local/bin/entrypoint.sh
+
+# Layer 16
+# Change Entrypoint Permissions
+RUN chmod 755 /usr/local/bin/entrypoint.sh
 
 # Setting-up Working Directory
 WORKDIR /var/www/html

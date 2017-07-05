@@ -138,6 +138,14 @@ RUN chmod 644 /var/www/docker/index.php \
     && cp /var/www/docker/index.php /var/www/html/index.php \
     && cp /var/www/docker/info.php /var/www/html/info.php
 
+# Layer 16
+# Copy Entrypoint Script
+COPY ./entry/entrypoint.sh /usr/local/bin/entrypoint.sh
+
+# Layer 17
+# Change Entrypoint Permissions
+RUN chmod 755 /usr/local/bin/entrypoint.sh
+
 # Setting-up Working Directory
 WORKDIR /var/www/html
 
