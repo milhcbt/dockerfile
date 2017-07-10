@@ -20,6 +20,11 @@ if [ ! -f /var/www/config/php5/apache2/php.ini ]; then
 fi
 
 
+# Setting-up Configuration directory permission if the file doesn't exist
+# due to volume support
+chmod -R 664 /var/www/config
+
+
 # Prepare Default Web Content file if the file doesn't exist
 # due to volume support
 if [ ! -f /var/www/html/index.php ]; then

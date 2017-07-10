@@ -128,10 +128,10 @@ COPY ./content/html/info.php /var/www/docker/info.php
 # Configuring Default Web Content
 RUN chmod 644 /var/www/docker/index.php \
     && chmod 644 /var/www/docker/info.php \
-    && chown www-data:www-data /var/www/docker/index.php \
-    && chown www-data:www-data /var/www/docker/info.php \
     && cp /var/www/docker/index.php /var/www/html/index.php \
-    && cp /var/www/docker/info.php /var/www/html/info.php
+    && cp /var/www/docker/info.php /var/www/html/info.php \
+    && chown www-data:www-data /var/www/html/index.php \
+    && chown www-data:www-data /var/www/html/info.php
 
 # Layer 15
 # Copy Entrypoint Script
@@ -141,11 +141,8 @@ COPY ./entry/entrypoint.sh /usr/local/bin/entrypoint.sh
 # Change Entrypoint Permissions
 RUN chmod 755 /usr/local/bin/entrypoint.sh
 
-# Setting-up Working Directory
-WORKDIR /var/www/html
-
 # Expose Ports
 EXPOSE 8080
 
-# Entrypoint
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+# Execute Command
+CMD ["/usr/local/bin/entrypoint.sh"]

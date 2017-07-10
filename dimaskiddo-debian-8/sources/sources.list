@@ -1,0 +1,3 @@
+# Indonesia Local Repository
+deb http://suro.ubaya.ac.id/debian/ jessie main contrib non-free
+deb http://suro.ubaya.ac.id/debian/ jessie-updates main contrib non-free
