@@ -1,4 +1,4 @@
-FROM dimaskiddo/debian:jessie
+FROM dimaskiddo/debian:8.0
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
 # Layer 01
