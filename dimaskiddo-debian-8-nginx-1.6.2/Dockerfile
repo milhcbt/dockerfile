@@ -1,6 +1,9 @@
 FROM dimaskiddo/debian:8.0
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
+# Change Working User to "Root"
+USER root
+
 # Layer 01
 # Add Repository
 RUN mkdir -p /root/repo/key/php-suhosin \
@@ -117,6 +120,9 @@ COPY ./entry/entrypoint.sh /usr/local/bin/entrypoint.sh
 # Layer 14
 # Change Entrypoint Permissions
 RUN chmod 755 /usr/local/bin/entrypoint.sh
+
+# Revert Working User to "User"
+USER user
 
 # Expose Ports
 EXPOSE 8080
