@@ -2,7 +2,7 @@ FROM dimaskiddo/debian:jessie
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
 # Layer 01
-# Adding Repository
+# Add Repository
 RUN mkdir -p /root/repo/key/php-suhosin \
     && echo "" >> /etc/apt/sources.list \
     && echo "deb http://repo.suhosin.org/ debian-jessie main" >> /etc/apt/sources.list \
@@ -10,16 +10,13 @@ RUN mkdir -p /root/repo/key/php-suhosin \
     && apt-key add /root/repo/key/php-suhosin/repository.asc
 
 # Layer 02
-# Installing Apache
+# Install Apache
 RUN apt-get -y update \
     && apt-get -y install \
         apache2 \
     && apt-get -y autoremove \
-    && apt-get -y clean
-
-# Layer 03
-# Configuring Apache Module
-RUN a2enmod dir \
+    && apt-get -y clean \
+    && a2enmod dir \
     && a2enmod env \
     && a2enmod mime \
     && a2enmod alias \
@@ -35,8 +32,8 @@ RUN a2enmod dir \
     && a2enmod deflate \
     && a2enmod ssl
 
-# Layer 04
-# Installing PHP
+# Layer 03
+# Install PHP
 RUN apt-get -y install \
       php5 \
       php-pear \
@@ -55,94 +52,84 @@ RUN apt-get -y install \
       php5-tidy \
       php5-xmlrpc \
       php5-xsl \
+      libapache2-mod-php5 \      
     && apt-get -y autoremove \
-    && apt-get -y clean
+    && apt-get -y clean \
+    && php5enmod suhosin
 
-# Layer 05
-# Installing PHP Apache Module
-RUN apt-get -y install \
-      libapache2-mod-php5 \
-    && apt-get -y autoremove \
-    && apt-get -y clean
-
-# Layer 06
-# Installing PHP Composer
+# Layer 04
+# Install PHP Composer
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php -r "if (hash_file('SHA384', 'composer-setup.php') === '669656bab3166a7aff8a7506b8cb2d1c292f042046c5a994c43155c0be6190fa0355160742ab2e1c88d40d5be660b410') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;" \
     && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
     && php -r "unlink('composer-setup.php');"
 
-# Layer 07
-# Backing-up Current Apache Configuration File
-RUN cp /etc/apache2/apache2.conf /etc/apache2/apache2.conf.backup \
-    && cp /etc/apache2/ports.conf /etc/apache2/ports.conf.backup \
-    && cp /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/000-default.conf.backup \
-    && cp /etc/apache2/sites-available/default-ssl.conf /etc/apache2/sites-available/default-ssl.conf.backup \
-    && mv /var/www/html/index.html /var/www/html/index.html.backup \
+# Layer 05
+# Back-up Current Apache Configuration File
+RUN cp /etc/apache2/ports.conf /etc/apache2/ports.conf.backup \
+    && cp /etc/apache2/apache2.conf /etc/apache2/apache2.conf.backup \
     && unlink /etc/apache2/sites-enabled/000-default.conf \
     && mkdir -p /var/www/config/apache2 \
     && mkdir -p /var/www/docker
 
-# Layer 08
-# Update Apache Configuration File
-COPY ./config/apache2/apache2.conf /etc/apache2/apache2.conf.docker
+# Layer 06
+# Copy Pre-Configured Apache Configuration File
 COPY ./config/apache2/ports.conf /etc/apache2/ports.conf.docker
+COPY ./config/apache2/apache2.conf /etc/apache2/apache2.conf.docker
 
-# Layer 09
+# Layer 07
 # Update Apache Configuration
-RUN chmod 644 /etc/apache2/apache2.conf.docker \
-    && chmod 644 /etc/apache2/ports.conf.docker \
-    && cp /etc/apache2/apache2.conf.docker /var/www/config/apache2/apache2.conf \
-    && cp /etc/apache2/ports.conf.docker /var/www/config/apache2/ports.conf \
+RUN rm -f /etc/apache2/ports.conf \
     && rm -f /etc/apache2/apache2.conf \
-    && rm -f /etc/apache2/ports.conf \    
+    && chmod 644 /etc/apache2/ports.conf.docker \
+    && chmod 644 /etc/apache2/apache2.conf.docker \
+    && cp /etc/apache2/ports.conf.docker /etc/apache2/ports.conf \
+    && cp /etc/apache2/apache2.conf.docker /var/www/config/apache2/apache2.conf \
     && ln -sf /var/www/config/apache2/apache2.conf /etc/apache2/apache2.conf \
-    && ln -sf /var/www/config/apache2/ports.conf /etc/apache2/ports.conf \
     && chgrp -R root /var/run/apache2* /var/lock/apache2* \
     && chmod -R ug+rwx /var/run/apache2* /var/lock/apache2*
 
-# Layer 10
-# Backing-up Current PHP Configuration
-RUN php5enmod suhosin \
-    && cp /etc/php5/cli/php.ini /etc/php5/cli/php.ini.backup \
-    && cp /etc/php5/apache2/php.ini /etc/php5/apache2/php.ini.backup \
+# Layer 08
+# Back-up Current PHP Configuration
+RUN cp /etc/php5/apache2/php.ini /etc/php5/apache2/php.ini.backup \
     && mkdir -p /var/www/config/php5/apache2
 
-# Layer 11
-# Update PHP Configuration File
+# Layer 09
+# Copy Pre-Configured PHP Apache Configuration File
 COPY ./config/php5/apache2/php.ini /etc/php5/apache2/php.ini.docker
 
-# Layer 12
+# Layer 10
 # Update PHP Configuration
-RUN chmod 644 /etc/php5/apache2/php.ini.docker \
+RUN rm -f /etc/php5/apache2/php.ini \
+    && chmod 644 /etc/php5/apache2/php.ini.docker \
     && cp /etc/php5/apache2/php.ini.docker /var/www/config/php5/apache2/php.ini \
-    && rm -f /etc/php5/apache2/php.ini \
     && ln -sf /var/www/config/php5/apache2/php.ini /etc/php5/apache2/php.ini
 
-# Layer 13
+# Layer 11
 # Copy Default Web Content
 COPY ./content/html/index.php /var/www/docker/index.php
 COPY ./content/html/info.php /var/www/docker/info.php
 
-# Layer 14
-# Configuring Default Web Content
-RUN chmod 644 /var/www/docker/index.php \
+# Layer 12
+# Update Default Web Content
+RUN rm -f /var/www/html/* \
+    && chmod 644 /var/www/docker/index.php \
     && chmod 644 /var/www/docker/info.php \
     && cp /var/www/docker/index.php /var/www/html/index.php \
     && cp /var/www/docker/info.php /var/www/html/info.php \
     && chown www-data:www-data /var/www/html/index.php \
     && chown www-data:www-data /var/www/html/info.php
 
-# Layer 15
+# Layer 13
 # Copy Entrypoint Script
 COPY ./entry/entrypoint.sh /usr/local/bin/entrypoint.sh
 
-# Layer 16
+# Layer 14
 # Change Entrypoint Permissions
 RUN chmod 755 /usr/local/bin/entrypoint.sh
 
 # Expose Ports
 EXPOSE 8080
 
-# Execute Command
+# Execute Entrypoint Script
 CMD ["/usr/local/bin/entrypoint.sh"]
