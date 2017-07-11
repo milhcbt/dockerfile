@@ -36,6 +36,8 @@ fi
 if [[ ! -f /var/www/html/index.php && ! -f /var/www/html/public/index.php ]]; then
   sudo cp /var/www/docker/index.php /var/www/html/index.php
   sudo cp /var/www/docker/info.php /var/www/html/info.php
+  sudo chmod -R 664 /var/www/html/
+  sudo chown -R www-data:www-data /var/www/html/  
 fi
 
 

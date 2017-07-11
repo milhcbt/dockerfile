@@ -120,12 +120,15 @@ COPY ./content/html/info.php /var/www/docker/info.php
 # Layer 12
 # Update Default Web Content
 RUN rm -f /var/www/html/* \
-    && chmod 644 /var/www/docker/index.php \
-    && chmod 644 /var/www/docker/info.php \
+    && chmod 664 /var/www/docker/index.php \
+    && chmod 664 /var/www/docker/info.php \
     && cp /var/www/docker/index.php /var/www/html/index.php \
     && cp /var/www/docker/info.php /var/www/html/info.php \
     && chown www-data:www-data /var/www/html/index.php \
-    && chown www-data:www-data /var/www/html/info.php
+    && chown www-data:www-data /var/www/html/info.php \
+    && usermod -a -G www-data user \
+    && chmod -R 664 /var/www/html \
+    && chown -R www-data:www-data /var/www/html
 
 # Layer 13
 # Copy Entrypoint Script
