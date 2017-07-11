@@ -58,7 +58,8 @@ RUN apt-get -y install \
       libapache2-mod-php5 \      
     && apt-get -y autoremove \
     && apt-get -y clean \
-    && php5enmod suhosin
+    && php5enmod suhosin \
+    && echo "suhosin.executor.include.whitelist = phar" >> /etc/php5/cli/conf.d/suhosin.ini
 
 # Layer 04
 # Install PHP Composer
