@@ -16,9 +16,16 @@ if [ ! -f /var/www/config/php5/apache2/php.ini ]; then
 fi
 
 
+# Prepare PHP Composer configuration directory if the directory doesn't exist
+# due to volume support
+if [ ! -d /var/www/config/composer ]; then
+  sudo mkdir -p /var/www/config/composer
+fi
+
+
 # Prepare Default Web Content file if the file doesn't exist
 # due to volume support
-if [ ! -f /var/www/html/index.php ]; then
+if [[ ! -f /var/www/html/index.php && ! -f /var/www/html/public/index.php ]]; then
   sudo cp /var/www/docker/index.php /var/www/html/index.php
   sudo cp /var/www/docker/info.php /var/www/html/info.php
 fi
