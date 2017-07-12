@@ -82,8 +82,8 @@ RUN cp /etc/apache2/ports.conf /etc/apache2/ports.conf.backup \
     && unlink /etc/apache2/sites-enabled/000-default.conf \
     && mkdir -p /var/www/config/apache2 \
     && mkdir -p /var/www/docker \
-    && chown -R user:user /var/www/html \
-    && chown -R user:user /var/www/docker
+    && chown -R user:root /var/www/html \
+    && chown -R user:root /var/www/docker
 
 # Layer 06
 # Copy Pre-Configured Apache Configuration File
@@ -94,10 +94,16 @@ COPY ./config/apache2/apache2.conf /etc/apache2/apache2.conf.docker
 # Update Apache Configuration
 RUN rm -f /etc/apache2/ports.conf \
     && rm -f /etc/apache2/apache2.conf \
-    && chmod 644 /etc/apache2/ports.conf.docker \
-    && chmod 644 /etc/apache2/apache2.conf.docker \
+    && chown user:root /etc/apache2/ports.conf.docker \
+    && chown user:root /etc/apache2/apache2.conf.docker \
+    && chmod 664 /etc/apache2/ports.conf.docker \
+    && chmod 664 /etc/apache2/apache2.conf.docker \
     && cp /etc/apache2/ports.conf.docker /etc/apache2/ports.conf \
     && cp /etc/apache2/apache2.conf.docker /var/www/config/apache2/apache2.conf \
+    && chown user:root /etc/apache2/ports.conf \
+    && chown user:root /var/www/config/apache2/apache2.conf \
+    && chmod 664 /etc/apache2/ports.conf \
+    && chmod 664 /var/www/config/apache2/apache2.conf \
     && ln -sf /var/www/config/apache2/apache2.conf /etc/apache2/apache2.conf \
     && chgrp -R root /var/run/apache2* /var/lock/apache2* \
     && chmod -R ug+rwx /var/run/apache2* /var/lock/apache2*
@@ -114,8 +120,11 @@ COPY ./config/php5/apache2/php.ini /etc/php5/apache2/php.ini.docker
 # Layer 10
 # Update PHP Configuration
 RUN rm -f /etc/php5/apache2/php.ini \
-    && chmod 644 /etc/php5/apache2/php.ini.docker \
+    && chown user:root /etc/php5/apache2/php.ini.docker \
+    && chmod 664 /etc/php5/apache2/php.ini.docker \
     && cp /etc/php5/apache2/php.ini.docker /var/www/config/php5/apache2/php.ini \
+    && chown user:root /var/www/config/php5/apache2/php.ini \
+    && chmod 664 /var/www/config/php5/apache2/php.ini \
     && ln -sf /var/www/config/php5/apache2/php.ini /etc/php5/apache2/php.ini
 
 # Layer 11
@@ -126,31 +135,35 @@ COPY ./content/html/info.php /var/www/docker/info.php
 # Layer 12
 # Update Default Web Content
 RUN rm -f /var/www/html/* \
-    && chown user:user /var/www/docker/index.php \
-    && chown user:user /var/www/docker/info.php \
-    && chmod 644 /var/www/docker/index.php \
-    && chmod 644 /var/www/docker/info.php \
+    && chown user:root /var/www/docker/index.php \
+    && chown user:root /var/www/docker/info.php \
+    && chmod 664 /var/www/docker/index.php \
+    && chmod 664 /var/www/docker/info.php \
     && cp /var/www/docker/index.php /var/www/html/index.php \
     && cp /var/www/docker/info.php /var/www/html/info.php \
-    && chown user:user /var/www/html/index.php \
-    && chown user:user /var/www/html/info.php \
+    && chown user:root /var/www/html/index.php \
+    && chown user:root /var/www/html/info.php \
+    && chmod 664 /var/www/html/index.php \
+    && chmod 664 /var/www/html/info.php \
     && ln -sf /var/www/html /home/user/public_html \
     && chown -R user:user /home/user/public_html \
-    && chmod -R 644 /home/user/public_html/*
+    && chmod -R 664 /home/user/public_html/*
 
 # Layer 13
-# Copy Entrypoint Script
-COPY ./entry/entrypoint.sh /usr/local/bin/entrypoint.sh
+# Copy Container Scripts
+COPY ./entry/container-entrypoint /usr/local/bin/container-entrypoint
+COPY ./entry/container-executor /usr/local/bin/container-executor
 
 # Layer 14
-# Change Entrypoint Permissions
-RUN chmod 755 /usr/local/bin/entrypoint.sh
-
-# Revert Working User to "User"
-USER user
+# Change Container Scripts Permissions
+RUN chmod 755 /usr/local/bin/container-entrypoint \
+    && chmod 755 /usr/local/bin/container-executor
 
 # Expose Ports
 EXPOSE 8080
 
-# Execute Entrypoint Script
-CMD ["/usr/local/bin/entrypoint.sh"]
+# Set Entrypoint Script
+ENTRYPOINT ["/usr/local/bin/container-entrypoint"]
+
+# Set Executor Script
+CMD ["/usr/local/bin/container-executor"]

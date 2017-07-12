@@ -66,8 +66,8 @@ RUN cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup \
     && mkdir -p /var/www/config/nginx \
     && mkdir -p /var/www/config/nginx/sites-available \
     && mkdir -p /var/www/docker \
-    && chown -R user:user /var/www/html \
-    && chown -R user:user /var/www/docker
+    && chown -R user:root /var/www/html \
+    && chown -R user:root /var/www/docker
 
 # Layer 06
 # Copy Pre-Configured Nginx Configuration File
@@ -78,11 +78,19 @@ COPY ./config/nginx/sites-available/default /etc/nginx/sites-available/default.d
 # Update Nginx Configuration
 RUN rm -f /etc/nginx/nginx.conf \
     && rm -f /etc/nginx/sites-available/default \
-    && chmod 644 /etc/nginx/nginx.conf.docker \
-    && chmod 644 /etc/nginx/sites-available/default.docker \
+    && chown user:root /etc/nginx/nginx.conf.docker \
+    && chown user:root /etc/nginx/sites-available/default.docker \
+    && chmod 664 /etc/nginx/nginx.conf.docker \
+    && chmod 664 /etc/nginx/sites-available/default.docker \
     && cp /etc/nginx/nginx.conf.docker /etc/nginx/nginx.conf \
     && cp /etc/nginx/sites-available/default.docker /var/www/config/nginx/sites-available/default \
-    && ln -sf /var/www/config/nginx/sites-available/default /etc/nginx/sites-available/default
+    && chown user:root /etc/nginx/nginx.conf \
+    && chown user:root /var/www/config/nginx/sites-available/default \
+    && chmod 664 /etc/nginx/nginx.conf \
+    && chmod 664 /var/www/config/nginx/sites-available/default \
+    && ln -sf /var/www/config/nginx/sites-available/default /etc/nginx/sites-available/default \
+    && ln -sf /dev/stdout /var/log/nginx/access.log \
+    && ln -sf /dev/stderr /var/log/nginx/error.log
 
 # Layer 08
 # Back-up Current PHP Configuration
@@ -100,10 +108,16 @@ COPY ./config/php5/fpm/pool.d/www.conf /etc/php5/fpm/pool.d/www.conf.docker
 # Update PHP Configuration
 RUN rm -f /etc/php5/fpm/php.ini \
     && rm -f /etc/php5/fpm/pool.d/www.conf \
-    && chmod 644 /etc/php5/fpm/php.ini.docker \
-    && chmod 644 /etc/php5/fpm/pool.d/www.conf.docker \
+    && chown user:root /etc/php5/fpm/php.ini.docker \
+    && chown user:root /etc/php5/fpm/pool.d/www.conf.docker \
+    && chmod 664 /etc/php5/fpm/php.ini.docker \
+    && chmod 664 /etc/php5/fpm/pool.d/www.conf.docker \
     && cp /etc/php5/fpm/php.ini.docker /var/www/config/php5/fpm/php.ini \
     && cp /etc/php5/fpm/pool.d/www.conf.docker /var/www/config/php5/fpm/pool.d/www.conf \
+    && chown user:root /var/www/config/php5/fpm/php.ini \
+    && chown user:root /var/www/config/php5/fpm/pool.d/www.conf \
+    && chmod 664 /var/www/config/php5/fpm/php.ini \
+    && chmod 664 /var/www/config/php5/fpm/pool.d/www.conf \
     && ln -sf /var/www/config/php5/fpm/php.ini /etc/php5/fpm/php.ini \
     && ln -sf /var/www/config/php5/fpm/pool.d/www.conf /etc/php5/fpm/pool.d/www.conf
 
@@ -115,31 +129,35 @@ COPY ./content/html/info.php /var/www/docker/info.php
 # Layer 12
 # Update Default Web Content
 RUN rm -f /var/www/html/* \
-    && chown user:user /var/www/docker/index.php \
-    && chown user:user /var/www/docker/info.php \
-    && chmod 644 /var/www/docker/index.php \
-    && chmod 644 /var/www/docker/info.php \
+    && chown user:root /var/www/docker/index.php \
+    && chown user:root /var/www/docker/info.php \
+    && chmod 664 /var/www/docker/index.php \
+    && chmod 664 /var/www/docker/info.php \
     && cp /var/www/docker/index.php /var/www/html/index.php \
     && cp /var/www/docker/info.php /var/www/html/info.php \
-    && chown user:user /var/www/html/index.php \
-    && chown user:user /var/www/html/info.php \
+    && chown user:root /var/www/html/index.php \
+    && chown user:root /var/www/html/info.php \
+    && chmod 664 /var/www/html/index.php \
+    && chmod 664 /var/www/html/info.php \
     && ln -sf /var/www/html /home/user/public_html \
     && chown -R user:user /home/user/public_html \
-    && chmod -R 644 /home/user/public_html/*
+    && chmod -R 664 /home/user/public_html/*
 
 # Layer 13
-# Copy Entrypoint Script
-COPY ./entry/entrypoint.sh /usr/local/bin/entrypoint.sh
+# Copy Container Scripts
+COPY ./entry/container-entrypoint /usr/local/bin/container-entrypoint
+COPY ./entry/container-executor /usr/local/bin/container-executor
 
 # Layer 14
-# Change Entrypoint Permissions
-RUN chmod 755 /usr/local/bin/entrypoint.sh
-
-# Revert Working User to "User"
-USER user
+# Change Container Scripts Permissions
+RUN chmod 755 /usr/local/bin/container-entrypoint \
+    && chmod 755 /usr/local/bin/container-executor
 
 # Expose Ports
 EXPOSE 8080
 
-# Execute Entrypoint Script
-CMD ["/usr/local/bin/entrypoint.sh"]
+# Set Entrypoint Script
+ENTRYPOINT ["/usr/local/bin/container-entrypoint"]
+
+# Set Executor Script
+CMD ["/usr/local/bin/container-executor"]
