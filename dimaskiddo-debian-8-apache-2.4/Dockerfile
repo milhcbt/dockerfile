@@ -127,8 +127,8 @@ RUN rm -f /var/www/html/* \
     && chown www-data:www-data /var/www/html/index.php \
     && chown www-data:www-data /var/www/html/info.php \
     && usermod -a -G www-data user \
-    && chmod -R 664 /var/www/html \
-    && chown -R www-data:www-data /var/www/html
+    && chmod -R 664 /var/www/html/* \
+    && chown -R www-data:www-data /var/www/html/*
 
 # Layer 13
 # Copy Entrypoint Script

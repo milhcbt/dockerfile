@@ -74,9 +74,8 @@ RUN rm -f /etc/nginx/nginx.conf \
     && rm -f /etc/nginx/sites-available/default \
     && chmod 644 /etc/nginx/nginx.conf.docker \
     && chmod 644 /etc/nginx/sites-available/default.docker \
-    && cp /etc/nginx/nginx.conf.docker /var/www/config/nginx/nginx.conf \
+    && cp /etc/nginx/nginx.conf.docker /var/etc/nginx/nginx.conf \
     && cp /etc/nginx/sites-available/default.docker /var/www/config/nginx/sites-available/default \
-    && ln -sf /var/www/config/nginx/nginx.conf /etc/nginx/nginx.conf \
     && ln -sf /var/www/config/nginx/sites-available/default /etc/nginx/sites-available/default
 
 # Layer 08
@@ -117,8 +116,8 @@ RUN rm -f /var/www/html/* \
     && chown www-data:www-data /var/www/html/index.php \
     && chown www-data:www-data /var/www/html/info.php \
     && usermod -a -G www-data user \
-    && chmod -R 664 /var/www/html \
-    && chown -R www-data:www-data /var/www/html
+    && chmod -R 664 /var/www/html/* \
+    && chown -R www-data:www-data /var/www/html/*
 
 # Layer 13
 # Copy Entrypoint Script
