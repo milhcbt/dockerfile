@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Add User from OpenShift Request
+sudo echo "oc:x:`id -u`:0:oc:/:/sbin/nologin" >> /etc/passwd
+sudo echo "oc ALL=(root)    NOPASSWD:ALL" >> /etc/sudoers
+
+
 # Prepare Apache configuration file if the file doesn't exist
 # due to volume support
 if [ ! -f /var/www/config/apache2/apache2.conf ]; then
