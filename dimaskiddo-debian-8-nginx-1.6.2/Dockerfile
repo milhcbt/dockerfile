@@ -80,7 +80,7 @@ RUN rm -f /etc/nginx/nginx.conf \
     && rm -f /etc/nginx/sites-available/default \
     && chmod 644 /etc/nginx/nginx.conf.docker \
     && chmod 644 /etc/nginx/sites-available/default.docker \
-    && cp /etc/nginx/nginx.conf.docker /var/etc/nginx/nginx.conf \
+    && cp /etc/nginx/nginx.conf.docker /etc/nginx/nginx.conf \
     && cp /etc/nginx/sites-available/default.docker /var/www/config/nginx/sites-available/default \
     && ln -sf /var/www/config/nginx/sites-available/default /etc/nginx/sites-available/default
 
