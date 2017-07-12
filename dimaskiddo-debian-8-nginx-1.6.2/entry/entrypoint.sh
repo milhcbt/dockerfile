@@ -1,10 +1,5 @@
 #!/bin/bash
 
-# Add User from OpenShift Request
-sudo echo "oc:x:`id -u`:0:oc:/:/sbin/nologin" >> /etc/passwd
-sudo echo "oc ALL=(root)    NOPASSWD:ALL" >> /etc/sudoers
-
-
 # Prepare Nginx configuration file if the file doesn't exist
 # due to volume support
 if [ ! -f /var/www/config/nginx/sites-available/default ]; then
@@ -30,6 +25,7 @@ fi
 if [ ! -d /var/www/config/composer ]; then
   sudo mkdir -p /var/www/config/composer
 fi
+sudo chown user:user /var/www/config/composer
 
 
 # Prepare Default Web Content file if the file doesn't exist
@@ -37,9 +33,9 @@ fi
 if [[ ! -f /var/www/html/index.php && ! -f /var/www/html/public/index.php ]]; then
   sudo cp /var/www/docker/index.php /var/www/html/index.php
   sudo cp /var/www/docker/info.php /var/www/html/info.php
-  sudo chmod -R 664 /var/www/html/*
-  sudo chown -R www-data:www-data /var/www/html/*
 fi
+sudo chown -R user:user /var/www/html/
+sudo chmod -R 644 /var/www/html/*
 
 
 # Try to start PHP-FPM on daemonize mode

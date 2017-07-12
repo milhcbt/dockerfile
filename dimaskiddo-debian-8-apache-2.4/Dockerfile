@@ -13,10 +13,12 @@ RUN mkdir -p /root/repo/key/php-suhosin \
     && apt-key add /root/repo/key/php-suhosin/repository.asc
 
 # Layer 02
-# Install Apache
+# Install Apache and SCM
 RUN apt-get -y update \
     && apt-get -y install \
         apache2 \
+        git \
+        subversion \
     && apt-get -y autoremove \
     && apt-get -y clean \
     && a2enmod dir \
@@ -69,7 +71,9 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php -r "unlink('composer-setup.php');" \
     && chmod 755 /usr/local/bin/composer \
     && mkdir -p /var/www/config/composer \
-    && ln -sf /var/www/config/composer /home/user/.composer
+    && ln -sf /var/www/config/composer /home/user/.composer \
+    && chown -R user:user /var/www/config/composer \
+    && chown -R user:user /home/user/.composer
 
 # Layer 05
 # Back-up Current Apache Configuration File
@@ -77,7 +81,9 @@ RUN cp /etc/apache2/ports.conf /etc/apache2/ports.conf.backup \
     && cp /etc/apache2/apache2.conf /etc/apache2/apache2.conf.backup \
     && unlink /etc/apache2/sites-enabled/000-default.conf \
     && mkdir -p /var/www/config/apache2 \
-    && mkdir -p /var/www/docker
+    && mkdir -p /var/www/docker \
+    && chown -R user:user /var/www/html \
+    && chown -R user:user /var/www/docker
 
 # Layer 06
 # Copy Pre-Configured Apache Configuration File
@@ -120,15 +126,17 @@ COPY ./content/html/info.php /var/www/docker/info.php
 # Layer 12
 # Update Default Web Content
 RUN rm -f /var/www/html/* \
-    && chmod 664 /var/www/docker/index.php \
-    && chmod 664 /var/www/docker/info.php \
+    && chown user:user /var/www/docker/index.php \
+    && chown user:user /var/www/docker/info.php \
+    && chmod 644 /var/www/docker/index.php \
+    && chmod 644 /var/www/docker/info.php \
     && cp /var/www/docker/index.php /var/www/html/index.php \
     && cp /var/www/docker/info.php /var/www/html/info.php \
-    && chown www-data:www-data /var/www/html/index.php \
-    && chown www-data:www-data /var/www/html/info.php \
-    && usermod -a -G www-data user \
-    && chmod -R 664 /var/www/html/* \
-    && chown -R www-data:www-data /var/www/html/*
+    && chown user:user /var/www/html/index.php \
+    && chown user:user /var/www/html/info.php \
+    && ln -sf /var/www/html /home/user/public_html \
+    && chown -R user:user /home/user/public_html \
+    && chmod -R 644 /home/user/public_html/*
 
 # Layer 13
 # Copy Entrypoint Script

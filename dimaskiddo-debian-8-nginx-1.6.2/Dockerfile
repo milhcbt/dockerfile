@@ -13,10 +13,12 @@ RUN mkdir -p /root/repo/key/php-suhosin \
     && apt-key add /root/repo/key/php-suhosin/repository.asc
 
 # Layer 02
-# Install Nginx
+# Install Nginx and SCM
 RUN apt-get -y update \
     && apt-get -y install \
         nginx \
+        git \
+        subversion \
     && apt-get -y autoremove \
     && apt-get -y clean
 
@@ -53,7 +55,9 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php -r "unlink('composer-setup.php');" \
     && chmod 755 /usr/local/bin/composer \
     && mkdir -p /var/www/config/composer \
-    && ln -sf /var/www/config/composer /home/user/.composer
+    && ln -sf /var/www/config/composer /home/user/.composer \
+    && chown -R user:user /var/www/config/composer \
+    && chown -R user:user /home/user/.composer
 
 # Layer 05
 # Back-up Current Nginx Configuration File
@@ -61,7 +65,9 @@ RUN cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup \
     && cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.backup \
     && mkdir -p /var/www/config/nginx \
     && mkdir -p /var/www/config/nginx/sites-available \
-    && mkdir -p /var/www/docker
+    && mkdir -p /var/www/docker \
+    && chown -R user:user /var/www/html \
+    && chown -R user:user /var/www/docker
 
 # Layer 06
 # Copy Pre-Configured Nginx Configuration File
@@ -109,15 +115,17 @@ COPY ./content/html/info.php /var/www/docker/info.php
 # Layer 12
 # Update Default Web Content
 RUN rm -f /var/www/html/* \
-    && chmod 664 /var/www/docker/index.php \
-    && chmod 664 /var/www/docker/info.php \
+    && chown user:user /var/www/docker/index.php \
+    && chown user:user /var/www/docker/info.php \
+    && chmod 644 /var/www/docker/index.php \
+    && chmod 644 /var/www/docker/info.php \
     && cp /var/www/docker/index.php /var/www/html/index.php \
     && cp /var/www/docker/info.php /var/www/html/info.php \
-    && chown www-data:www-data /var/www/html/index.php \
-    && chown www-data:www-data /var/www/html/info.php \
-    && usermod -a -G www-data user \
-    && chmod -R 664 /var/www/html/* \
-    && chown -R www-data:www-data /var/www/html/*
+    && chown user:user /var/www/html/index.php \
+    && chown user:user /var/www/html/info.php \
+    && ln -sf /var/www/html /home/user/public_html \
+    && chown -R user:user /home/user/public_html \
+    && chmod -R 644 /home/user/public_html/*
 
 # Layer 13
 # Copy Entrypoint Script
