@@ -1,16 +1,17 @@
-FROM dimaskiddo/debian:8.0
+FROM dimaskiddo/debian:jessie
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
-# Change Working User to "Root"
-USER root
-
 # Layer 01
-# Add Repository
+# Add Repository and Permissions
 RUN mkdir -p /root/repo/key/php-suhosin \
     && echo "" >> /etc/apt/sources.list \
     && echo "deb http://repo.suhosin.org/ debian-jessie main" >> /etc/apt/sources.list \
     && wget -O /root/repo/key/php-suhosin/repository.asc https://sektioneins.de/files/repository.asc \
-    && apt-key add /root/repo/key/php-suhosin/repository.asc
+    && apt-key add /root/repo/key/php-suhosin/repository.asc \
+    && mkdir -p /var/www/config \
+    && chown root:root /var/www/config \
+    && chmod a+rwx /var/www/config \
+    && chmod a+rw /etc/passwd
 
 # Layer 02
 # Install Nginx and SCM
@@ -55,9 +56,9 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php -r "unlink('composer-setup.php');" \
     && chmod 755 /usr/local/bin/composer \
     && mkdir -p /var/www/config/composer \
-    && ln -sf /var/www/config/composer /home/user/.composer \
-    && chown -R user:user /var/www/config/composer \
-    && chown -R user:user /home/user/.composer
+    && chown -R root:root /var/www/config/composer \
+    && chmod a+rwx /var/www/config/composer \
+    && ln -sf /var/www/config/composer /.composer
 
 # Layer 05
 # Back-up Current Nginx Configuration File
@@ -66,8 +67,17 @@ RUN cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup \
     && mkdir -p /var/www/config/nginx \
     && mkdir -p /var/www/config/nginx/sites-available \
     && mkdir -p /var/www/docker \
-    && chown -R user:root /var/www/html \
-    && chown -R user:root /var/www/docker
+    && chown -R root:root /var/www/config/nginx \
+    && chown -R root:root /var/www/config/nginx/sites-available \
+    && chown -R root:root /var/www/docker \
+    && chown -R root:root /var/www/html \
+    && chmod a+rwx /var/www/config/nginx \
+    && chmod a+rwx /var/www/config/nginx/sites-available \
+    && chmod a+rwx /var/www/docker \
+    && chmod a+rwx /var/www/html \
+    && ln -sf /dev/stdout /var/log/nginx/access.log \
+    && ln -sf /dev/stderr /var/log/nginx/error.log \
+    && chmod -R a+rwx /var/log/nginx    
 
 # Layer 06
 # Copy Pre-Configured Nginx Configuration File
@@ -78,26 +88,29 @@ COPY ./config/nginx/sites-available/default /etc/nginx/sites-available/default.d
 # Update Nginx Configuration
 RUN rm -f /etc/nginx/nginx.conf \
     && rm -f /etc/nginx/sites-available/default \
-    && chown user:root /etc/nginx/nginx.conf.docker \
-    && chown user:root /etc/nginx/sites-available/default.docker \
-    && chmod 664 /etc/nginx/nginx.conf.docker \
-    && chmod 664 /etc/nginx/sites-available/default.docker \
+    && chown root:root /etc/nginx/nginx.conf.docker \
+    && chown root:root /etc/nginx/sites-available/default.docker \
+    && chmod a+rw /etc/nginx/nginx.conf.docker \
+    && chmod a+rw /etc/nginx/sites-available/default.docker \
     && cp /etc/nginx/nginx.conf.docker /etc/nginx/nginx.conf \
     && cp /etc/nginx/sites-available/default.docker /var/www/config/nginx/sites-available/default \
-    && chown user:root /etc/nginx/nginx.conf \
-    && chown user:root /var/www/config/nginx/sites-available/default \
-    && chmod 664 /etc/nginx/nginx.conf \
-    && chmod 664 /var/www/config/nginx/sites-available/default \
-    && ln -sf /var/www/config/nginx/sites-available/default /etc/nginx/sites-available/default \
-    && ln -sf /dev/stdout /var/log/nginx/access.log \
-    && ln -sf /dev/stderr /var/log/nginx/error.log
+    && chown root:root /etc/nginx/nginx.conf \
+    && chown root:root /var/www/config/nginx/sites-available/default \
+    && chmod a+rw /etc/nginx/nginx.conf \
+    && chmod a+rw /var/www/config/nginx/sites-available/default \
+    && ln -sf /var/www/config/nginx/sites-available/default /etc/nginx/sites-available/default
 
 # Layer 08
 # Back-up Current PHP Configuration
 RUN cp /etc/php5/fpm/php.ini /etc/php5/fpm/php.ini.backup \
     && cp /etc/php5/fpm/pool.d/www.conf /etc/php5/fpm/pool.d/wwww.conf.backup \
-    && mkdir -p /var/www/config/php5/fpm \
-    && mkdir -p /var/www/config/php5/fpm/pool.d
+    && mkdir -p /var/www/config/php5/fpm/pool.d \
+    && chown -R root:root /var/www/config/php5 \
+    && chown -R root:root /var/www/config/php5/fpm \    
+    && chown -R root:root /var/www/config/php5/fpm/pool.d \
+    && chmod a+rwx /var/www/config/php5 \
+    && chmod a+rwx /var/www/config/php5/fpm \
+    && chmod a+rwx /var/www/config/php5/fpm/pool.d
 
 # Layer 09
 # Copy Pre-Configured PHP FPM Configuration File
@@ -108,16 +121,16 @@ COPY ./config/php5/fpm/pool.d/www.conf /etc/php5/fpm/pool.d/www.conf.docker
 # Update PHP Configuration
 RUN rm -f /etc/php5/fpm/php.ini \
     && rm -f /etc/php5/fpm/pool.d/www.conf \
-    && chown user:root /etc/php5/fpm/php.ini.docker \
-    && chown user:root /etc/php5/fpm/pool.d/www.conf.docker \
-    && chmod 664 /etc/php5/fpm/php.ini.docker \
-    && chmod 664 /etc/php5/fpm/pool.d/www.conf.docker \
+    && chown root:root /etc/php5/fpm/php.ini.docker \
+    && chown root:root /etc/php5/fpm/pool.d/www.conf.docker \
+    && chmod a+rw /etc/php5/fpm/php.ini.docker \
+    && chmod a+rw /etc/php5/fpm/pool.d/www.conf.docker \
     && cp /etc/php5/fpm/php.ini.docker /var/www/config/php5/fpm/php.ini \
     && cp /etc/php5/fpm/pool.d/www.conf.docker /var/www/config/php5/fpm/pool.d/www.conf \
-    && chown user:root /var/www/config/php5/fpm/php.ini \
-    && chown user:root /var/www/config/php5/fpm/pool.d/www.conf \
-    && chmod 664 /var/www/config/php5/fpm/php.ini \
-    && chmod 664 /var/www/config/php5/fpm/pool.d/www.conf \
+    && chown root:root /var/www/config/php5/fpm/php.ini \
+    && chown root:root /var/www/config/php5/fpm/pool.d/www.conf \
+    && chmod a+rw /var/www/config/php5/fpm/php.ini \
+    && chmod a+rw /var/www/config/php5/fpm/pool.d/www.conf \
     && ln -sf /var/www/config/php5/fpm/php.ini /etc/php5/fpm/php.ini \
     && ln -sf /var/www/config/php5/fpm/pool.d/www.conf /etc/php5/fpm/pool.d/www.conf
 
@@ -129,19 +142,16 @@ COPY ./content/html/info.php /var/www/docker/info.php
 # Layer 12
 # Update Default Web Content
 RUN rm -f /var/www/html/* \
-    && chown user:root /var/www/docker/index.php \
-    && chown user:root /var/www/docker/info.php \
-    && chmod 664 /var/www/docker/index.php \
-    && chmod 664 /var/www/docker/info.php \
+    && chown root:root /var/www/docker/index.php \
+    && chown root:root /var/www/docker/info.php \
+    && chmod a+rw /var/www/docker/index.php \
+    && chmod a+rw /var/www/docker/info.php \
     && cp /var/www/docker/index.php /var/www/html/index.php \
     && cp /var/www/docker/info.php /var/www/html/info.php \
-    && chown user:root /var/www/html/index.php \
-    && chown user:root /var/www/html/info.php \
-    && chmod 664 /var/www/html/index.php \
-    && chmod 664 /var/www/html/info.php \
-    && ln -sf /var/www/html /home/user/public_html \
-    && chown -R user:user /home/user/public_html \
-    && chmod -R 664 /home/user/public_html/*
+    && chown root:root /var/www/html/index.php \
+    && chown root:root /var/www/html/info.php \
+    && chmod a+rw /var/www/html/index.php \
+    && chmod a+rw /var/www/html/info.php
 
 # Layer 13
 # Copy Container Scripts
@@ -155,6 +165,9 @@ RUN chmod 755 /usr/local/bin/container-entrypoint \
 
 # Expose Ports
 EXPOSE 8080
+
+# Change Working Directory
+WORKDIR /var/www/html
 
 # Set Entrypoint Script
 ENTRYPOINT ["/usr/local/bin/container-entrypoint"]
