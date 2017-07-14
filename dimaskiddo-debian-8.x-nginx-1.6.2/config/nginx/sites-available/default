@@ -1,9 +1,9 @@
 server {
-	listen			8080 default_server;
+  listen      8080 default_server;
   listen      [::]:8080 default_server ipv6only=on;
   server_name _;
   charset     utf-8;
-
+  
   root /var/www/html;
   index index.php index.html index.htm;
  	
@@ -38,7 +38,17 @@ server {
     expires 24h;
     log_not_found off;
   }
-
+  
+  # Fix Trailing Slash Redirect Problem
+  location ~ ^([^.\?]*[^/])$ {
+    try_files  $uri @addslash;
+  }
+  
+  location @addslash {
+    return 301 $uri/;
+  }
+  # END Fix Trailing Slash
+  
   location / {
     try_files $uri $uri/ /index.php?$query_string;
   }
@@ -51,7 +61,7 @@ server {
     fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
     include fastcgi_params;
 		
-		# Buffer
+    # Buffer
     fastcgi_connect_timeout 600;
     fastcgi_send_timeout    600;
     fastcgi_read_timeout    600;
