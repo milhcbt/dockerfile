@@ -2,16 +2,15 @@ FROM dimaskiddo/debian:jessie
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
 # Layer 01
-# Add Repository and Permissions
-RUN mkdir -p /root/repo/key/php-suhosin \
+# Add Repository and Run Some Housekeeping
+RUN mkdir -p /repo/key/php-suhosin \
     && echo "" >> /etc/apt/sources.list \
     && echo "deb http://repo.suhosin.org/ debian-jessie main" >> /etc/apt/sources.list \
-    && wget -O /root/repo/key/php-suhosin/repository.asc https://sektioneins.de/files/repository.asc \
-    && apt-key add /root/repo/key/php-suhosin/repository.asc \
-    && mkdir -p /var/www/config \
-    && chown root:root /var/www/config \
-    && chmod a+rwx /var/www/config \
-    && chmod a+rw /etc/passwd
+    && wget -O /repo/key/php-suhosin/repository.asc https://sektioneins.de/files/repository.asc \
+    && apt-key add /repo/key/php-suhosin/repository.asc \
+    && mkdir -p /var/www/etc \
+    && chown root:root /var/www/etc \
+    && chmod 775 /var/www/etc
 
 # Layer 02
 # Install Apache and SCM
@@ -22,21 +21,7 @@ RUN apt-get -y update \
         git \
     && apt-get -y autoremove \
     && apt-get -y clean \
-    && a2enmod dir \
-    && a2enmod env \
-    && a2enmod mime \
-    && a2enmod alias \
-    && a2enmod authn_core \
-    && a2enmod authz_core \
-    && a2enmod authz_host \
-    && a2enmod authz_user \
-    && a2enmod headers \
-    && a2enmod reqtimeout \
-    && a2enmod rewrite \
-    && a2enmod proxy \
-    && a2enmod proxy_http \
-    && a2enmod deflate \
-    && a2enmod ssl
+    && a2enmod rewrite
 
 # Layer 03
 # Install PHP
@@ -71,25 +56,28 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
     && php -r "unlink('composer-setup.php');" \
     && chmod 755 /usr/local/bin/composer \
-    && mkdir -p /var/www/config/composer \
-    && chown -R root:root /var/www/config/composer \
-    && chmod a+rwx /var/www/config/composer \
-    && ln -sf /var/www/config/composer /.composer
+    && mkdir -p /var/www/etc/composer \
+    && chown -R root:root /var/www/etc/composer \
+    && chmod 775 /var/www/etc/composer \
+    && rm -rf /root/.composer \
+    && ln -sf /var/www/etc/composer /root/.composer
 
 # Layer 05
-# Back-up Current Apache Configuration File
+# Prepare Apache Configuration
 RUN cp /etc/apache2/ports.conf /etc/apache2/ports.conf.backup \
     && cp /etc/apache2/apache2.conf /etc/apache2/apache2.conf.backup \
     && unlink /etc/apache2/sites-enabled/000-default.conf \
-    && mkdir -p /var/www/config/apache2 \
+    && mkdir -p /var/www/etc/apache2 \
     && mkdir -p /var/www/docker \
-    && chown -R root:root /var/www/config/apache2 \
+    && chown -R root:root /var/www/etc/apache2 \
     && chown -R root:root /var/www/docker \
     && chown -R root:root /var/www/html \
-    && chmod a+rwx /var/www/config/apache2 \
-    && chmod a+rwx /var/www/docker \
-    && chmod a+rwx /var/www/html \
-    && chmod -R a+rwx /var/log/apache2
+    && chmod 757 /var/log/apache2 \
+    && chmod 646 /var/log/apache2/* \
+    && chmod 775 /var/www/etc/apache2 \
+    && chmod 775 /var/www/docker \
+    && chmod 775 /var/www/html \
+    && ln -sf /var/www/html /root/public_html
 
 # Layer 06
 # Copy Pre-Configured Apache Configuration File
@@ -102,26 +90,26 @@ RUN rm -f /etc/apache2/ports.conf \
     && rm -f /etc/apache2/apache2.conf \
     && chown root:root /etc/apache2/ports.conf.docker \
     && chown root:root /etc/apache2/apache2.conf.docker \
-    && chmod a+rw /etc/apache2/ports.conf.docker \
-    && chmod a+rw /etc/apache2/apache2.conf.docker \
+    && chmod 664 /etc/apache2/ports.conf.docker \
+    && chmod 664 /etc/apache2/apache2.conf.docker \
     && cp /etc/apache2/ports.conf.docker /etc/apache2/ports.conf \
-    && cp /etc/apache2/apache2.conf.docker /var/www/config/apache2/apache2.conf \
+    && cp /etc/apache2/apache2.conf.docker /var/www/etc/apache2/apache2.conf \
     && chown root:root /etc/apache2/ports.conf \
-    && chown root:root /var/www/config/apache2/apache2.conf \
-    && chmod a+rw /etc/apache2/ports.conf \
-    && chmod a+rw /var/www/config/apache2/apache2.conf \
-    && ln -sf /var/www/config/apache2/apache2.conf /etc/apache2/apache2.conf \
+    && chown root:root /var/www/etc/apache2/apache2.conf \
+    && chmod 664 /etc/apache2/ports.conf \
+    && chmod 664 /var/www/etc/apache2/apache2.conf \
+    && ln -sf /var/www/etc/apache2/apache2.conf /etc/apache2/apache2.conf \
     && chgrp -R root /var/run/apache2* /var/lock/apache2* \
     && chmod -R ug+rwx /var/run/apache2* /var/lock/apache2*
 
 # Layer 08
-# Back-up Current PHP Configuration
+# Prepare PHP Configuration
 RUN cp /etc/php5/apache2/php.ini /etc/php5/apache2/php.ini.backup \
-    && mkdir -p /var/www/config/php5/apache2 \
-    && chown -R root:root /var/www/config/php5 \
-    && chown -R root:root /var/www/config/php5/apache2 \
-    && chmod a+rwx /var/www/config/php5 \
-    && chmod a+rwx /var/www/config/php5/apache2 \
+    && mkdir -p /var/www/etc/php5/apache2 \
+    && chown -R root:root /var/www/etc/php5 \
+    && chown -R root:root /var/www/etc/php5/apache2 \
+    && chmod 775 /var/www/etc/php5 \
+    && chmod 775 /var/www/etc/php5/apache2
 
 # Layer 09
 # Copy Pre-Configured PHP Apache Configuration File
@@ -131,11 +119,11 @@ COPY ./config/php5/apache2/php.ini /etc/php5/apache2/php.ini.docker
 # Update PHP Configuration
 RUN rm -f /etc/php5/apache2/php.ini \
     && chown root:root /etc/php5/apache2/php.ini.docker \
-    && chmod a+rw /etc/php5/apache2/php.ini.docker \
-    && cp /etc/php5/apache2/php.ini.docker /var/www/config/php5/apache2/php.ini \
-    && chown root:root /var/www/config/php5/apache2/php.ini \
-    && chmod a+rw /var/www/config/php5/apache2/php.ini \
-    && ln -sf /var/www/config/php5/apache2/php.ini /etc/php5/apache2/php.ini
+    && chmod 664 /etc/php5/apache2/php.ini.docker \
+    && cp /etc/php5/apache2/php.ini.docker /var/www/etc/php5/apache2/php.ini \
+    && chown root:root /var/www/etc/php5/apache2/php.ini \
+    && chmod 664 /var/www/etc/php5/apache2/php.ini \
+    && ln -sf /var/www/etc/php5/apache2/php.ini /etc/php5/apache2/php.ini
 
 # Layer 11
 # Copy Default Web Content
@@ -147,14 +135,14 @@ COPY ./content/html/info.php /var/www/docker/info.php
 RUN rm -f /var/www/html/* \
     && chown root:root /var/www/docker/index.php \
     && chown root:root /var/www/docker/info.php \
-    && chmod a+rw /var/www/docker/index.php \
-    && chmod a+rw /var/www/docker/info.php \
+    && chmod 664 /var/www/docker/index.php \
+    && chmod 664 /var/www/docker/info.php \
     && cp /var/www/docker/index.php /var/www/html/index.php \
     && cp /var/www/docker/info.php /var/www/html/info.php \
     && chown root:root /var/www/html/index.php \
     && chown root:root /var/www/html/info.php \
-    && chmod a+rw /var/www/html/index.php \
-    && chmod a+rw /var/www/html/info.php
+    && chmod 664 /var/www/html/index.php \
+    && chmod 664 /var/www/html/info.php
 
 # Layer 13
 # Copy Container Scripts
@@ -171,6 +159,9 @@ EXPOSE 8080
 
 # Change Working Directory
 WORKDIR /var/www/html
+
+# Set Environment Variables
+ENV PATH $PATH:/root/.composer/vendor/bin
 
 # Set Entrypoint Script
 ENTRYPOINT ["/usr/local/bin/container-entrypoint"]

@@ -2,24 +2,24 @@
 
 # Prepare Apache configuration file if the file doesn't exist
 # due to volume support
-if [ ! -f /var/www/config/apache2/apache2.conf ]; then
-  mkdir -p /var/www/config/apache2
-  cp /etc/apache2/apache2.conf.docker /var/www/config/apache2/apache2.conf
+if [ ! -f /var/www/etc/apache2/apache2.conf ]; then
+  mkdir -p /var/www/etc/apache2
+  cp /etc/apache2/apache2.conf.docker /var/www/etc/apache2/apache2.conf
 fi
 
 
 # Prepare PHP Apache configuration file if the file doesn't exist
 # due to volume support
-if [ ! -f /var/www/config/php5/apache2/php.ini ]; then
-  mkdir -p /var/www/config/php5/apache2
-  cp /etc/php5/apache2/php.ini.docker /var/www/config/php5/apache2/php.ini
+if [ ! -f /var/www/etc/php5/apache2/php.ini ]; then
+  mkdir -p /var/www/etc/php5/apache2
+  cp /etc/php5/apache2/php.ini.docker /var/www/etc/php5/apache2/php.ini
 fi
 
 
 # Prepare PHP Composer configuration directory if the directory doesn't exist
 # due to volume support
-if [ ! -d /var/www/config/composer ]; then
-  mkdir -p /var/www/config/composer
+if [ ! -d /var/www/etc/composer ]; then
+  mkdir -p /var/www/etc/composer
 fi
 
 
