@@ -36,7 +36,9 @@ RUN apt-get -y install \
       php5-pspell \
       php5-recode \
       php5-suhosin-extension \
+      php5-mongo \
       php5-mysqlnd \
+      php5-pgsql \
       php5-sqlite \
       php5-tidy \
       php5-xmlrpc \
