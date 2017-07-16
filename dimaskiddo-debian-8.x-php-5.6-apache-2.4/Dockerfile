@@ -70,14 +70,14 @@ RUN cp /etc/apache2/ports.conf /etc/apache2/ports.conf.backup \
     && cp /etc/apache2/apache2.conf /etc/apache2/apache2.conf.backup \
     && unlink /etc/apache2/sites-enabled/000-default.conf \
     && mkdir -p /var/www/etc/apache2 \
-    && mkdir -p /var/www/docker \
+    && mkdir -p /usr/share/docker/www \
     && chown -R root:root /var/www/etc/apache2 \
-    && chown -R root:root /var/www/docker \
+    && chown -R root:root /usr/share/docker/www \
     && chown -R root:root /var/www/html \
     && chmod 757 /var/log/apache2 \
     && chmod 646 /var/log/apache2/* \
     && chmod 775 /var/www/etc/apache2 \
-    && chmod 775 /var/www/docker \
+    && chmod 775 /usr/share/docker/www \
     && chmod 775 /var/www/html \
     && ln -sf /var/www/html /root/public_html
 
@@ -129,18 +129,18 @@ RUN rm -f /etc/php5/apache2/php.ini \
 
 # Layer 11
 # Copy Default Web Content
-COPY ./content/html/index.php /var/www/docker/index.php
-COPY ./content/html/info.php /var/www/docker/info.php
+COPY ./content/html/index.php /usr/share/docker/files/www/index.php
+COPY ./content/html/info.php /usr/share/docker/files/www/info.php
 
 # Layer 12
 # Update Default Web Content
 RUN rm -f /var/www/html/* \
-    && chown root:root /var/www/docker/index.php \
-    && chown root:root /var/www/docker/info.php \
-    && chmod 664 /var/www/docker/index.php \
-    && chmod 664 /var/www/docker/info.php \
-    && cp /var/www/docker/index.php /var/www/html/index.php \
-    && cp /var/www/docker/info.php /var/www/html/info.php \
+    && chown root:root /usr/share/docker/files/www/index.php \
+    && chown root:root /usr/share/docker/files/www/info.php \
+    && chmod 664 /usr/share/docker/files/www/index.php \
+    && chmod 664 /usr/share/docker/files/www/info.php \
+    && cp /usr/share/docker/files/www/index.php /var/www/html/index.php \
+    && cp /usr/share/docker/files/www/info.php /var/www/html/info.php \
     && chown root:root /var/www/html/index.php \
     && chown root:root /var/www/html/info.php \
     && chmod 664 /var/www/html/index.php \
@@ -159,9 +159,6 @@ RUN chmod 755 /usr/local/bin/container-entrypoint \
 # Expose Ports
 EXPOSE 8080
 
-# Change Working Directory
-WORKDIR /var/www/html
-
 # Set Environment Variables
 ENV PATH $PATH:/root/.composer/vendor/bin
 
@@ -170,3 +167,14 @@ ENTRYPOINT ["/usr/local/bin/container-entrypoint"]
 
 # Set Executor Script
 CMD ["/usr/local/bin/container-executor"]
+
+# Set Labels Used in OpenShift to Describe the Builder Images
+LABEL release=1 \
+      vendor="Debian" \
+      summary="Virtual Machine (VM) like container platform for running PHP 5.6 applications with Apache 2.4" \
+      maintainer="Dimas Restu Hidayanto <dimas.restu@student.upi.edu>" \
+      io.k8s.description="Debian Jessie (8.x) PHP 5.6 + Composer with Apache 2.4" \
+      io.k8s.display-name="Debian Jessie (8.x) PHP 5.6 + Composer with Apache 2.4" \
+      io.openshift.tags="builder,debian8,php56,apache24" \
+      io.openshift.expose-services="8080:http" \
+      io.openshift.non-scalable="false"

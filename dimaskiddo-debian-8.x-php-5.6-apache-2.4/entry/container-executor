@@ -26,8 +26,8 @@ fi
 # Prepare Default Web Content file if the file doesn't exist
 # due to volume support
 if [[ ! -f /var/www/html/index.php && ! -f /var/www/html/public/index.php ]]; then
-  cp /var/www/docker/index.php /var/www/html/index.php
-  cp /var/www/docker/info.php /var/www/html/info.php
+  cp /usr/share/docker/files/www/index.php /var/www/html/index.php
+  cp /usr/share/docker/files/www/info.php /var/www/html/info.php
 fi
 
 

@@ -71,14 +71,14 @@ RUN cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup \
     && mkdir -p /var/lib/nginx/body \
     && mkdir -p /var/www/etc/nginx \
     && mkdir -p /var/www/etc/nginx/sites-available \
-    && mkdir -p /var/www/docker \
+    && mkdir -p /usr/share/docker/files/www \
     && chown -R root:root /dev/stdout \
     && chown -R root:root /dev/stderr \
     && chown -R root:root /var/lib/nginx \
     && chown -R root:root /var/lib/nginx/body \
     && chown -R root:root /var/www/etc/nginx \
     && chown -R root:root /var/www/etc/nginx/sites-available \
-    && chown -R root:root /var/www/docker \
+    && chown -R root:root /usr/share/docker/files/www \
     && chown -R root:root /var/www/html \
     && chmod 664 /dev/stdout \
     && chmod 664 /dev/stderr \    
@@ -88,7 +88,7 @@ RUN cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup \
     && chmod 775 /var/lib/nginx/body \
     && chmod 775 /var/www/etc/nginx \
     && chmod 775 /var/www/etc/nginx/sites-available \
-    && chmod 775 /var/www/docker \
+    && chmod 775 /usr/share/docker/files/www \
     && chmod 775 /var/www/html \
     && ln -sf /var/www/html /root/public_html
 
@@ -159,18 +159,18 @@ RUN rm -f /etc/php5/fpm/php.ini \
 
 # Layer 11
 # Copy Default Web Content
-COPY ./content/html/index.php /var/www/docker/index.php
-COPY ./content/html/info.php /var/www/docker/info.php
+COPY ./content/html/index.php /usr/share/docker/files/www/index.php
+COPY ./content/html/info.php /usr/share/docker/files/www/info.php
 
 # Layer 12
 # Update Default Web Content
 RUN rm -f /var/www/html/* \
-    && chown root:root /var/www/docker/index.php \
-    && chown root:root /var/www/docker/info.php \
-    && chmod 664 /var/www/docker/index.php \
-    && chmod 664 /var/www/docker/info.php \
-    && cp /var/www/docker/index.php /var/www/html/index.php \
-    && cp /var/www/docker/info.php /var/www/html/info.php \
+    && chown root:root /usr/share/docker/files/www/index.php \
+    && chown root:root /usr/share/docker/files/www/info.php \
+    && chmod 664 /usr/share/docker/files/www/index.php \
+    && chmod 664 /usr/share/docker/files/www/info.php \
+    && cp /usr/share/docker/files/www/index.php /var/www/html/index.php \
+    && cp /usr/share/docker/files/www/info.php /var/www/html/info.php \
     && chown root:root /var/www/html/index.php \
     && chown root:root /var/www/html/info.php \
     && chmod 664 /var/www/html/index.php \
@@ -189,9 +189,6 @@ RUN chmod 755 /usr/local/bin/container-entrypoint \
 # Expose Ports
 EXPOSE 8080
 
-# Change Working Directory
-WORKDIR /var/www/html
-
 # Set Environment Variables
 ENV PATH $PATH:/root/.composer/vendor/bin
 
@@ -200,3 +197,14 @@ ENTRYPOINT ["/usr/local/bin/container-entrypoint"]
 
 # Set Executor Script
 CMD ["/usr/local/bin/container-executor"]
+
+# Set Labels Used in OpenShift to Describe the Builder Images
+LABEL release=1 \
+      vendor="Debian" \
+      summary="Virtual Machine (VM) like container platform for running PHP 5.6 applications with Nginx 1.6.2" \
+      maintainer="Dimas Restu Hidayanto <dimas.restu@student.upi.edu>" \
+      io.k8s.description="Debian Jessie (8.x) PHP 5.6 + Composer with Nginx 1.6.2" \
+      io.k8s.display-name="Debian Jessie (8.x) PHP 5.6 + Composer with Nginx 1.6.2" \
+      io.openshift.tags="builder,debian8,php56,nginx162" \
+      io.openshift.expose-services="8080:http" \
+      io.openshift.non-scalable="false"
