@@ -20,13 +20,19 @@ RUN rpm --rebuilddb \
         kernel-devel \
         linux-firmwares \
     && yum -y --disableplugin=fastestmirror --setopt=tsflags=nodocs install \
+        ca-certificates \
+        curl \
         nano \
         net-tools \
         iproute \
         rsync \
         vim \
         wget \
-    && yum clean all
+    && yum clean all \
+    && chmod 770 /root \
+    && chmod 664 /root/.bashrc \
+    && chmod 664 /root/.profile \
+    && chmod 664 /etc/passwd
 
 # Change Working Directory to "Root" Home Directory
 WORKDIR /root

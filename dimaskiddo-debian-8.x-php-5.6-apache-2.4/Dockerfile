@@ -1,4 +1,4 @@
-FROM dimaskiddo/debian:jessie
+FROM dimaskiddo/debian:8.x
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
 # Layer 01
@@ -9,7 +9,9 @@ RUN mkdir -p /repo/key/php-suhosin \
     && wget -O /repo/key/php-suhosin/repository.asc https://sektioneins.de/files/repository.asc \
     && apt-key add /repo/key/php-suhosin/repository.asc \
     && mkdir -p /var/www/etc \
+    && chown root:root /var/www \
     && chown root:root /var/www/etc \
+    && chmod 775 /var/www \
     && chmod 775 /var/www/etc
 
 # Layer 02
@@ -156,11 +158,14 @@ COPY ./entry/container-executor /usr/local/bin/container-executor
 RUN chmod 755 /usr/local/bin/container-entrypoint \
     && chmod 755 /usr/local/bin/container-executor
 
-# Expose Ports
-EXPOSE 8080
+# Set Volumes Directory
+VOLUME /var/www
 
 # Set Environment Variables
 ENV PATH $PATH:/root/.composer/vendor/bin
+
+# Expose Ports
+EXPOSE 8080
 
 # Set Entrypoint Script
 ENTRYPOINT ["/usr/local/bin/container-entrypoint"]

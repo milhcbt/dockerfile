@@ -13,6 +13,8 @@ COPY ./sources/sources.list /etc/apt/sources.list
 RUN apt-get -y update \
     && apt-get -y install \
         apt-utils \
+        ca-certificates \
+        curl \    
         nano \
         net-tools \
         rsync \
