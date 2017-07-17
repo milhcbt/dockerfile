@@ -10,6 +10,8 @@ Repository Source:
 http://kartolo.sby.datautama.net.id
 
 Includes Base Packages:
+- ca-certificates
+- curl
 - apt-utils
 - nano
 - net-tools
