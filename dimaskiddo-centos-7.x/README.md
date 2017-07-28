@@ -1,4 +1,4 @@
-Debian Jessie (8.x) Base Image with Indonesia Local Repository and Pre-Installed Base Packages
+CentOS (7.x) Base Image with Pre-Installed Base Packages
 This Image is ready to serve with custom User ID execution using entrypoint script
 
 Build with love from Gegerkalong, Bandung, Indonesia
@@ -7,18 +7,21 @@ Maintainer:
 Dimas Restu H <dimas.restu@student.upi.edu>
 
 Repository Source:
-http://kartolo.sby.datautama.net.id
+- EPEL
+- SCL
+- Remi
 
 Includes Base Packages:
-- apt-utils
 - ca-certificates
 - curl
 - nano
 - net-tools
+- iproute
 - rsync
 - vim
 - wget
+- yum-utils
 
 
 How to pull this image:
-docker pull dimaskiddo/debian:8.x
+docker pull dimaskiddo/centos:7.x
