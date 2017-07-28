@@ -29,6 +29,9 @@ fi
 if [ ! -f /var/www/etc/httpd/conf/httpd.conf ]; then
   cp /etc/httpd/conf/httpd.conf.docker /var/www/etc/httpd/conf/httpd.conf
 fi
+if [ ! -f /var/www/etc/httpd/conf.modules.d/00-base.conf ]; then
+  cp /etc/httpd/conf.modules.d/00-base.conf.docker /var/www/etc/httpd/conf.modules.d/00-base.conf
+fi
 
 
 # Prepare PHP HttpD configuration file if the file doesn't exist
@@ -46,7 +49,7 @@ if [[ ! -f /var/www/html/index.php && ! -f /var/www/html/public/index.php ]]; th
 fi
 
 # Try to start HttpD on non-daemonize mode
-/usr/sbin/apachectl -D FOREGROUND
+/usr/sbin/httpd -D FOREGROUND
 
 
 # End the script

@@ -8,7 +8,7 @@ Dimas Restu H <dimas.restu@student.upi.edu>
 
 
 How to pull this image:
-docker pull dimaskiddo/centos-php-centos:7.x-5.6-2.4
+docker pull dimaskiddo/centos-php-apache:7.x-5.6-2.4
 
 
 How to run this image with OpenShift execution style:
