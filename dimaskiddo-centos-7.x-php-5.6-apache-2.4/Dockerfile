@@ -31,7 +31,7 @@ RUN yum -y --disableplugin=fastestmirror --setopt=tsflags=nodocs install \
       php-memcache \
       php-pspell \
       php-recode \
-      php-opcache \      
+      php-opcache \
       php-suhosin \
       php-mongo \
       php-mysqlnd \
