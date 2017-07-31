@@ -53,10 +53,7 @@ RUN apt-get -y install \
 
 # Layer 04
 # Install PHP Composer
-RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
-    && php -r "if (hash_file('SHA384', 'composer-setup.php') === '669656bab3166a7aff8a7506b8cb2d1c292f042046c5a994c43155c0be6190fa0355160742ab2e1c88d40d5be660b410') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;" \
-    && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
-    && php -r "unlink('composer-setup.php');" \
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
     && chmod 755 /usr/local/bin/composer \
     && mkdir -p /var/www/etc/composer \
     && chown -R root:root /var/www/etc/composer \
@@ -124,12 +121,18 @@ RUN cp /etc/php5/fpm/php.ini /etc/php5/fpm/php.ini.backup \
     && cp /etc/php5/fpm/pool.d/www.conf /etc/php5/fpm/pool.d/wwww.conf.backup \
     && rm -f /var/log/php5-fpm.log \
     && touch /var/log/php5-fpm.log \
+    && mkdir -p /var/lib/php/sessions \
+    && mkdir -p /var/lib/php/uploads \
     && mkdir -p /var/www/etc/php5/fpm/pool.d \
     && chown -R root:root /var/log/php5-fpm.log \
+    && chown -R root:root /var/lib/php/sessions \
+    && chown -R root:root /var/lib/php/uploads \
     && chown -R root:root /var/www/etc/php5 \
     && chown -R root:root /var/www/etc/php5/fpm \
     && chown -R root:root /var/www/etc/php5/fpm/pool.d \
     && chmod 664 /var/log/php5-fpm.log \
+    && chmod 770 /var/lib/php/sessions \
+    && chmod 770 /var/lib/php/uploads \
     && chmod 775 /var/www/etc/php5 \
     && chmod 775 /var/www/etc/php5/fpm \
     && chmod 775 /var/www/etc/php5/fpm/pool.d

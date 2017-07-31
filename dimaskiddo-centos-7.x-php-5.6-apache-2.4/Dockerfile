@@ -11,7 +11,7 @@ RUN mkdir -p /var/www/etc \
 
 # Layer 02
 # Install HttpD and SCM
-RUN yum -y --disableplugin=fastestmirror --setopt=tsflags=nodocs install \
+RUN yum -y --disableplugin=fastestmirror,ovl --setopt=tsflags=nodocs install \
       httpd \
       subversion \
       git \
@@ -19,7 +19,7 @@ RUN yum -y --disableplugin=fastestmirror --setopt=tsflags=nodocs install \
 
 # Layer 03
 # Install PHP
-RUN yum -y --disableplugin=fastestmirror --setopt=tsflags=nodocs install \
+RUN yum -y --disableplugin=fastestmirror,ovl --setopt=tsflags=nodocs install \
       php \
       php-pear \
       php-curl \
@@ -45,10 +45,7 @@ RUN yum -y --disableplugin=fastestmirror --setopt=tsflags=nodocs install \
 
 # Layer 04
 # Install PHP Composer
-RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
-    && php -r "if (hash_file('SHA384', 'composer-setup.php') === '669656bab3166a7aff8a7506b8cb2d1c292f042046c5a994c43155c0be6190fa0355160742ab2e1c88d40d5be660b410') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;" \
-    && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
-    && php -r "unlink('composer-setup.php');" \
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
     && chmod 755 /usr/local/bin/composer \
     && mkdir -p /var/www/etc/composer \
     && chown -R root:root /var/www/etc/composer \
@@ -100,8 +97,16 @@ RUN rm -f /etc/httpd/conf/httpd.conf \
 # Layer 08
 # Prepare PHP Configuration
 RUN cp /etc/php.ini /etc/php.ini.backup \
+    && mkdir -p /var/lib/php/session \
+    && mkdir -p /var/lib/php/upload \
     && mkdir -p /var/www/etc/php \
+    && chown -R root:root /var/lib/php/session \
+    && chown -R root:root /var/lib/php/upload \
+    && chown -R root:root /var/lib/php/wsdlcache \
     && chown -R root:root /var/www/etc/php \
+    && chmod 770 /var/lib/php/session \
+    && chmod 770 /var/lib/php/upload \
+    && chmod 770 /var/lib/php/wsdlcache \
     && chmod 775 /var/www/etc/php
 
 # Layer 09
