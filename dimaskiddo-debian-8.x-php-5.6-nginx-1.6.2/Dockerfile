@@ -67,7 +67,7 @@ RUN curl -sS https://getcomposer.org/installer | php \
 RUN cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup \
     && cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.backup \
     && ln -sf /dev/stdout /var/log/nginx/access.log \
-    && ln -sf /dev/stderr /var/log/nginx/error.log \    
+    && ln -sf /dev/stderr /var/log/nginx/error.log \
     && mkdir -p /var/lib/nginx/body \
     && mkdir -p /var/www/etc/nginx \
     && mkdir -p /var/www/etc/nginx/sites-available \
@@ -81,7 +81,7 @@ RUN cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup \
     && chown -R root:root /usr/share/docker/files/www \
     && chown -R root:root /var/www/html \
     && chmod 664 /dev/stdout \
-    && chmod 664 /dev/stderr \    
+    && chmod 664 /dev/stderr \
     && chmod 757 /var/log/nginx \
     && chmod 646 /var/log/nginx/* \
     && chmod 775 /var/lib/nginx \
@@ -105,10 +105,10 @@ RUN rm -f /etc/nginx/nginx.conf \
     && chown root:root /etc/nginx/sites-available/default.docker \
     && chmod 664 /etc/nginx/nginx.conf.docker \
     && chmod 664 /etc/nginx/sites-available/default.docker \
-    && touch /run/nginx.pid \    
+    && touch /run/nginx.pid \
     && cp /etc/nginx/nginx.conf.docker /etc/nginx/nginx.conf \
     && cp /etc/nginx/sites-available/default.docker /var/www/etc/nginx/sites-available/default \
-    && chown root:root /run/nginx.pid \    
+    && chown root:root /run/nginx.pid \
     && chown root:root /etc/nginx/nginx.conf \
     && chown root:root /var/www/etc/nginx/sites-available/default \
     && chmod 664 /run/nginx.pid \
@@ -125,7 +125,7 @@ RUN cp /etc/php5/fpm/php.ini /etc/php5/fpm/php.ini.backup \
     && mkdir -p /var/www/etc/php5/fpm/pool.d \
     && chown -R root:root /var/log/php5-fpm.log \
     && chown -R root:root /var/www/etc/php5 \
-    && chown -R root:root /var/www/etc/php5/fpm \    
+    && chown -R root:root /var/www/etc/php5/fpm \
     && chown -R root:root /var/www/etc/php5/fpm/pool.d \
     && chmod 664 /var/log/php5-fpm.log \
     && chmod 775 /var/www/etc/php5 \

@@ -4,17 +4,17 @@
 if [ ! -d /var/www/etc ]; then
   mkdir -p /var/www/etc
 fi
-if [ ! -d /var/www/etc/httpd ]; then
-  mkdir -p /var/www/etc/httpd
+if [ ! -d /var/www/etc/nginx ]; then
+  mkdir -p /var/www/etc/nginx
 fi
-if [ ! -d /var/www/etc/httpd/conf ]; then
-  mkdir -p /var/www/etc/httpd/conf
-fi
-if [ ! -d /var/www/etc/httpd/conf.modules.d ]; then
-  mkdir -p /var/www/etc/httpd/conf.modules.d
+if [ ! -d /var/www/etc/nginx/conf.d ]; then
+  mkdir -p /var/www/etc/nginx/conf.d
 fi
 if [ ! -d /var/www/etc/php ]; then
   mkdir -p /var/www/etc/php
+fi
+if [ ! -d /var/www/etc/php/php-fpm.d ]; then
+  mkdir -p /var/www/etc/php/php-fpm.d
 fi
 if [ ! -d /var/www/etc/composer ]; then
   mkdir -p /var/www/etc/composer
@@ -24,17 +24,20 @@ if [ ! -d /var/www/html ]; then
 fi
 
 
-# Prepare HttpD configuration file if the file doesn't exist
+# Prepare Nginx configuration file if the file doesn't exist
 # due to volume support
-if [ ! -f /var/www/etc/httpd/conf/httpd.conf ]; then
-  cp /etc/httpd/conf/httpd.conf.docker /var/www/etc/httpd/conf/httpd.conf
+if [ ! -f /var/www/etc/nginx/conf.d/default.conf ]; then
+  cp /etc/nginc/conf.d/default.conf.docker /var/www/etc/nginx/conf.d/default.conf
 fi
 
 
-# Prepare PHP HttpD configuration file if the file doesn't exist
+# Prepare PHP-FPM configuration file if the file doesn't exist
 # due to volume support
 if [ ! -f /var/www/etc/php/php.ini ]; then
   cp /etc/php.ini.docker /var/www/etc/php/php.ini
+fi
+if [ ! -f /var/www/etc/php/php-fpm.d/www.conf ]; then
+  cp /etc/php-fpm.d/www.conf.docker /var/www/etc/php/php-fpm.d/www.conf
 fi
 
 
@@ -45,8 +48,12 @@ if [[ ! -f /var/www/html/index.php && ! -f /var/www/html/public/index.php ]]; th
   cp /usr/share/docker/files/www/info.php /var/www/html/info.php
 fi
 
-# Try to start HttpD on non-daemonize mode
-/usr/sbin/apachectl -D FOREGROUND
+# Try to start PHP-FPM on daemonize mode
+/usr/sbin/php-fpm --daemonize
+
+
+# Try to start Nginx on non-daemonize mode
+/usr/sbin/nginx
 
 
 # End the script
