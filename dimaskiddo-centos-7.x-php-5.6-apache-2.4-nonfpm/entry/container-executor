@@ -16,9 +16,6 @@ fi
 if [ ! -d /var/www/etc/php ]; then
   mkdir -p /var/www/etc/php
 fi
-if [ ! -d /var/www/etc/php/php-fpm.d ]; then
-  mkdir -p /var/www/etc/php/php-fpm.d
-fi
 if [ ! -d /var/www/etc/composer ]; then
   mkdir -p /var/www/etc/composer
 fi
@@ -42,9 +39,6 @@ fi
 if [ ! -f /var/www/etc/php/php.ini ]; then
   cp /etc/php.ini.docker /var/www/etc/php/php.ini
 fi
-if [ ! -f /var/www/etc/php/php-fpm.d/www.conf ]; then
-  cp /etc/php-fpm.d/www.conf.docker /var/www/etc/php/php-fpm.d/www.conf
-fi
 
 
 # Prepare Default Web Content file if the file doesn't exist
@@ -53,10 +47,6 @@ if [[ ! -f /var/www/html/index.php && ! -f /var/www/html/public/index.php ]]; th
   cp /usr/share/docker/files/www/index.php /var/www/html/index.php
   cp /usr/share/docker/files/www/info.php /var/www/html/info.php
 fi
-
-# Try to start PHP-FPM on daemonize mode
-/usr/sbin/php-fpm --daemonize
-
 
 # Try to start HttpD on non-daemonize mode
 /usr/sbin/httpd -D FOREGROUND

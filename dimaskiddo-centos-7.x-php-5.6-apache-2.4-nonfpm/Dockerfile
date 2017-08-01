@@ -20,7 +20,7 @@ RUN yum -y --disableplugin=fastestmirror,ovl --setopt=tsflags=nodocs install \
 # Layer 03
 # Install PHP
 RUN yum -y --disableplugin=fastestmirror,ovl --setopt=tsflags=nodocs install \
-      php-fpm \
+      php \
       php-pear \
       php-curl \
       php-gd \
@@ -62,7 +62,7 @@ RUN cp /etc/httpd/conf/httpd.conf /etc/httpd/conf/httpd.conf.backup \
     && chown -R root:root /usr/share/docker/www \
     && chown -R root:root /var/www/html \
     && chmod 757 /var/log/httpd \
-    && chmod 646 /var/log/httpd/* \
+    && chmod 646 /var/log/httpd/* \    
     && chmod 775 /var/www/etc/httpd/conf \
     && chmod 775 /usr/share/docker/www \
     && chmod 775 /var/www/html \
@@ -88,49 +88,32 @@ RUN rm -f /etc/httpd/conf/httpd.conf \
 # Layer 08
 # Prepare PHP Configuration
 RUN cp /etc/php.ini /etc/php.ini.backup \
-    && cp /etc/php-fpm.d/www.conf /etc/php-fpm.d/wwww.conf.backup \
-    && touch /var/log/php-fpm/error.log \
     && mkdir -p /var/lib/php/sessions \
     && mkdir -p /var/lib/php/uploads \
-    && mkdir -p /var/www/etc/php/php-fpm.d \
-    && chown -R root:root /var/log/php-fpm/error.log \
+    && mkdir -p /var/www/etc/php \
     && chown -R root:root /var/lib/php/sessions \
     && chown -R root:root /var/lib/php/uploads \
     && chown -R root:root /var/lib/php/wsdlcache \
     && chown -R root:root /var/www/etc/php \
-    && chown -R root:root /var/www/etc/php/php-fpm.d \
-    && chmod 664 /var/log/php-fpm/error.log \
     && chmod 770 /var/lib/php/sessions \
     && chmod 770 /var/lib/php/uploads \
     && chmod 770 /var/lib/php/wsdlcache \
-    && chmod 775 /var/www/etc/php \
-    && chmod 775 /var/www/etc/php/php-fpm.d
+    && chmod 775 /var/www/etc/php
 
 # Layer 09
 # Copy Pre-Configured PHP Apache Configuration File
 COPY ./config/php/php.ini /etc/php.ini.docker
-COPY ./config/php/php-fpm.d/www.conf /etc/php-fpm.d/www.conf.docker
 
 # Layer 10
 # Update PHP Configuration
 RUN rm -rf /var/lib/php/session \
     && rm -f /etc/php.ini \
-    && rm -f /etc/php-fpm.d/www.conf \
     && chown root:root /etc/php.ini.docker \
-    && chown root:root /etc/php-fpm.d/www.conf.docker \
     && chmod 664 /etc/php.ini.docker \
-    && chmod 664 /etc/php-fpm.d/www.conf.docker \
-    && touch /run/php-fpm/php-fpm.pid \
     && cp /etc/php.ini.docker /var/www/etc/php/php.ini \
-    && cp /etc/php-fpm.d/www.conf.docker /var/www/etc/php/php-fpm.d/www.conf \
-    && chown root:root /run/php-fpm/php-fpm.pid \
     && chown root:root /var/www/etc/php/php.ini \
-    && chown root:root /var/www/etc/php/php-fpm.d/www.conf \
-    && chmod 664 /run/php-fpm/php-fpm.pid \
     && chmod 664 /var/www/etc/php/php.ini \
-    && chmod 664 /var/www/etc/php/php-fpm.d/www.conf \
-    && ln -sf /var/www/etc/php/php.ini /etc/php.ini \
-    && ln -sf /var/www/etc/php/php-fpm.d/www.conf /etc/php-fpm.d/www.conf
+    && ln -sf /var/www/etc/php/php.ini /etc/php.ini
 
 # Layer 11
 # Copy Default Web Content
@@ -179,7 +162,7 @@ CMD ["/usr/local/bin/container-executor"]
 # Set Labels Used in OpenShift to Describe the Builder Images
 LABEL release=1 \
       vendor="CentOS" \
-      summary="Virtual Machine (VM) like container platform for running PHP 5.6 applications with Apache 2.4" \
+      summary="Virtual Machine (VM) like container platform for running PHP 5.6 applications with Apache 2.4 (Non-FPM)" \
       maintainer="Dimas Restu Hidayanto <dimas.restu@student.upi.edu>" \
       io.k8s.description="CentOS (7.x) PHP 5.6 + Composer with Apache 2.4" \
       io.k8s.display-name="CentOS (7.x) PHP 5.6 + Composer with Apache 2.4" \

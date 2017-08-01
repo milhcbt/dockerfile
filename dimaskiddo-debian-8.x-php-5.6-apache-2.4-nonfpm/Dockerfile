@@ -28,6 +28,7 @@ RUN apt-get -y update \
 # Layer 03
 # Install PHP
 RUN apt-get -y install \
+      php5 \
       php-pear \
       php5-curl \
       php5-gd \
@@ -46,8 +47,7 @@ RUN apt-get -y install \
       php5-tidy \
       php5-xmlrpc \
       php5-xsl \
-      php5-fpm \
-      libapache2-mod-fastcgi \
+      libapache2-mod-php5 \
     && apt-get -y autoremove \
     && apt-get -y clean \
     && php5enmod suhosin \
@@ -179,7 +179,7 @@ CMD ["/usr/local/bin/container-executor"]
 # Set Labels Used in OpenShift to Describe the Builder Images
 LABEL release=1 \
       vendor="Debian" \
-      summary="Virtual Machine (VM) like container platform for running PHP 5.6 applications with Apache 2.4" \
+      summary="Virtual Machine (VM) like container platform for running PHP 5.6 applications with Apache 2. (Non-FPM)" \
       maintainer="Dimas Restu Hidayanto <dimas.restu@student.upi.edu>" \
       io.k8s.description="Debian Jessie (8.x) PHP 5.6 + Composer with Apache 2.4" \
       io.k8s.display-name="Debian Jessie (8.x) PHP 5.6 + Composer with Apache 2.4" \
