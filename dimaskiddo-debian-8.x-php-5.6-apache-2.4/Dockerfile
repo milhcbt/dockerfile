@@ -19,10 +19,13 @@ RUN mkdir -p /repo/key/php-suhosin \
 RUN apt-get -y update \
     && apt-get -y install \
         apache2 \
+        libapache2-mod-fastcgi \
         subversion \
         git \
     && apt-get -y autoremove \
     && apt-get -y clean \
+    && a2dismod fastcgi \
+    && a2enmod proxy_fcgi \
     && a2enmod rewrite
 
 # Layer 03
@@ -47,7 +50,6 @@ RUN apt-get -y install \
       php5-xmlrpc \
       php5-xsl \
       php5-fpm \
-      libapache2-mod-fastcgi \
     && apt-get -y autoremove \
     && apt-get -y clean \
     && php5enmod suhosin \
@@ -82,55 +84,73 @@ RUN cp /etc/apache2/ports.conf /etc/apache2/ports.conf.backup \
 
 # Layer 06
 # Copy Pre-Configured Apache Configuration File
-COPY ./config/apache2/ports.conf /etc/apache2/ports.conf.docker
 COPY ./config/apache2/apache2.conf /etc/apache2/apache2.conf.docker
+COPY ./config/apache2/ports.conf /etc/apache2/ports.conf.docker
 
 # Layer 07
 # Update Apache Configuration
-RUN rm -f /etc/apache2/ports.conf \
-    && rm -f /etc/apache2/apache2.conf \
-    && chown root:root /etc/apache2/ports.conf.docker \
+RUN rm -f /etc/apache2/apache2.conf \
+    && rm -f /etc/apache2/ports.conf \
     && chown root:root /etc/apache2/apache2.conf.docker \
-    && chmod 664 /etc/apache2/ports.conf.docker \
+    && chown root:root /etc/apache2/ports.conf.docker \
     && chmod 664 /etc/apache2/apache2.conf.docker \
-    && cp /etc/apache2/ports.conf.docker /etc/apache2/ports.conf \
+    && chmod 664 /etc/apache2/ports.conf.docker \
     && cp /etc/apache2/apache2.conf.docker /var/www/etc/apache2/apache2.conf \
-    && chown root:root /etc/apache2/ports.conf \
+    && cp /etc/apache2/ports.conf.docker /etc/apache2/ports.conf \
     && chown root:root /var/www/etc/apache2/apache2.conf \
-    && chmod 664 /etc/apache2/ports.conf \
+    && chown root:root /etc/apache2/ports.conf \
     && chmod 664 /var/www/etc/apache2/apache2.conf \
+    && chmod 664 /etc/apache2/ports.conf \
     && ln -sf /var/www/etc/apache2/apache2.conf /etc/apache2/apache2.conf \
     && chgrp -R root /var/run/apache2* /var/lock/apache2* \
     && chmod -R ug+rwx /var/run/apache2* /var/lock/apache2*
 
 # Layer 08
 # Prepare PHP Configuration
-RUN cp /etc/php5/apache2/php.ini /etc/php5/apache2/php.ini.backup \
+RUN cp /etc/php5/fpm/php.ini /etc/php5/fpm/php.ini.backup \
+    && cp /etc/php5/fpm/pool.d/www.conf /etc/php5/fpm/pool.d/wwww.conf.backup \
+    && rm -f /var/log/php5-fpm.log \
+    && touch /var/log/php5-fpm.log \
     && mkdir -p /var/lib/php/sessions \
     && mkdir -p /var/lib/php/uploads \
-    && mkdir -p /var/www/etc/php5/apache2 \
+    && mkdir -p /var/www/etc/php5/fpm/pool.d \
+    && chown -R root:root /var/log/php5-fpm.log \
     && chown -R root:root /var/lib/php/sessions \
     && chown -R root:root /var/lib/php/uploads \
     && chown -R root:root /var/www/etc/php5 \
-    && chown -R root:root /var/www/etc/php5/apache2 \
+    && chown -R root:root /var/www/etc/php5/fpm \
+    && chown -R root:root /var/www/etc/php5/fpm/pool.d \
+    && chmod 664 /var/log/php5-fpm.log \
     && chmod 770 /var/lib/php/sessions \
     && chmod 770 /var/lib/php/uploads \
     && chmod 775 /var/www/etc/php5 \
-    && chmod 775 /var/www/etc/php5/apache2
+    && chmod 775 /var/www/etc/php5/fpm \
+    && chmod 775 /var/www/etc/php5/fpm/pool.d
 
 # Layer 09
 # Copy Pre-Configured PHP Apache Configuration File
-COPY ./config/php5/apache2/php.ini /etc/php5/apache2/php.ini.docker
+COPY ./config/php5/fpm/php.ini /etc/php5/fpm/php.ini.docker
+COPY ./config/php5/fpm/pool.d/www.conf /etc/php5/fpm/pool.d/www.conf.docker
 
 # Layer 10
 # Update PHP Configuration
-RUN rm -f /etc/php5/apache2/php.ini \
-    && chown root:root /etc/php5/apache2/php.ini.docker \
-    && chmod 664 /etc/php5/apache2/php.ini.docker \
-    && cp /etc/php5/apache2/php.ini.docker /var/www/etc/php5/apache2/php.ini \
-    && chown root:root /var/www/etc/php5/apache2/php.ini \
-    && chmod 664 /var/www/etc/php5/apache2/php.ini \
-    && ln -sf /var/www/etc/php5/apache2/php.ini /etc/php5/apache2/php.ini
+RUN rm -f /etc/php5/fpm/php.ini \
+    && rm -f /etc/php5/fpm/pool.d/www.conf \
+    && chown root:root /etc/php5/fpm/php.ini.docker \
+    && chown root:root /etc/php5/fpm/pool.d/www.conf.docker \
+    && chmod 664 /etc/php5/fpm/php.ini.docker \
+    && chmod 664 /etc/php5/fpm/pool.d/www.conf.docker \
+    && touch /run/php5-fpm.pid \
+    && cp /etc/php5/fpm/php.ini.docker /var/www/etc/php5/fpm/php.ini \
+    && cp /etc/php5/fpm/pool.d/www.conf.docker /var/www/etc/php5/fpm/pool.d/www.conf \
+    && chown root:root /run/php5-fpm.pid \
+    && chown root:root /var/www/etc/php5/fpm/php.ini \
+    && chown root:root /var/www/etc/php5/fpm/pool.d/www.conf \
+    && chmod 664 /run/php5-fpm.pid \
+    && chmod 664 /var/www/etc/php5/fpm/php.ini \
+    && chmod 664 /var/www/etc/php5/fpm/pool.d/www.conf \
+    && ln -sf /var/www/etc/php5/fpm/php.ini /etc/php5/fpm/php.ini \
+    && ln -sf /var/www/etc/php5/fpm/pool.d/www.conf /etc/php5/fpm/pool.d/www.conf
 
 # Layer 11
 # Copy Default Web Content

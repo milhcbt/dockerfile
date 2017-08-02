@@ -10,9 +10,6 @@ fi
 if [ ! -d /var/www/etc/httpd/conf ]; then
   mkdir -p /var/www/etc/httpd/conf
 fi
-if [ ! -d /var/www/etc/httpd/conf.modules.d ]; then
-  mkdir -p /var/www/etc/httpd/conf.modules.d
-fi
 if [ ! -d /var/www/etc/php ]; then
   mkdir -p /var/www/etc/php
 fi
@@ -28,9 +25,6 @@ fi
 # due to volume support
 if [ ! -f /var/www/etc/httpd/conf/httpd.conf ]; then
   cp /etc/httpd/conf/httpd.conf.docker /var/www/etc/httpd/conf/httpd.conf
-fi
-if [ ! -f /var/www/etc/httpd/conf.modules.d/00-base.conf ]; then
-  cp /etc/httpd/conf.modules.d/00-base.conf.docker /var/www/etc/httpd/conf.modules.d/00-base.conf
 fi
 
 

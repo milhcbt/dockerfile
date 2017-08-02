@@ -62,7 +62,6 @@ RUN cp /etc/httpd/conf/httpd.conf /etc/httpd/conf/httpd.conf.backup \
     && chown -R root:root /usr/share/docker/www \
     && chown -R root:root /var/www/html \
     && chmod 757 /var/log/httpd \
-    && chmod 646 /var/log/httpd/* \
     && chmod 775 /var/www/etc/httpd/conf \
     && chmod 775 /usr/share/docker/www \
     && chmod 775 /var/www/html \
@@ -72,6 +71,7 @@ RUN cp /etc/httpd/conf/httpd.conf /etc/httpd/conf/httpd.conf.backup \
 # Copy Pre-Configured HttpD Configuration File
 COPY ./config/httpd/conf/httpd.conf /etc/httpd/conf/httpd.conf.docker
 COPY ./config/httpd/conf.d/php.conf /etc/httpd/conf.d/php.conf
+COPY ./config/httpd/conf.modules.d/00-base.conf /etc/httpd/conf.modules.d/00-base.conf
 
 # Layer 07
 # Update HttpD Configuration

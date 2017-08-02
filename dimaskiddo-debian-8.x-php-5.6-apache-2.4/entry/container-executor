@@ -10,8 +10,11 @@ fi
 if [ ! -d /var/www/etc/php5 ]; then
   mkdir -p /var/www/etc/php5
 fi
-if [ ! -d /var/www/etc/php5/apache2 ]; then
-  mkdir -p /var/www/etc/php5/apache2
+if [ ! -d /var/www/etc/php5/fpm ]; then
+  mkdir -p /var/www/etc/php5/fpm
+fi
+if [ ! -d /var/www/etc/php5/fpm/pool.d ]; then
+  mkdir -p /var/www/etc/php5/fpm/pool.d
 fi
 if [ ! -d /var/www/etc/composer ]; then
   mkdir -p /var/www/etc/composer
@@ -30,8 +33,11 @@ fi
 
 # Prepare PHP Apache configuration file if the file doesn't exist
 # due to volume support
-if [ ! -f /var/www/etc/php5/apache2/php.ini ]; then
-  cp /etc/php5/apache2/php.ini.docker /var/www/etc/php5/apache2/php.ini
+if [ ! -f /var/www/etc/php5/fpm/php.ini ]; then
+  cp /etc/php5/fpm/php.ini.docker /var/www/etc/php5/fpm/php.ini
+fi
+if [ ! -f /var/www/etc/php5/fpm/pool.d/www.conf ]; then
+  cp /etc/php5/fpm/pool.d/www.conf.docker /var/www/etc/php5/fpm/pool.d/www.conf
 fi
 
 
@@ -41,6 +47,10 @@ if [[ ! -f /var/www/html/index.php && ! -f /var/www/html/public/index.php ]]; th
   cp /usr/share/docker/files/www/index.php /var/www/html/index.php
   cp /usr/share/docker/files/www/info.php /var/www/html/info.php
 fi
+
+# Try to start PHP-FPM on daemonize mode
+/usr/sbin/php5-fpm --daemonize
+
 
 # Try to start Apache on non-daemonize mode
 /usr/sbin/apache2ctl -D FOREGROUND

@@ -19,6 +19,7 @@ RUN mkdir -p /repo/key/php-suhosin \
 RUN apt-get -y update \
     && apt-get -y install \
         apache2 \
+        libapache2-mod-php5 \
         subversion \
         git \
     && apt-get -y autoremove \
@@ -47,7 +48,6 @@ RUN apt-get -y install \
       php5-tidy \
       php5-xmlrpc \
       php5-xsl \
-      libapache2-mod-php5 \
     && apt-get -y autoremove \
     && apt-get -y clean \
     && php5enmod suhosin \
