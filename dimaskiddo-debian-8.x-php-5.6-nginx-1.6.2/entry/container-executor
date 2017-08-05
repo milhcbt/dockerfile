@@ -1,6 +1,9 @@
 #!/bin/bash
 
 # Prepare configuration directory and permission
+if [ ! -d /var/www/html ]; then
+  mkdir -p /var/www/html
+fi
 if [ ! -d /var/www/etc ]; then
   mkdir -p /var/www/etc
 fi
@@ -21,9 +24,6 @@ if [ ! -d /var/www/etc/php5/fpm/pool.d ]; then
 fi
 if [ ! -d /var/www/etc/composer ]; then
   mkdir -p /var/www/etc/composer
-fi
-if [ ! -d /var/www/html ]; then
-  mkdir -p /var/www/html
 fi
 
 

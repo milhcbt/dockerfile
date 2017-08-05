@@ -71,14 +71,16 @@ RUN cp /etc/apache2/ports.conf /etc/apache2/ports.conf.backup \
     && cp /etc/apache2/apache2.conf /etc/apache2/apache2.conf.backup \
     && unlink /etc/apache2/sites-enabled/000-default.conf \
     && mkdir -p /var/www/etc/apache2 \
-    && mkdir -p /usr/share/docker/www \
+    && mkdir -p /usr/share/docker/files/www \
     && chown -R root:root /var/www/etc/apache2 \
-    && chown -R root:root /usr/share/docker/www \
+    && chown -R root:root /usr/share/docker/files \
+    && chown -R root:root /usr/share/docker/files/www \
     && chown -R root:root /var/www/html \
     && chmod 757 /var/log/apache2 \
     && chmod 646 /var/log/apache2/* \
     && chmod 775 /var/www/etc/apache2 \
-    && chmod 775 /usr/share/docker/www \
+    && chmod 775 /usr/share/docker/files \
+    && chmod 775 /usr/share/docker/files/www \
     && chmod 775 /var/www/html \
     && ln -sf /var/www/html /root/public_html
 

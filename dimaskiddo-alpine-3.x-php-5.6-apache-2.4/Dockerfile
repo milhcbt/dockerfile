@@ -114,7 +114,7 @@ COPY ./config/apache2/httpd.conf /etc/apache2/httpd.conf.docker
 
 # Layer 07
 # Update Apache Configuration
-RUN rm -rf /var/www/data/localhost \
+RUN rm -rf /var/www/localhost \
     && rm -f /etc/apache2/httpd.conf \
     && chown root:root /etc/apache2/httpd.conf.docker \
     && chmod 664 /etc/apache2/httpd.conf.docker \

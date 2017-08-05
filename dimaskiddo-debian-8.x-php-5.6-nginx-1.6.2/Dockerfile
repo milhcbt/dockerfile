@@ -77,6 +77,7 @@ RUN cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup \
     && chown -R root:root /var/lib/nginx/body \
     && chown -R root:root /var/www/etc/nginx \
     && chown -R root:root /var/www/etc/nginx/sites-available \
+    && chown -R root:root /usr/share/docker/files \
     && chown -R root:root /usr/share/docker/files/www \
     && chown -R root:root /var/www/html \
     && chmod 664 /dev/stdout \
@@ -87,6 +88,7 @@ RUN cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup \
     && chmod 775 /var/lib/nginx/body \
     && chmod 775 /var/www/etc/nginx \
     && chmod 775 /var/www/etc/nginx/sites-available \
+    && chmod 775 /usr/share/docker/files \
     && chmod 775 /usr/share/docker/files/www \
     && chmod 775 /var/www/html \
     && ln -sf /var/www/html /root/public_html

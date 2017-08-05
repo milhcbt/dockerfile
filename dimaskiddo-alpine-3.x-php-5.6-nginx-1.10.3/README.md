@@ -11,9 +11,9 @@ How to pull this image:
 docker pull dimaskiddo/alpine-php-nginx:3.x-5.6-1.10.3
 
 
-How to run this image with OpenShift execution style:
-docker run -p 80:8080 --user <CUSTOM_USER_ID> --name <CONTAINER_NAME> dimaskiddo/alpine-php-nginx:3.x-5.6-1.10.3
+How to run this image:
+docker run -p 80:8080 -v <local_data_path>:/var/www/data --name <container_name> dimaskiddo/alpine-php-nginx:3.x-5.6-1.10.3
 
 
-How to get interactive terminal in running container:
-docker exec -it <CONTAINER_NAME> /bin/bash
+How to get in container after run this image:
+docker exec -it <container_name> /bin/bash

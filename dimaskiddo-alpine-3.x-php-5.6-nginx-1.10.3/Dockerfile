@@ -100,6 +100,7 @@ RUN cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup \
     && chown -R root:root /var/lib/nginx/tmp/client_body \
     && chown -R root:root /var/www/data/etc/nginx \
     && chown -R root:root /var/www/data/etc/nginx/conf.d \
+    && chown -R root:root /usr/share/docker/files \
     && chown -R root:root /usr/share/docker/files/www \
     && chown -R root:root /var/www/data/html \
     && chmod 664 /dev/stdout \
@@ -111,6 +112,7 @@ RUN cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup \
     && chmod 775 /var/lib/nginx/tmp/client_body \
     && chmod 775 /var/www/data/etc/nginx \
     && chmod 775 /var/www/data/etc/nginx/conf.d \
+    && chmod 775 /usr/share/docker/files \
     && chmod 775 /usr/share/docker/files/www \
     && chmod 775 /var/www/data/html \
     && ln -sf /var/www/data/html /root/public_html
@@ -122,7 +124,8 @@ COPY ./config/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf.docker
 
 # Layer 07
 # Update Nginx Configuration
-RUN rm -f /etc/nginx/nginx.conf \
+RUN rm -rf /var/www/localhost \
+    && rm -f /etc/nginx/nginx.conf \
     && chown root:root /etc/nginx/nginx.conf.docker \
     && chown root:root /etc/nginx/conf.d/default.conf.docker \
     && chmod 664 /etc/nginx/nginx.conf.docker \

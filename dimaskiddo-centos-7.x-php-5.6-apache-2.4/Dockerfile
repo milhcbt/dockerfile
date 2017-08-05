@@ -57,13 +57,15 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Prepare HttpD Configuration
 RUN cp /etc/httpd/conf/httpd.conf /etc/httpd/conf/httpd.conf.backup \
     && mkdir -p /var/www/etc/httpd/conf \
-    && mkdir -p /usr/share/docker/www \
+    && mkdir -p /usr/share/docker/files/www \
     && chown -R root:root /var/www/etc/httpd/conf \
-    && chown -R root:root /usr/share/docker/www \
+    && chown -R root:root /usr/share/docker/files \
+    && chown -R root:root /usr/share/docker/files/www \
     && chown -R root:root /var/www/html \
     && chmod 757 /var/log/httpd \
     && chmod 775 /var/www/etc/httpd/conf \
-    && chmod 775 /usr/share/docker/www \
+    && chmod 775 /usr/share/docker/files \
+    && chmod 775 /usr/share/docker/files/www \
     && chmod 775 /var/www/html \
     && ln -sf /var/www/html /root/public_html
 

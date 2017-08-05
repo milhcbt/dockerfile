@@ -1,6 +1,12 @@
 #!/bin/bash
 
 # Prepare configuration directory and permission
+if [ ! -d /var/www/html ]; then
+  mkdir -p /var/www/html
+fi
+if [ ! -d /var/www/cgi-bin ]; then
+  mkdir -p /var/www/cgi-bin
+fi
 if [ ! -d /var/www/etc ]; then
   mkdir -p /var/www/etc
 fi
@@ -18,9 +24,6 @@ if [ ! -d /var/www/etc/php5/fpm/pool.d ]; then
 fi
 if [ ! -d /var/www/etc/composer ]; then
   mkdir -p /var/www/etc/composer
-fi
-if [ ! -d /var/www/html ]; then
-  mkdir -p /var/www/html
 fi
 
 
@@ -47,6 +50,7 @@ if [[ ! -f /var/www/html/index.php && ! -f /var/www/html/public/index.php ]]; th
   cp /usr/share/docker/files/www/index.php /var/www/html/index.php
   cp /usr/share/docker/files/www/info.php /var/www/html/info.php
 fi
+
 
 # Try to start PHP-FPM on daemonize mode
 /usr/sbin/php5-fpm --daemonize

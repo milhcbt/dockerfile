@@ -11,9 +11,9 @@ How to pull this image:
 docker pull dimaskiddo/centos-php-apache:7.x-5.6-2.4
 
 
-How to run this image with OpenShift execution style:
-docker run -p 80:8080 --user <CUSTOM_USER_ID> --name <CONTAINER_NAME> dimaskiddo/centos-php-apache:7.x-5.6-2.4
+How to run this image:
+docker run -p 80:8080 -v <local_data_path>:/var/www --name <container_name> dimaskiddo/centos-php-apache:7.x-5.6-2.4
 
 
-How to get interactive terminal in running container:
-docker exec -it <CONTAINER_NAME> /bin/bash
+How to get in container after run this image:
+docker exec -it <container_name> /bin/bash
