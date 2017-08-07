@@ -22,8 +22,21 @@ fi
 if [ ! -d /var/www/etc/php/php-fpm.d ]; then
   mkdir -p /var/www/etc/php/php-fpm.d
 fi
+if [ ! -d /var/www/etc/php/lib ]; then
+  mkdir -p /var/www/etc/php/lib
+fi
+if [ ! -d /var/www/etc/php/lib/sessions ]; then
+  mkdir -p /var/www/etc/php/lib/sessions
+fi
+if [ ! -d /var/www/etc/php/lib/uploads ]; then
+  mkdir -p /var/www/etc/php/lib/uploads
+fi
 if [ ! -d /var/www/etc/composer ]; then
   mkdir -p /var/www/etc/composer
+fi
+if [ $UID == 0 ]; then
+  chown user:root /var/www/etc/php/lib/sessions
+  chown user:root /var/www/etc/php/lib/uploads
 fi
 
 

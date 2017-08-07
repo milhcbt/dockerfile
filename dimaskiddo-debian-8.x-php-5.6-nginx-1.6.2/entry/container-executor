@@ -22,6 +22,15 @@ fi
 if [ ! -d /var/www/etc/php5/fpm/pool.d ]; then
   mkdir -p /var/www/etc/php5/fpm/pool.d
 fi
+if [ ! -d /var/www/etc/php5/lib ]; then
+  mkdir -p /var/www/etc/php5/lib
+fi
+if [ ! -d /var/www/etc/php5/lib/sessions ]; then
+  mkdir -p /var/www/etc/php5/lib/sessions
+fi
+if [ ! -d /var/www/etc/php5/lib/uploads ]; then
+  mkdir -p /var/www/etc/php5/lib/uploads
+fi
 if [ ! -d /var/www/etc/composer ]; then
   mkdir -p /var/www/etc/composer
 fi
