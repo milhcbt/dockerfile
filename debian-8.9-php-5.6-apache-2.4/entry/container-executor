@@ -1,0 +1,78 @@
+#!/bin/bash
+
+# Prepare configuration directory and permission
+if [ ! -d /var/www/html ]; then
+  mkdir -p /var/www/html
+fi
+if [ ! -d /var/www/cgi-bin ]; then
+  mkdir -p /var/www/cgi-bin
+fi
+if [ ! -d /var/www/etc ]; then
+  mkdir -p /var/www/etc
+fi
+if [ ! -d /var/www/etc/apache2 ]; then
+  mkdir -p /var/www/etc/apache2
+fi
+if [ ! -d /var/www/etc/php5 ]; then
+  mkdir -p /var/www/etc/php5
+fi
+if [ ! -d /var/www/etc/php5/fpm ]; then
+  mkdir -p /var/www/etc/php5/fpm
+fi
+if [ ! -d /var/www/etc/php5/fpm/pool.d ]; then
+  mkdir -p /var/www/etc/php5/fpm/pool.d
+fi
+if [ ! -d /var/www/etc/php5/lib ]; then
+  mkdir -p /var/www/etc/php5/lib
+fi
+if [ ! -d /var/www/etc/php5/lib/sessions ]; then
+  mkdir -p /var/www/etc/php5/lib/sessions
+fi
+if [ ! -d /var/www/etc/php5/lib/uploads ]; then
+  mkdir -p /var/www/etc/php5/lib/uploads
+fi
+if [ ! -d /var/www/etc/composer ]; then
+  mkdir -p /var/www/etc/composer
+fi
+if [ $UID == 0 ]; then
+  chown user:root /var/www/etc/php5/lib/sessions
+  chown user:root /var/www/etc/php5/lib/uploads
+fi
+
+
+
+# Prepare Apache configuration file if the file doesn't exist
+# due to volume support
+if [ ! -f /var/www/etc/apache2/apache2.conf ]; then
+  cp /etc/apache2/apache2.conf.docker /var/www/etc/apache2/apache2.conf
+fi
+
+
+# Prepare PHP Apache configuration file if the file doesn't exist
+# due to volume support
+if [ ! -f /var/www/etc/php5/fpm/php.ini ]; then
+  cp /etc/php5/fpm/php.ini.docker /var/www/etc/php5/fpm/php.ini
+fi
+if [ ! -f /var/www/etc/php5/fpm/pool.d/www.conf ]; then
+  cp /etc/php5/fpm/pool.d/www.conf.docker /var/www/etc/php5/fpm/pool.d/www.conf
+fi
+
+
+# Prepare Default Web Content file if the file doesn't exist
+# due to volume support
+if [[ ! -f /var/www/html/index.php && ! -f /var/www/html/public/index.php ]]; then
+  cp /usr/share/docker/files/www/index.php /var/www/html/index.php
+  cp /usr/share/docker/files/www/info.php /var/www/html/info.php
+fi
+
+
+# Try to start PHP-FPM on daemonize mode
+/usr/sbin/php5-fpm --daemonize
+
+
+# Try to start Apache on non-daemonize mode
+/usr/sbin/apache2ctl -D FOREGROUND
+
+
+# End the script
+exit 0
