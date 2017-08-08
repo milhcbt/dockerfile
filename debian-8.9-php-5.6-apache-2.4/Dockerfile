@@ -2,13 +2,8 @@ FROM dimaskiddo/debian:8.9
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
 # Layer 01
-# Add Repository and Run Some Housekeeping
-RUN mkdir -p /repo/key/php-suhosin \
-    && echo "" >> /etc/apt/sources.list \
-    && echo "deb http://repo.suhosin.org/ debian-jessie main" >> /etc/apt/sources.list \
-    && wget -O /repo/key/php-suhosin/repository.asc https://sektioneins.de/files/repository.asc \
-    && apt-key add /repo/key/php-suhosin/repository.asc \
-    && mkdir -p /var/www/etc \
+# Run Some Housekeeping
+RUN mkdir -p /var/www/etc \
     && chown root:root /var/www \
     && chown root:root /var/www/etc \
     && chmod 775 /var/www \
@@ -41,7 +36,6 @@ RUN apt-get -y install \
       php5-memcache \
       php5-pspell \
       php5-recode \
-      php5-suhosin-extension \
       php5-mongo \
       php5-mysqlnd \
       php5-pgsql \
@@ -51,9 +45,7 @@ RUN apt-get -y install \
       php5-xsl \
       php5-fpm \
     && apt-get -y autoremove \
-    && apt-get -y clean \
-    && php5enmod suhosin \
-    && echo "suhosin.executor.include.whitelist = phar" >> /etc/php5/cli/conf.d/suhosin.ini
+    && apt-get -y clean
 
 # Layer 04
 # Install PHP Composer
