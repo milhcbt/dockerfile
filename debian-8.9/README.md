@@ -1,4 +1,4 @@
-Debian Jessie (8.x) Base Image with Indonesia Local Repository and Pre-Installed Base Packages
+Debian Jessie (8.9) Base Image with Pre-Installed Base Packages
 This Image is ready to serve with custom User ID execution using entrypoint script
 
 Build with love from Gegerkalong, Bandung, Indonesia
@@ -21,4 +21,4 @@ Includes Base Packages:
 
 
 How to pull this image:
-docker pull dimaskiddo/debian:8.x
+docker pull dimaskiddo/debian:8.9
