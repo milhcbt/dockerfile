@@ -129,19 +129,15 @@ RUN rm -rf /var/www/localhost \
 # Prepare PHP Configuration
 RUN cp /etc/php5/php.ini /etc/php5/php.ini.backup \
     && cp /etc/php5/php-fpm.conf /etc/php5/php-fpm.conf.backup \
+    && mkdir -p /var/lib/php \
+    && rm -rf /var/lib/php/* \
     && touch /var/log/php-fpm.log \
-    && mkdir -p /var/lib/php/sessions \
-    && mkdir -p /var/lib/php/uploads \
     && mkdir -p /var/www/data/etc/php5 \
-    && chown -R root:root /var/log/php-fpm.log \
     && chown -R root:root /var/lib/php \
-    && chown -R root:root /var/lib/php/sessions \
-    && chown -R root:root /var/lib/php/uploads \
+    && chown -R root:root /var/log/php-fpm.log \
     && chown -R root:root /var/www/data/etc/php5 \
-    && chmod 664 /var/log/php-fpm.log \
     && chmod 775 /var/lib/php \
-    && chmod 770 /var/lib/php/sessions \
-    && chmod 770 /var/lib/php/uploads \
+    && chmod 664 /var/log/php-fpm.log \
     && chmod 775 /var/www/data/etc/php5
 
 # Layer 09

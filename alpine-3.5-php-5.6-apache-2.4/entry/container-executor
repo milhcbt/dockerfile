@@ -16,21 +16,18 @@ fi
 if [ ! -d /var/www/data/etc/php5 ]; then
   mkdir -p /var/www/data/etc/php5
 fi
-if [ ! -d /var/www/data/etc/php5/lib ]; then
-  mkdir -p /var/www/data/etc/php5/lib
-fi
-if [ ! -d /var/www/data/etc/php5/lib/sessions ]; then
-  mkdir -p /var/www/data/etc/php5/lib/sessions
-fi
-if [ ! -d /var/www/data/etc/php5/lib/uploads ]; then
-  mkdir -p /var/www/data/etc/php5/lib/uploads
-fi
 if [ ! -d /var/www/data/etc/composer ]; then
   mkdir -p /var/www/data/etc/composer
 fi
+if [ ! -d /var/lib/php/sessions ]; then
+  mkdir -p /var/lib/php/sessions
+fi
+if [ ! -d /var/lib/php/uploads ]; then
+  mkdir -p /var/lib/php/uploads
+fi
 if [ $UID == 0 ]; then
-  chown user:root /var/www/data/etc/php5/lib/sessions
-  chown user:root /var/www/data/etc/php5/lib/uploads
+  chown user:root /var/lib/php/sessions
+  chown user:root /var/lib/php/uploads
 fi
 
 

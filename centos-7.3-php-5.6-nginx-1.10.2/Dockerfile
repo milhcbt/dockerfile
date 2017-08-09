@@ -11,7 +11,7 @@ RUN mkdir -p /var/www/etc \
 
 # Layer 02
 # Install Nginx and SCM
-RUN yum -y --disableplugin=fastestmirror,ovl --enablerepo=remi-php56 --setopt=tsflags=nodocs install \
+RUN yum -y --disableplugin=fastestmirror --enablerepo=remi-php56 --setopt=tsflags=nodocs install \
       nginx \
       subversion \
       git \
@@ -19,7 +19,7 @@ RUN yum -y --disableplugin=fastestmirror,ovl --enablerepo=remi-php56 --setopt=ts
 
 # Layer 03
 # Install PHP
-RUN yum -y --disableplugin=fastestmirror,ovl --enablerepo=remi-php56 --setopt=tsflags=nodocs install \
+RUN yum -y --disableplugin=fastestmirror --enablerepo=remi-php56 --setopt=tsflags=nodocs install \
       php-fpm \
       php-pear \
       php-curl \
@@ -32,7 +32,6 @@ RUN yum -y --disableplugin=fastestmirror,ovl --enablerepo=remi-php56 --setopt=ts
       php-pspell \
       php-recode \
       php-opcache \
-      php-suhosin \
       php-mongo \
       php-mysqlnd \
       php-pgsql \
@@ -40,8 +39,7 @@ RUN yum -y --disableplugin=fastestmirror,ovl --enablerepo=remi-php56 --setopt=ts
       php-tidy \
       php-xmlrpc \
       php-xsl \
-    && yum clean all \
-    && echo "suhosin.executor.include.whitelist = phar" >> /etc/php.d/40-suhosin.ini
+    && yum clean all
 
 # Layer 04
 # Install PHP Composer
@@ -109,24 +107,17 @@ RUN rm -f /etc/nginx/nginx.conf \
     && chmod 664 /var/www/etc/nginx/conf.d/default.conf \
     && ln -sf /var/www/etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
 
-# Layer 08
-# Prepare PHP Configuration
 RUN cp /etc/php.ini /etc/php.ini.backup \
-    && cp /etc/php-fpm.d/www.conf /etc/php-fpm.d/wwww.conf.backup \
+    && cp /etc/php-fpm.d/www.conf /etc/php-fpm.d/www.conf.backup \
+    && rm -rf /var/lib/php/* \
     && touch /var/log/php-fpm/error.log \
-    && mkdir -p /var/lib/php/session \
-    && mkdir -p /var/lib/php/upload \
     && mkdir -p /var/www/etc/php/php-fpm.d \
+    && chown -R root:root /var/lib/php \
     && chown -R root:root /var/log/php-fpm/error.log \
-    && chown -R root:root /var/lib/php/session \
-    && chown -R root:root /var/lib/php/upload \
-    && chown -R root:root /var/lib/php/wsdlcache \
     && chown -R root:root /var/www/etc/php \
     && chown -R root:root /var/www/etc/php/php-fpm.d \
+    && chmod 775 /var/lib/php \
     && chmod 664 /var/log/php-fpm/error.log \
-    && chmod 770 /var/lib/php/session \
-    && chmod 770 /var/lib/php/upload \
-    && chmod 770 /var/lib/php/wsdlcache \
     && chmod 775 /var/www/etc/php \
     && chmod 775 /var/www/etc/php/php-fpm.d
 

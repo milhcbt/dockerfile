@@ -113,20 +113,16 @@ RUN rm -f /etc/nginx/nginx.conf \
 # Prepare PHP Configuration
 RUN cp /etc/php5/fpm/php.ini /etc/php5/fpm/php.ini.backup \
     && cp /etc/php5/fpm/pool.d/www.conf /etc/php5/fpm/pool.d/wwww.conf.backup \
-    && rm -f /var/log/php5-fpm.log \
+    && rm -rf /var/lib/php5/* \
     && touch /var/log/php5-fpm.log \
-    && mkdir -p /var/lib/php/sessions \
-    && mkdir -p /var/lib/php/uploads \
     && mkdir -p /var/www/etc/php5/fpm/pool.d \
+    && chown -R root:root /var/lib/php5 \
     && chown -R root:root /var/log/php5-fpm.log \
-    && chown -R root:root /var/lib/php/sessions \
-    && chown -R root:root /var/lib/php/uploads \
     && chown -R root:root /var/www/etc/php5 \
     && chown -R root:root /var/www/etc/php5/fpm \
     && chown -R root:root /var/www/etc/php5/fpm/pool.d \
+    && chmod 775 /var/lib/php5 \
     && chmod 664 /var/log/php5-fpm.log \
-    && chmod 770 /var/lib/php/sessions \
-    && chmod 770 /var/lib/php/uploads \
     && chmod 775 /var/www/etc/php5 \
     && chmod 775 /var/www/etc/php5/fpm \
     && chmod 775 /var/www/etc/php5/fpm/pool.d

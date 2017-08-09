@@ -22,21 +22,18 @@ fi
 if [ ! -d /var/www/etc/php5/fpm/pool.d ]; then
   mkdir -p /var/www/etc/php5/fpm/pool.d
 fi
-if [ ! -d /var/www/etc/php5/lib ]; then
-  mkdir -p /var/www/etc/php5/lib
-fi
-if [ ! -d /var/www/etc/php5/lib/sessions ]; then
-  mkdir -p /var/www/etc/php5/lib/sessions
-fi
-if [ ! -d /var/www/etc/php5/lib/uploads ]; then
-  mkdir -p /var/www/etc/php5/lib/uploads
-fi
 if [ ! -d /var/www/etc/composer ]; then
   mkdir -p /var/www/etc/composer
 fi
+if [ ! -d /var/lib/php5/sessions ]; then
+  mkdir -p /var/lib/php5/sessions
+fi
+if [ ! -d /var/lib/php5/uploads ]; then
+  mkdir -p /var/lib/php5/uploads
+fi
 if [ $UID == 0 ]; then
-  chown user:root /var/www/etc/php5/lib/sessions
-  chown user:root /var/www/etc/php5/lib/uploads
+  chown user:root /var/lib/php5/sessions
+  chown user:root /var/lib/php5/uploads
 fi
 
 
