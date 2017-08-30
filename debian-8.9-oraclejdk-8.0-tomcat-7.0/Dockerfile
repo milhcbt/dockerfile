@@ -1,9 +1,9 @@
-FROM dimaskiddo/debian-openjdk:8.9-8.0
+FROM dimaskiddo/debian-oraclejdk:8.9-8.0
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
 # Set Environment Variables
-ENV TOMCAT_MAJOR=8 \
-    TOMCAT_VERSION=8.5.20 \
+ENV TOMCAT_MAJOR=7 \
+    TOMCAT_VERSION=7.0.81 \
     CATALINA_HOME=/opt/tomcat
 
 # Layer 01
@@ -46,10 +46,10 @@ CMD ["run"]
 # Set Labels Used in OpenShift to Describe the Builder Images
 LABEL release=1 \
       vendor="Debian" \
-      summary="Virtual Machine (VM) like container platform for running Java web applications with Tomcat 8.5" \
+      summary="Virtual Machine (VM) like container platform for running Java web applications with Tomcat 7.0" \
       maintainer="Dimas Restu Hidayanto <dimas.restu@student.upi.edu>" \
-      io.k8s.description="Debian Jessie (8.x) Java web applications with Tomcat 8.5" \
-      io.k8s.display-name="Debian Jessie (8.x) Java web applications with Tomcat 8.5" \
-      io.openshift.tags="builder,debian8,openjdk8,tomcat85" \
+      io.k8s.description="Debian Jessie (8.x) Java web applications with Tomcat 7.0" \
+      io.k8s.display-name="Debian Jessie (8.x) Java web applications with Tomcat 7.0" \
+      io.openshift.tags="builder,debian8,oraclejdk8,tomcat70" \
       io.openshift.expose-services="8080:http" \
       io.openshift.non-scalable="false"

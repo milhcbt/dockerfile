@@ -1,4 +1,4 @@
-FROM dimaskiddo/debian-openjdk-tomcat:8.9-8.0-7.0
+FROM dimaskiddo/debian-oraclejdk-tomcat:8.9-8.0-7.0
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
 # Set Environment Variables
@@ -52,6 +52,6 @@ LABEL release=1 \
       maintainer="Dimas Restu Hidayanto <dimas.restu@student.upi.edu>" \
       io.k8s.description="Debian Jessie (8.x) JasperReports Server 6.0.1 with Tomcat 7.0" \
       io.k8s.display-name="Debian Jessie (8.x) JasperReports Server 6.0.1 with Tomcat 7.0" \
-      io.openshift.tags="builder,debian8,openjdk8,tomcat7,jasperreports6" \
-      io.openshift.expose-services="8080:http,8443:https" \
+      io.openshift.tags="builder,debian8,oraclejdk8,tomcat70,jasperreports60" \
+      io.openshift.expose-services="8080:http" \
       io.openshift.non-scalable="false"
