@@ -1,11 +1,5 @@
-FROM dimaskiddo/debian-tomcat:9.1-7.0
+FROM dimaskiddo/debian-openjdk-tomcat:8.9-8.0-7.0
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
-
-# Change Working User to "Root"
-USER root
-
-# Change Working Directory to "Root" Home Directory
-WORKDIR /root
 
 # Set Environment Variables
 ENV JS_VERSION=6.0.1 \
@@ -20,18 +14,6 @@ ENV JS_VERSION=6.0.1 \
 COPY ./packages/jasperreports-server*.zip /tmp/jasperreports-server.zip
 
 # Layer 02
-# Install Base Packages and Run Some Housekeeping
-RUN apt-get update \
-    && apt-get -y install \
-        nano \
-        unzip \
-    && apt-get -y autoremove \
-    && apt-get -y clean \
-    && chmod 770 /root \
-    && chmod 664 /root/.bashrc \
-    && chmod 664 /etc/passwd
-
-# Layer 03
 # Install JasperReports Server
 RUN mkdir -p $JS_HOME \
     && unzip /tmp/jasperreports-server.zip -d $JS_HOME \
@@ -40,16 +22,14 @@ RUN mkdir -p $JS_HOME \
     && rm -rf /tmp/* \
     && chown -R root:root $JS_HOME \
     && chown -R root:root $CATALINA_HOME \
-    && chown -R root:root /usr/lib/jvm/java-7-openjdk-amd64 \
-    && chmod -R ug+rw $JS_HOME \
-    && chmod -R ug+rw $CATALINA_HOME \
-    && chmod -R ug+rw /usr/lib/jvm/java-7-openjdk-amd64
+    && chmod -R 775 $JS_HOME \
+    && chmod -R 775 $CATALINA_HOME
 
-# Layer 04
+# Layer 03
 # Copy Container Scripts
 COPY ./entry/container-entrypoint /usr/local/bin/container-entrypoint
 
-# Layer 05
+# Layer 04
 # Change Container Scripts Permissions
 RUN chmod 755 /usr/local/bin/container-entrypoint
 
@@ -57,7 +37,7 @@ RUN chmod 755 /usr/local/bin/container-entrypoint
 VOLUME $CATALINA_HOME/webapps
 
 # Expose Ports
-EXPOSE 8080 8443
+EXPOSE 8080
 
 # Set Entrypoint Script
 ENTRYPOINT ["/usr/local/bin/container-entrypoint"]
@@ -68,10 +48,10 @@ CMD ["run"]
 # Set Labels Used in OpenShift to Describe the Builder Images
 LABEL release=1 \
       vendor="Debian" \
-      summary="JasperReports Server 6 with Tomcat 7" \
+      summary="Virtual Machine (VM) like container platform for running JasperReports Server 6.0.1 applications with Tomcat 7.0" \
       maintainer="Dimas Restu Hidayanto <dimas.restu@student.upi.edu>" \
-      io.k8s.description="JasperReports Server 6 + Tomcat 7" \
-      io.k8s.display-name="JasperReports Server 6 + Tomcat 7" \
-      io.openshift.tags="builder,jasperreports6,tomcat7" \
+      io.k8s.description="Debian Jessie (8.x) JasperReports Server 6.0.1 with Tomcat 7.0" \
+      io.k8s.display-name="Debian Jessie (8.x) JasperReports Server 6.0.1 with Tomcat 7.0" \
+      io.openshift.tags="builder,debian8,openjdk8,tomcat7,jasperreports6" \
       io.openshift.expose-services="8080:http,8443:https" \
       io.openshift.non-scalable="false"
