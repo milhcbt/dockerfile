@@ -11,21 +11,21 @@ RUN mkdir -p /var/www/etc \
 
 # Layer 02
 # Install Apache and SCM
-RUN apt-get -y update \
-    && apt-get -y install \
+RUN apt-get -y -o Acquire::Check-Valid-Until=false update \
+    && apt-get -y -o Acquire::Check-Valid-Until=false install \
         apache2 \
         libapache2-mod-fastcgi \
         subversion \
         git \
-    && apt-get -y autoremove \
-    && apt-get -y clean \
+    && apt-get -y -o Acquire::Check-Valid-Until=false autoremove \
+    && apt-get -y -o Acquire::Check-Valid-Until=false clean \
     && a2dismod fastcgi \
     && a2enmod proxy_fcgi \
     && a2enmod rewrite
 
 # Layer 03
 # Install PHP
-RUN apt-get -y install \
+RUN apt-get -y -o Acquire::Check-Valid-Until=false install \
       php-pear \
       php5-curl \
       php5-gd \

@@ -11,17 +11,17 @@ RUN mkdir -p /var/www/etc \
 
 # Layer 02
 # Install Nginx and SCM
-RUN apt-get -y update \
-    && apt-get -y install \
+RUN apt-get -y -o Acquire::Check-Valid-Until=false update \
+    && apt-get -y -o Acquire::Check-Valid-Until=false install \
         nginx \
         subversion \
         git \
-    && apt-get -y autoremove \
-    && apt-get -y clean
+    && apt-get -y -o Acquire::Check-Valid-Until=false autoremove \
+    && apt-get -y -o Acquire::Check-Valid-Until=false clean
 
 # Layer 03
 # Install PHP
-RUN apt-get -y install \
+RUN apt-get -y -o Acquire::Check-Valid-Until=false install \
       php-pear \
       php5-curl \
       php5-gd \
