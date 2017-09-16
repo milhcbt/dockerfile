@@ -1,15 +1,18 @@
 Debian Jessie (8.9) Base Image with Pre-Installed Base Packages
-This Image is ready to serve with custom User ID execution using entrypoint script
+This Image is ready to serve with custom User ID execution using entrypoint script.
 
-Build with love from Gegerkalong, Bandung, Indonesia
+Build with love from Gegerkalong, Bandung, Indonesia.
 
-Maintainer:
-Dimas Restu H <dimas.restu@student.upi.edu>
+**Maintainer:**
 
-Repository Source:
-http://kartolo.sby.datautama.net.id
+Dimas Restu H (<dimas.restu@student.upi.edu>)
 
-Includes Base Packages:
+**Repository Source:**
+
+- http://kartolo.sby.datautama.net.id
+
+**Includes Base Packages:**
+
 - apt-utils
 - ca-certificates
 - curl
@@ -19,6 +22,6 @@ Includes Base Packages:
 - vim
 - wget
 
+**How to pull this image:**
 
-How to pull this image:
-docker pull dimaskiddo/debian:8.9
+> docker pull dimaskiddo/debian:8.9

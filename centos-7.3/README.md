@@ -1,17 +1,20 @@
 CentOS (7.3) Base Image with Pre-Installed Base Packages
-This Image is ready to serve with custom User ID execution using entrypoint script
+This Image is ready to serve with custom User ID execution using entrypoint script.
 
-Build with love from Gegerkalong, Bandung, Indonesia
+Build with love from Gegerkalong, Bandung, Indonesia.
 
-Maintainer:
-Dimas Restu H <dimas.restu@student.upi.edu>
+**Maintainer:**
 
-Repository Source:
+Dimas Restu H (<dimas.restu@student.upi.edu>)
+
+**Repository Source:**
+
 - EPEL
 - SCL
 - Remi
 
-Includes Base Packages:
+**Includes Base Packages:**
+
 - ca-certificates
 - curl
 - nano
@@ -22,6 +25,6 @@ Includes Base Packages:
 - wget
 - yum-utils
 
+**How to pull this image:**
 
-How to pull this image:
-docker pull dimaskiddo/centos:7.3
+> docker pull dimaskiddo/centos:7.3
