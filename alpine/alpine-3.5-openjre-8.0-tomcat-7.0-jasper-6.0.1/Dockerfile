@@ -1,4 +1,4 @@
-FROM dimaskiddo/debian-oraclejdk-tomcat:8.9-8.0-7.0
+FROM dimaskiddo/alpine-openjre-tomcat:8.9-8.0-7.0
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
 # Set Environment Variables
@@ -47,11 +47,11 @@ CMD ["run"]
 
 # Set Labels Used in OpenShift to Describe the Builder Images
 LABEL release=1 \
-      vendor="Debian" \
+      vendor="Alpine" \
       summary="Virtual Machine (VM) like container platform for running JasperReports Server 6.0.1 applications with Tomcat 7.0" \
       maintainer="Dimas Restu Hidayanto <dimas.restu@student.upi.edu>" \
-      io.k8s.description="Debian Jessie (8.x) JasperReports Server 6.0.1 with Tomcat 7.0" \
-      io.k8s.display-name="Debian Jessie (8.x) JasperReports Server 6.0.1 with Tomcat 7.0" \
-      io.openshift.tags="builder,debian8,oraclejdk8,tomcat70,jasperreports60" \
+      io.k8s.description="Alpine (3.x) OpenJRE 8.0 + JasperReports Server 6.0.1 with Apache Tomcat 7.0" \
+      io.k8s.display-name="Alpine (3.x) OpenJRE 8.0 + JasperReports Server 6.0.1 with Apache Tomcat 7.0" \
+      io.openshift.tags="builder,alpine3,openjre8,tomcat70,jasper601" \
       io.openshift.expose-services="8080:http" \
       io.openshift.non-scalable="false"

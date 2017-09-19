@@ -1,14 +1,11 @@
 #!/bin/bash
 
-set -e
-
 if [ "$(id -u)" != "0" ]; then
   echo "user:x:`id -u`:0:User:/root:/sbin/nologin" >> /etc/passwd
 else
   echo "user:x:901:0:User:/root:/sbin/nologin" >> /etc/passwd  
 fi
 
-ulimit -c 0
 
 jasperserver_setup() {
     JS_DB_TYPE=${JS_DB_TYPE:-mysql}
@@ -46,6 +43,7 @@ jasperserver_setup() {
     && touch $CATALINA_HOME/webapps/jasperserver
 }
 
+
 jasperserver_run() {
     if [ ! -f "$CATALINA_HOME/webapps/jasperserver" ]; then
         jasperserver_setup deploy-webapp-ce
@@ -53,6 +51,7 @@ jasperserver_run() {
     
     catalina.sh run
 }
+
 
 export CATALINA_OPTS="-Xmx${JS_XMX} -XX:MaxPermSize=${JS_MAXPERMSIZE} ${JS_CATALINA_OPTS}"
 case "$1" in

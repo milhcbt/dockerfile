@@ -1,4 +1,4 @@
-FROM dimaskiddo/debian-oraclejdk:8.9-8.0
+FROM dimaskiddo/alpine-openjre:3.5-8.0
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
 # Set Environment Variables
@@ -20,11 +20,11 @@ RUN mkdir -p $CATALINA_HOME \
     && chown -R root:root $CATALINA_HOME \
     && chmod -R 775 $CATALINA_HOME
 
-# Layer 03
+# Layer 02
 # Copy Container Scripts
 COPY ./entry/container-entrypoint /usr/local/bin/container-entrypoint
 
-# Layer 04
+# Layer 03
 # Change Container Scripts Permissions
 RUN chmod 755 /usr/local/bin/container-entrypoint
 
@@ -32,7 +32,7 @@ RUN chmod 755 /usr/local/bin/container-entrypoint
 VOLUME $CATALINA_HOME/webapps
 
 # Set Environment Variables
-ENV PATH $CATALINA_HOME/bin:$PATH
+ENV PATH $PATH:$CATALINA_HOME/bin
 
 # Expose Ports
 EXPOSE 8080
@@ -45,11 +45,11 @@ CMD ["run"]
 
 # Set Labels Used in OpenShift to Describe the Builder Images
 LABEL release=1 \
-      vendor="Debian" \
+      vendor="Alpine" \
       summary="Virtual Machine (VM) like container platform for running Java web applications with Tomcat 7.0" \
       maintainer="Dimas Restu Hidayanto <dimas.restu@student.upi.edu>" \
-      io.k8s.description="Debian Jessie (8.x) Java web applications with Tomcat 7.0" \
-      io.k8s.display-name="Debian Jessie (8.x) Java web applications with Tomcat 7.0" \
-      io.openshift.tags="builder,debian8,oraclejdk8,tomcat70" \
+      io.k8s.description="Alpine (3.x) OpenJRE 8.0 with Apache Tomcat 7.0" \
+      io.k8s.display-name="Alpine (3.x) OpenJRE 8.0 with Apache Tomcat 7.0" \
+      io.openshift.tags="builder,alpine3,openjre8,tomcat70" \
       io.openshift.expose-services="8080:http" \
       io.openshift.non-scalable="false"
