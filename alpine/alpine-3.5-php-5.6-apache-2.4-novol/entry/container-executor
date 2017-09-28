@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# Prepare configuration directory and permission
+if [ ! -d /var/www/data/html ]; then
+  mkdir -p /var/www/data/html
+fi
+if [ ! -d /var/www/data/cgi-bin ]; then
+  mkdir -p /var/www/data/cgi-bin
+fi
+if [ ! -d /var/www/data/etc ]; then
+  mkdir -p /var/www/data/etc
+fi
+if [ ! -d /var/www/data/etc/apache2 ]; then
+  mkdir -p /var/www/data/etc/apache2
+fi
+if [ ! -d /var/www/data/etc/php5 ]; then
+  mkdir -p /var/www/data/etc/php5
+fi
+if [ ! -d /var/www/data/etc/composer ]; then
+  mkdir -p /var/www/data/etc/composer
+fi
+if [ ! -d /var/lib/php/sessions ]; then
+  mkdir -p /var/lib/php/sessions
+fi
+if [ ! -d /var/lib/php/uploads ]; then
+  mkdir -p /var/lib/php/uploads
+fi
+if [ $UID == 0 ]; then
+  chown user:root /var/lib/php/sessions
+  chown user:root /var/lib/php/uploads
+fi
+
+
+# Prepare Apache configuration file if the file doesn't exist
+# due to volume support
+if [ ! -f /var/www/data/etc/apache2/httpd.conf ]; then
+  cp /etc/apache2/httpd.conf.docker /var/www/data/etc/apache2/httpd.conf
+fi
+
+
+# Prepare PHP Apache configuration file if the file doesn't exist
+# due to volume support
+if [ ! -f /var/www/data/etc/php5/php.ini ]; then
+  cp /etc/php5/php.ini.docker /var/www/data/etc/php5/php.ini
+fi
+if [ ! -f /var/www/data/etc/php5/php-fpm.conf ]; then
+  cp /etc/php5/php-fpm.conf.docker /var/www/data/etc/php5/php-fpm.conf
+fi
+
+
+# Prepare Default Web Content file if the file doesn't exist
+# due to volume support
+if [[ ! -f /var/www/data/html/index.php && ! -f /var/www/data/html/public/index.php ]]; then
+  cp /usr/share/docker/files/www/index.php /var/www/data/html/index.php
+  cp /usr/share/docker/files/www/info.php /var/www/data/html/info.php
+fi
+
+
+# Try to start PHP-FPM on daemonize mode
+/usr/bin/php-fpm --daemonize
+
+
+# Try to start Apache on non-daemonize mode
+/usr/sbin/httpd -D FOREGROUND
+
+
+# End the script
+exit 0
