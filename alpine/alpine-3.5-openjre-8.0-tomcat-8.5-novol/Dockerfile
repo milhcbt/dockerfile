@@ -28,9 +28,6 @@ COPY ./entry/container-entrypoint /usr/local/bin/container-entrypoint
 # Change Container Scripts Permissions
 RUN chmod 755 /usr/local/bin/container-entrypoint
 
-# Set Volumes Directory
-#VOLUME $CATALINA_HOME/webapps
-
 # Set Environment Variables
 ENV PATH $PATH:$CATALINA_HOME/bin
 

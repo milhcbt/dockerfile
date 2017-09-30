@@ -191,9 +191,6 @@ COPY ./entry/container-executor /usr/local/bin/container-executor
 RUN chmod 755 /usr/local/bin/container-entrypoint \
     && chmod 755 /usr/local/bin/container-executor
 
-# Set Volumes Directory
-#VOLUME /var/www/data
-
 # Set Environment Variables
 ENV PATH $PATH:/root/.composer/vendor/bin
 
