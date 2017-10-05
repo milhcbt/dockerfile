@@ -14,6 +14,7 @@ RUN apk update \
         curl \
         grep \
         gzip \
+        htop \
         nano \
         net-tools \
         rsync \

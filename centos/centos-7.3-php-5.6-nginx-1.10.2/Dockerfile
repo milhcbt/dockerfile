@@ -20,7 +20,6 @@ RUN yum -y --disableplugin=fastestmirror --enablerepo=remi-php56 --setopt=tsflag
 # Layer 03
 # Install PHP
 RUN yum -y --disableplugin=fastestmirror --enablerepo=remi-php56 --setopt=tsflags=nodocs install \
-      php-fpm \
       php-pear \
       php-curl \
       php-gd \
@@ -37,8 +36,11 @@ RUN yum -y --disableplugin=fastestmirror --enablerepo=remi-php56 --setopt=tsflag
       php-pgsql \
       php-sqlite \
       php-tidy \
+      php-xml \
       php-xmlrpc \
       php-xsl \
+      php-zip \
+      php-fpm \
     && yum clean all
 
 # Layer 04

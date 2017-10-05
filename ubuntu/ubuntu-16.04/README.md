@@ -1,4 +1,4 @@
-Debian Jessie (8.9) Base Image with Pre-Installed Base Packages
+Ubuntu Xenial (16.04) Base Image with Pre-Installed Base Packages
 This Image is ready to serve with custom User ID execution using entrypoint script.
 
 Build with love from Gegerkalong, Bandung, Indonesia.
@@ -26,4 +26,4 @@ Dimas Restu H (<dimas.restu@student.upi.edu>)
 
 **How to pull this image:**
 
-> docker pull dimaskiddo/debian:8.9
+> docker pull dimaskiddo/ubuntu:16.04

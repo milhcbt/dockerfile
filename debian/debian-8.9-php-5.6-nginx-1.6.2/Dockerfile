@@ -22,7 +22,6 @@ RUN apt-get -y -o Acquire::Check-Valid-Until=false update \
 # Layer 03
 # Install PHP
 RUN apt-get -y -o Acquire::Check-Valid-Until=false install \
-      php-pear \
       php5-curl \
       php5-gd \
       php5-intl \
@@ -37,8 +36,10 @@ RUN apt-get -y -o Acquire::Check-Valid-Until=false install \
       php5-pgsql \
       php5-sqlite \
       php5-tidy \
+      php5-xml \
       php5-xmlrpc \
       php5-xsl \
+      php5-zip \
       php5-fpm \      
     && apt-get -y autoremove \
     && apt-get -y clean

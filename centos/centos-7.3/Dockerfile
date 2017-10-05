@@ -25,9 +25,10 @@ RUN rpm --rebuilddb \
     && yum -y --disableplugin=fastestmirror --setopt=tsflags=nodocs install \
         ca-certificates \
         curl \
+        htop \
+        iproute \
         nano \
         net-tools \
-        iproute \
         rsync \
         vim \
         wget \

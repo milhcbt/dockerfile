@@ -17,9 +17,10 @@ Dimas Restu H (<dimas.restu@student.upi.edu>)
 
 - ca-certificates
 - curl
+- htop
+- iproute
 - nano
 - net-tools
-- iproute
 - rsync
 - vim
 - wget

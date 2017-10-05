@@ -41,6 +41,7 @@ RUN apk update \
         php7-dom \
         php7-exif \
         php7-ftp \
+        php7-fileinfo \
         php7-gd \
         php7-gettext \
         php7-iconv \

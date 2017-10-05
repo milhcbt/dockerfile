@@ -46,6 +46,7 @@ RUN apk update \
         php7-dom \
         php7-exif \
         php7-ftp \
+        php7-fileinfo \
         php7-gd \
         php7-gettext \
         php7-iconv \
@@ -75,7 +76,7 @@ RUN apk update \
         php7-sysvshm \
         php7-sysvmsg \
         php7-sysvsem \
-        php7-tokenizer \        
+        php7-tokenizer \
         php7-xml \
         php7-xmlreader \
         php7-xmlwriter \

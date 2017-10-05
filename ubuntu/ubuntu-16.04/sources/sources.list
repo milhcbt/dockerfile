@@ -1,0 +1,4 @@
+# Indonesia Local Repository
+deb http://kambing.ui.ac.id/ubuntu/ xenial main universe multiverse restricted
+deb http://kambing.ui.ac.id/ubuntu/ xenial-updates main universe multiverse restricted
+deb http://kambing.ui.ac.id/ubuntu/ xenial-security main universe multiverse restricted 

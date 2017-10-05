@@ -1,4 +1,4 @@
-FROM debian:jessie
+FROM ubuntu:xenial
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
 # Change Working User to "Root"

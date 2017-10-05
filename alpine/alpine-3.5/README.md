@@ -15,6 +15,7 @@ Dimas Restu H (<dimas.restu@student.upi.edu>)
 - curl
 - grep
 - gzip
+- htop
 - nano
 - net-tools
 - rsync
