@@ -26,4 +26,4 @@ Dimas Restu H (<dimas.restu@student.upi.edu>)
 
 **How to pull this image:**
 
-> docker pull dimaskiddo/ubuntu:16.04
+> docker pull dimaskiddo/ubuntu:xenial

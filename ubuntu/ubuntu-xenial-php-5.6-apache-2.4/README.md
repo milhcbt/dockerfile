@@ -8,11 +8,11 @@ Dimas Restu H (<dimas.restu@student.upi.edu>)
 
 **How to pull this image:**
 
-> docker pull dimaskiddo/ubuntu-php-apache:16.04-5.6-2.4
+> docker pull dimaskiddo/ubuntu-php-apache:xenial-5.6-2.4
 
 **How to run this image:**
 
-> docker run -p 80:8080 -v <local_data_path>:/var/www --name ubuntu-apache dimaskiddo/ubuntu-php-apache:16.04-5.6-2.4
+> docker run -p 80:8080 -v <local_data_path>:/var/www --name ubuntu-apache dimaskiddo/ubuntu-php-apache:xenial-5.6-2.4
 
 **How to get in container after run this image:**
 
