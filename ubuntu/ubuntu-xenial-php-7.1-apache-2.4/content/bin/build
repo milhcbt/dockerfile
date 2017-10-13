@@ -33,11 +33,11 @@ mkdir -p /var/www/etc \
   && chmod 664 /usr/local/docker/etc/apache2/apache2.conf \
   && chmod 664 /usr/local/docker/etc/apache2/ports.conf \
   && chmod 775 /usr/local/docker/etc/php \
-  && chmod 775 /usr/local/docker/etc/php/5.6 \
-  && chmod 775 /usr/local/docker/etc/php/5.6/fpm \
-  && chmod 664 /usr/local/docker/etc/php/5.6/fpm/php.ini \
-  && chmod 664 /usr/local/docker/etc/php/5.6/fpm/php-fpm.conf \
-  && chmod 664 /usr/local/docker/etc/php/5.6/fpm/pool.d/www.conf \
+  && chmod 775 /usr/local/docker/etc/php/7.1 \
+  && chmod 775 /usr/local/docker/etc/php/7.1/fpm \
+  && chmod 664 /usr/local/docker/etc/php/7.1/fpm/php.ini \
+  && chmod 664 /usr/local/docker/etc/php/7.1/fpm/php-fpm.conf \
+  && chmod 664 /usr/local/docker/etc/php/7.1/fpm/pool.d/www.conf \
   && chmod 775 /usr/local/docker/etc/supervisor \
   && chmod 664 /usr/local/docker/etc/supervisor/supervisord.conf \
   && chmod 775 /usr/local/docker/etc/supervisor/conf.d \
@@ -94,27 +94,27 @@ echo "--------------------------------------------------"
 add-apt-repository ppa:ondrej/php \
   && apt-get -y -o Acquire::Check-Valid-Until=false update \
   && apt-get -y -o Acquire::Check-Valid-Until=false install \
-      php5.6-curl \
-      php5.6-gd \
-      php5.6-intl \
-      php5.6-imagick \
-      php5.6-imap \
-      php5.6-mcrypt \
-      php5.6-mbstring \
-      php5.6-memcache \
-      php5.6-pspell \
-      php5.6-recode \
-      php5.6-mongo \
-      php5.6-mysqlnd \
-      php5.6-pgsql \
-      php5.6-sqlite \
-      php5.6-tidy \
-      php5.6-tokenizer \
-      php5.6-xml \
-      php5.6-xmlrpc \
-      php5.6-xsl \
-      php5.6-zip \
-      php5.6-fpm \
+      php7.1-curl \
+      php7.1-gd \
+      php7.1-intl \
+      php7.1-imagick \
+      php7.1-imap \
+      php7.1-mcrypt \
+      php7.1-mbstring \
+      php7.1-memcache \
+      php7.1-pspell \
+      php7.1-recode \
+      php7.1-mongo \
+      php7.1-mysqlnd \
+      php7.1-pgsql \
+      php7.1-sqlite \
+      php7.1-tidy \
+      php7.1-tokenizer \
+      php7.1-xml \
+      php7.1-xmlrpc \
+      php7.1-xsl \
+      php7.1-zip \
+      php7.1-fpm \
   && apt-get -y -o Acquire::Check-Valid-Until=false autoremove \
   && apt-get -y -o Acquire::Check-Valid-Until=false clean
 echo "--------------------------------------------------"
@@ -158,26 +158,26 @@ echo "--------------------------------------------------"
 echo ""
 echo "[8] Configuring PHP"
 echo "--------------------------------------------------"
-cp /etc/php/5.6/fpm/php.ini /etc/php/5.6/fpm/php.ini.original \
-  && cp /etc/php/5.6/fpm/php-fpm.conf /etc/php/5.6/fpm/php-fpm.conf.original \
-  && cp /etc/php/5.6/fpm/pool.d/www.conf /etc/php/5.6/fpm/pool.d/www.conf.original \
-  && rm -rf /etc/php/5.6/fpm/php.ini \
-  && rm -rf /etc/php/5.6/fpm/php-fpm.conf \
-  && rm -rf /etc/php/5.6/fpm/pool.d/www.conf \
+cp /etc/php/7.1/fpm/php.ini /etc/php/7.1/fpm/php.ini.original \
+  && cp /etc/php/7.1/fpm/php-fpm.conf /etc/php/7.1/fpm/php-fpm.conf.original \
+  && cp /etc/php/7.1/fpm/pool.d/www.conf /etc/php/7.1/fpm/pool.d/www.conf.original \
+  && rm -rf /etc/php/7.1/fpm/php.ini \
+  && rm -rf /etc/php/7.1/fpm/php-fpm.conf \
+  && rm -rf /etc/php/7.1/fpm/pool.d/www.conf \
   && rm -rf /var/lib/php/* \
-  && ln -sf /var/www/etc/php/5.6/fpm/php.ini /etc/php/5.6/fpm/php.ini \
-  && ln -sf /var/www/etc/php/5.6/fpm/php-fpm.conf /etc/php/5.6/fpm/php-fpm.conf \
-  && ln -sf /var/www/etc/php/5.6/fpm/pool.d/www.conf /etc/php/5.6/fpm/pool.d/www.conf \
+  && ln -sf /var/www/etc/php/7.1/fpm/php.ini /etc/php/7.1/fpm/php.ini \
+  && ln -sf /var/www/etc/php/7.1/fpm/php-fpm.conf /etc/php/7.1/fpm/php-fpm.conf \
+  && ln -sf /var/www/etc/php/7.1/fpm/pool.d/www.conf /etc/php/7.1/fpm/pool.d/www.conf \
   && mkdir -p /run/php \
-  && touch /run/php/php5.6-fpm.pid \
-  && touch /var/log/php5.6-fpm.log \
+  && touch /run/php/php7.1-fpm.pid \
+  && touch /var/log/php7.1-fpm.log \
   && chown -R root:root /run/php \
   && chown -R root:root /var/lib/php \
-  && chown -R root:root /run/php/php5.6-fpm.pid \
-  && chown -R root:root /var/log/php5.6-fpm.log \
+  && chown -R root:root /run/php/php7.1-fpm.pid \
+  && chown -R root:root /var/log/php7.1-fpm.log \
   && chmod 775 /var/lib/php \
-  && chmod 664 /run/php/php5.6-fpm.pid \
-  && chmod 664 /var/log/php5.6-fpm.log
+  && chmod 664 /run/php/php7.1-fpm.pid \
+  && chmod 664 /var/log/php7.1-fpm.log
 echo "--------------------------------------------------"
 
 
