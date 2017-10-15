@@ -1,0 +1,60 @@
+#!/bin/bash
+
+set -e
+
+echo "--------------------------------------------------"
+echo "Dockerfile Build Tools"
+echo "Email: dimas.restu@student.upi.edu"
+echo "--------------------------------------------------"
+
+echo ""
+echo "[1] Installing Apt Transport, Fonts, Timzone Data, & Unzip"
+echo "--------------------------------------------------"
+echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections \
+  && apt-get -y -o Acquire::Check-Valid-Until=false update \
+  && apt-get -y -o Acquire::Check-Valid-Until=false install \
+      apt-transport-https \
+      ttf-mscorefonts-installer \
+      ttf-dejavu \
+      tzdata \
+      unzip \
+  && apt-get -y -o Acquire::Check-Valid-Until=false autoremove \
+  && apt-get -y -o Acquire::Check-Valid-Until=false clean
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[2] Installing Oracle JRE"
+echo "--------------------------------------------------"
+curl --silent --location --retry 3 --cacert /etc/ssl/certs/GeoTrust_Global_CA.pem --header "Cookie: oraclelicense=accept-securebackup-cookie;" \
+  http://download.oracle.com/otn-pub/java/jdk/8u144-b01/090f390dda5b47b9b721c7dfaa008135/jre-8u144-linux-x64.tar.gz | tar xz -C /tmp \
+  && mkdir -p /usr/lib/jvm \
+  && mv /tmp/jre1.8.0_144 "${JAVA_HOME}" \
+  && rm -rf /tmp/* /var/tmp/* \
+  && update-alternatives --install "/usr/bin/java" "java" "${JAVA_HOME}/bin/java" 1 \
+  && update-alternatives --install "/usr/bin/javaws" "javaws" "${JAVA_HOME}/bin/javaws" 1 \
+  && update-alternatives --set java "${JAVA_HOME}/bin/java" \
+  && update-alternatives --set javaws "${JAVA_HOME}/bin/javaws"
+
+curl --silent --location --retry 3 --cacert /etc/ssl/certs/GeoTrust_Global_CA.pem --header "Cookie: oraclelicense=accept-securebackup-cookie;" \
+  http://download.oracle.com/otn-pub/java/jce/8/jce_policy-8.zip -o /tmp/jce_policy-8.zip \
+  && unzip /tmp/jce_policy-8.zip -d /tmp \
+  && cp -R /tmp/UnlimitedJCEPolicyJDK8/*.jar "${JAVA_HOME}"/lib/security/ \
+  && rm -rf /tmp/* /var/tmp/*
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[3] Configuring Oracle JRE"
+echo "--------------------------------------------------"
+ln -sf $JAVA_HOME /docker-java-home \
+  && { \
+       echo '#!/bin/bash'; \
+       echo 'set -e'; \
+       echo; \
+       echo 'dirname "$(dirname "$(readlink -f "$(which javac || which java)")")"'; \
+	   } > /usr/local/bin/docker-java-home \
+	&& chmod +x /usr/local/bin/docker-java-home
+echo "--------------------------------------------------"
+
+exit 0
