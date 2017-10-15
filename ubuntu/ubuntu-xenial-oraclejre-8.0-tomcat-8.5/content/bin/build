@@ -1,0 +1,84 @@
+#!/bin/bash
+
+set -e
+
+echo "--------------------------------------------------"
+echo "Dockerfile Build Tools"
+echo "Email: dimas.restu@student.upi.edu"
+echo "--------------------------------------------------"
+
+echo ""
+echo "[1] Run Some Housekeeping"
+echo "--------------------------------------------------"
+mkdir -p /var/www \
+  && mkdir -p /var/www/etc \
+  && mkdir -p /var/www/web \
+  && mkdir -p /usr/local/docker/etc/tomcat \
+  && mkdir -p /usr/local/docker/web \
+  && chown -R root:root /var/run \
+  && chown -R root:root /var/www/etc \
+  && chown -R root:root /var/www/web \
+  && chown -R root:root /usr/local/docker \
+  && chown -R root:root /usr/local/docker/bin \
+  && chown -R root:root /usr/local/docker/etc \
+  && chown -R root:root /usr/local/docker/web \
+  && chmod 775 /var/run \
+  && chmod 775 /var/www/etc \
+  && chmod 775 /var/www/web \
+  && chmod 775 /usr/local/docker \
+  && chmod 775 /usr/local/docker/bin \
+  && chmod 775 /usr/local/docker/bin/build \
+  && chmod 775 /usr/local/docker/bin/entrypoint \
+  && chmod 775 /usr/local/docker/etc \
+  && chmod 775 /usr/local/docker/etc/supervisor \
+  && chmod 664 /usr/local/docker/etc/supervisor/supervisord.conf \
+  && chmod 775 /usr/local/docker/etc/supervisor/conf.d \
+  && chmod 664 /usr/local/docker/etc/supervisor/conf.d/01-catalina.conf \
+  && chmod 775 /usr/local/docker/etc/tomcat \
+  && chmod 775 /usr/local/docker/web
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[2] Installing Supervisor"
+echo "--------------------------------------------------"
+apt-get -y -o Acquire::Check-Valid-Until=false update \
+  && apt-get -y -o Acquire::Check-Valid-Until=false install \
+      supervisor \
+  && apt-get -y -o Acquire::Check-Valid-Until=false autoremove \
+  && apt-get -y -o Acquire::Check-Valid-Until=false clean
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[3] Installing Apache Tomcat"
+echo "--------------------------------------------------"
+mkdir -p $CATALINA_HOME \
+  && chown -R root:root $CATALINA_HOME \
+  && chmod -R 664 $CATALINA_HOME \
+  && cd $CATALINA_HOME \
+  && wget -O tomcat.tar.gz http://www-us.apache.org/dist/tomcat/tomcat-$TOMCAT_MAJOR/v$TOMCAT_VERSION/bin/apache-tomcat-$TOMCAT_VERSION.tar.gz \
+  && tar xvfz tomcat.tar.gz --strip-components=1 \
+  && rm -f tomcat.tar.gz* \
+  && cp -R $CATALINA_HOME/conf/* /usr/local/docker/etc/tomcat \
+  && cp -R $CATALINA_HOME/webapps/* /usr/local/docker/web/ \
+  && rm -rf $CATALINA_HOME/conf \
+  && rm -rf $CATALINA_HOME/webapps \
+  && chown -R root:root $CATALINA_HOME \
+  && chown -R root:root /usr/local/docker/etc/tomcat/* \
+  && chown -R root:root /usr/local/docker/web/* \
+  && chmod -R 775 $CATALINA_HOME \
+  && chmod -R 775 /usr/local/docker/etc/tomcat/* \
+  && chmod -R 775 /usr/local/docker/web/* \
+  && ln -sf /var/www/etc/tomcat $CATALINA_HOME/conf \
+  && ln -sf /var/www/web $CATALINA_HOME/webapps
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[4] Configuring Supervisor"
+echo "--------------------------------------------------"
+rm -rf /etc/supervisor
+echo "--------------------------------------------------"
+
+exit 0
