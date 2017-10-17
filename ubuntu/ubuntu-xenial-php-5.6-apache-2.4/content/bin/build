@@ -125,7 +125,8 @@ echo "[6] Installing PHP Composer"
 echo "--------------------------------------------------"
 curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
   && chmod 755 /usr/local/bin/composer \
-  && rm -rf /root/.composer
+  && rm -rf /root/.composer \
+  && ln -sf /var/www/etc/composer /root/.composer
 echo "--------------------------------------------------"
 
 

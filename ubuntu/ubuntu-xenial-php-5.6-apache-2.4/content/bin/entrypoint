@@ -103,7 +103,6 @@ if [ ! -d /var/www/etc/composer ]; then
   && chown -R user:root /var/www/etc/composer \
   && chmod 755 /var/www/etc/composer
 fi
-ln -sf /var/www/etc/composer /root/.composer
 
 
 # Prepare etc/supervisor directory due to volume
