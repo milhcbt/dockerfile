@@ -1,0 +1,95 @@
+#!/bin/bash
+
+set -e
+
+echo "--------------------------------------------------"
+echo "Dockerfile Build Tools"
+echo "Email: dimas.restu@student.upi.edu"
+echo "--------------------------------------------------"
+
+echo ""
+echo "[1] Run Some Housekeeping"
+echo "--------------------------------------------------"
+mkdir -p /var/www/etc \
+  && mkdir -p /var/www/html \
+  && chown -R root:root /var/run \
+  && chown -R root:root /var/www \
+  && chown -R root:root /var/www/etc \
+  && chown -R root:root /var/www/html \
+  && chown -R root:root /usr/local/docker \
+  && chown -R root:root /usr/local/docker/bin \
+  && chown -R root:root /usr/local/docker/etc \
+  && chown -R root:root /usr/local/docker/html \
+  && chmod 775 /var/run \
+  && chmod 775 /var/www \
+  && chmod 775 /var/www/etc \
+  && chmod 775 /var/www/html \
+  && chmod 775 /usr/local/docker \
+  && chmod 775 /usr/local/docker/bin \
+  && chmod 775 /usr/local/docker/bin/build \
+  && chmod 775 /usr/local/docker/bin/entrypoint \
+  && chmod 775 /usr/local/docker/etc \
+  && chmod 775 /usr/local/docker/etc/nginx \
+  && chmod 664 /usr/local/docker/etc/nginx/nginx.conf \
+  && chmod 775 /usr/local/docker/etc/nginx/sites-available \
+  && chmod 664 /usr/local/docker/etc/nginx/sites-available/default \
+  && chmod 775 /usr/local/docker/etc/supervisor \
+  && chmod 664 /usr/local/docker/etc/supervisor/supervisord.conf \
+  && chmod 775 /usr/local/docker/etc/supervisor/conf.d \
+  && chmod 664 /usr/local/docker/etc/supervisor/conf.d/01-nginx.conf \
+  && chmod 775 /usr/local/docker/html \
+  && chmod 664 /usr/local/docker/html/index.html \
+  && ln -sf /var/www/html /root/public_html
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[2] Installing Supervisor"
+echo "--------------------------------------------------"
+apt-get -y -o Acquire::Check-Valid-Until=false update \
+  && apt-get -y -o Acquire::Check-Valid-Until=false install \
+      supervisor \
+  && apt-get -y -o Acquire::Check-Valid-Until=false autoremove \
+  && apt-get -y -o Acquire::Check-Valid-Until=false clean
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[4] Installing Nginx"
+echo "--------------------------------------------------"
+add-apt-repository ppa:ondrej/nginx-mainline \
+  && apt-get -y -o Acquire::Check-Valid-Until=false update \
+  && apt-get -y -o Acquire::Check-Valid-Until=false install \
+      nginx \
+  && apt-get -y -o Acquire::Check-Valid-Until=false autoremove \
+  && apt-get -y -o Acquire::Check-Valid-Until=false clean
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[7] Configuring Nginx"
+echo "--------------------------------------------------"
+cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.original \
+  && cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.original \
+  && rm -f /etc/nginx/nginx.conf \
+  && rm -f /etc/nginx/sites-available/default \
+  && rm -rf /var/www/html/* \
+  && ln -sf /var/www/etc/nginx/nginx.conf /etc/nginx/nginx.conf \
+  && ln -sf /var/www/etc/nginx/sites-available/default /etc/nginx/sites-available/default \
+  && mkdir -p /var/lib/nginx/body \
+  && chown -R root:root /var/lib/nginx \
+  && chown -R root:root /var/lib/nginx/body \
+  && chmod 757 /var/log/nginx \
+  && chmod 646 /var/log/nginx/* \
+  && chmod 775 /var/lib/nginx \
+  && chmod 775 /var/lib/nginx/body
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[9] Configuring Supervisor"
+echo "--------------------------------------------------"
+rm -rf /etc/supervisor
+echo "--------------------------------------------------"
+
+exit 0
