@@ -10,22 +10,22 @@ echo "--------------------------------------------------"
 echo ""
 echo "[1] Run Some Housekeeping"
 echo "--------------------------------------------------"
-mkdir -p /opt/restheart \
-  && mkdir -p /opt/restheart/etc
+mkdir -p /var/www \
+  && mkdir -p /var/www/etc \
   && mkdir -p /usr/local/docker/opt/restheart \
   && mkdir -p /usr/local/docker/opt/restheart/etc \
   && chown -R root:root /var/run \
+  && chown -R root:root /var/www \
+  && chown -R root:root /var/www/etc \
   && chown -R root:root /opt \
-  && chown -R root:root /opt/restheart \
-  && chown -R root:root /opt/restheart/etc \
   && chown -R root:root /usr/local/docker \
   && chown -R root:root /usr/local/docker/bin \
   && chown -R root:root /usr/local/docker/etc \
   && chown -R root:root /usr/local/docker/opt \
   && chmod 775 /var/run \
+  && chmod 775 /var/www \
+  && chmod 775 /var/www/etc \
   && chmod 775 /opt \
-  && chmod 775 /opt/restheart \
-  && chmod 775 /opt/restheart/etc \
   && chmod 775 /usr/local/docker \
   && chmod 775 /usr/local/docker/bin \
   && chmod 775 /usr/local/docker/bin/build \
@@ -34,12 +34,12 @@ mkdir -p /opt/restheart \
   && chmod 775 /usr/local/docker/etc/supervisor \
   && chmod 664 /usr/local/docker/etc/supervisor/supervisord.conf \
   && chmod 775 /usr/local/docker/etc/supervisor/conf.d \
-  && chmod 664 /usr/local/docker/etc/supervisor/conf.d/01-catalina.conf \
+  && chmod 664 /usr/local/docker/etc/supervisor/conf.d/01-restheart.conf \
   && chmod 775 /usr/local/docker/opt \
   && chmod 775 /usr/local/docker/opt/restheart \
   && chmod 775 /usr/local/docker/opt/restheart/etc \
   && chmod 664 /usr/local/docker/opt/restheart/etc/restheart.yml \
-  && chmod 664 /usr/local/docker/opt/restheart/etc/security.yml \
+  && chmod 664 /usr/local/docker/opt/restheart/etc/security.yml
 echo "--------------------------------------------------"
 
 
@@ -58,8 +58,8 @@ echo ""
 echo "[3] Installing RESTHeart"
 echo "--------------------------------------------------"
 cd /usr/local/docker/opt/restheart \
-  && curl -sL https://github.com/SoftInstigate/restheart/releases/download/${RESTHEART_VERSION}/restheart-${RESTHEART_VERSION}.tar.gz --output restheart.tar.gz \
-  && tar zxvf restheart.tar.gz \
+  && wget -O restheart.tar.gz https://github.com/SoftInstigate/restheart/releases/download/${RESTHEART_VERSION}/restheart-${RESTHEART_VERSION}.tar.gz \
+  && tar xzvf restheart.tar.gz \
   && rm -rf restheart.tar.gz \
   && mv restheart-${RESTHEART_VERSION}/restheart.jar . \
   && rm -rf restheart-${RESTHEART_VERSION} \

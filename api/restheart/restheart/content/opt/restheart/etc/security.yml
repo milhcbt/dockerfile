@@ -4,7 +4,7 @@
 users:
     - userid: admin
       password: admin
-      roles: [admins, users]
+      roles: [admins]
 
     - userid: admin@playcourt.id
       password: Pl@yc0urt

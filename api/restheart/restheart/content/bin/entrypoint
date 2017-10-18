@@ -45,11 +45,20 @@ if [ ! -d /opt/restheart ]; then
   mkdir -p /opt/restheart \
   && chown user:root /opt/restheart \
   && chmod 755 /opt/restheart \
-  && cp -R /usr/local/docker/opt/restheart/* /opt/restheart
+  && cp -R /usr/local/docker/opt/restheart/* /opt/restheart/
+fi
+if [ ! -d /opt/restheart/etc ]; then
+  mkdir -p /opt/restheart/etc \
+  && chown user:root /opt/restheart/etc \
+  && chmod 755 /opt/restheart/etc \
+  && cp -R /usr/local/docker/opt/restheart/etc/* /opt/restheart/etc/
 fi
 
 
 # Prepare RESTHeart configuration
+ARGS=${ARGS:-}
+PROPS=${PROPS:-}
+
 MONGODB_USER=${MONGODB_USER:-admin}
 MONGODB_PASSWORD=${MONGODB_PASSWORD:-admin}
 MONGODB_DATABASE=${MONGODB_DATABASE:-admin}
@@ -60,8 +69,11 @@ RESTHEART_USER=${RESTHEART_USER:-admin}
 RESTHEART_PASSOWRD=${RESTHEART_PASSWORD:-admin}
 
 sed -i "s/^\(mongo-uri:\).*/\1 mongodb\:\/\/$MONGODB_USER\:$MONGODB_PASSWORD\@$MONGODB_HOST\:$MONGODB_PORT\/\?authSource\=$MONGODB_DATABASE/" /opt/restheart/etc/restheart.yml
-sed -i "s/^\(userid:\).*/\1 $RESTHEART_USER/" /opt/restheart/etc/security.yml
-sed -i "s/^\(password:\).*/\1 $RESTHEART_PASSWORD/" /opt/restheart/etc/security.yml
+sed -i -e "1,/    - userid:[a-zA-Z0-9]*/s/^\(    - userid:\).*/\1 $RESTHEART_USER/" /opt/restheart/etc/security.yml
+sed -i -e "1,/      password:[a-zA-Z0-9]*/s/^\(      password:\).*/\1 $RESTHEART_PASSWORD/" /opt/restheart/etc/security.yml
+
+export ARGS=$ARGS
+export PROPS=$PROPS
 
 
 # Execute Everything from Entries
