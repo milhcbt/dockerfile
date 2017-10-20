@@ -6,10 +6,6 @@ users:
       password: admin
       roles: [admins, users]
 
-    - userid: admin@playcourt.id
-      password: Pl@yc0urt
-      roles: [admins, users]
-
 ## Configuration for db based Identity Manager
 ## bcrypt-hashed-password: true to authenticate against bcrypt hashed passwords
 ## https://github.com/svenkubiak/jBCrypt
