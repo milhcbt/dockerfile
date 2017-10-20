@@ -14,7 +14,7 @@ Dimas Restu H (<dimas.restu@student.upi.edu>)
 
 **How to run this image:**
 
-> docker run -p 80:8080 -p 443:8443 -v <local_data_path>:/var/www --name ubuntu-apache dimaskiddo/ubuntu-oraclejre-tomcat:xenial-8.0-7.0
+> docker run -p 80:8080 -p 443:8443 -v <local_data_path>:/var/www --name ubuntu-tomcat dimaskiddo/ubuntu-oraclejre-tomcat:xenial-8.0-7.0
 
 **How to get in container after run this image:**
 

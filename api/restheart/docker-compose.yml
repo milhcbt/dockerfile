@@ -1,7 +1,7 @@
 version: '2.1'
 
-volumes:
-  mongodb_data: {}
+# volumes:
+#   mongodb_data: {}
 
 networks:
   restnet:
@@ -16,25 +16,23 @@ services:
     ports:
       - 8080:8080
     environment:
-      - RESTHEART_USER=restheart
-      - RESTHEART_PASSWORD=pass4restheart
-      - MONGODB_USER=restheart
-      - MONGODB_PASSWORD=pass4restheart
-      - MONGODB_DATABASE=restheart
+      - MONGODB_USER=admin
+      - MONGODB_PASSWORD=pass4mongo
+      - MONGODB_DATABASE=admin
       - MONGODB_HOST=dev-mongo-restheart.apps.playcourt.id
       - MONGODB_PORT=31859
-    depends_on:
-      - mongodb
+    # depends_on:
+    #   - mongodb
     restart: always
-  mongodb:
-    image: centos/mongodb-32-centos7:3.2
-    networks:
-      - restnet
-    environment:
-      - MONGODB_USER=restheart
-      - MONGODB_PASSWORD=restheart
-      - MONGODB_ADMIN_PASSWORD=admin
-      - MONGODB_DATABASE=restheart
-    volumes:
-      - mongodb_data:/var/lib/mongodb/data
-    restart: always
+  # mongodb:
+  #   image: centos/mongodb-32-centos7:3.2
+  #   networks:
+  #     - restnet
+  #   environment:
+  #     - MONGODB_USER=restheart
+  #     - MONGODB_PASSWORD=restheart
+  #     - MONGODB_ADMIN_PASSWORD=admin
+  #     - MONGODB_DATABASE=restheart
+  #   volumes:
+  #     - mongodb_data:/var/lib/mongodb/data
+  #   restart: always

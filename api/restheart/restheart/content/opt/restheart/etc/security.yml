@@ -4,11 +4,11 @@
 users:
     - userid: admin
       password: admin
-      roles: [admins]
+      roles: [admins, users]
 
     - userid: admin@playcourt.id
       password: Pl@yc0urt
-      roles: [admins]
+      roles: [admins, users]
 
 ## Configuration for db based Identity Manager
 ## bcrypt-hashed-password: true to authenticate against bcrypt hashed passwords
