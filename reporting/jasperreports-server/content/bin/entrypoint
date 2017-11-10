@@ -49,23 +49,7 @@ if [ ! -d /var/www/etc/tomcat ]; then
 fi
 
 
-# Prepare web directory due to volume
-if [ ! -d /var/www/web ]; then
-  mkdir -p /var/www/web \
-  && chown user:root /var/www/web \
-  && chmod 755 /var/www/web
-fi
-if [ "$(ls -A /var/www/web)" ]; then
-  :
-else
-  cp -R /usr/local/docker/web/* /var/www/web
-fi
-
-
 # Prepare web/jasperserver due to volume
-if [ ! -f "/var/www/web/jasperserver" ]; then
-  jasperserver_setup deploy-webapp-ce
-fi
 jasperserver_setup() {
   JS_DB_TYPE=${JS_DB_TYPE:-mysql}
   JS_DB_HOST=${JS_DB_HOST:-127.0.0.1}
@@ -87,7 +71,7 @@ jasperserver_setup() {
   done
 
   if [ "${JS_ENABLE_SAVE_TO_HOST_FS}" = "true" ]; then
-    sed -i "s/\(<property name=\"enableSaveToHostFS\" value=\"\).*\(\"\/>\)/\1${JS_ENABLE_SAVE_TO_HOST_FS}\2/" /usr/local/tomcat/webapps/jasperserver/WEB-INF/applicationContext.xml
+    sed -i "s/\(<property name=\"enableSaveToHostFS\" value=\"\).*\(\"\/>\)/\1${JS_ENABLE_SAVE_TO_HOST_FS}\2/" /var/www/web/jasperserver/WEB-INF/applicationContext.xml
   fi
 
   mv /var/www/web/jasperserver /var/www/web/ROOT \
@@ -96,6 +80,21 @@ jasperserver_setup() {
   && echo "tbeller.usejndi=false" >> /var/www/web/ROOT/WEB-INF/classes/resfactory.properties \
   && touch /var/www/web/jasperserver
 }
+
+
+# Prepare web directory due to volume
+if [ ! -d /var/www/web ]; then
+  mkdir -p /var/www/web \
+  && chown user:root /var/www/web \
+  && chmod 755 /var/www/web
+fi
+if [ "$(ls -A /var/www/web)" ]; then
+  :
+else
+  if [ ! -f "/var/www/web/jasperserver" ]; then
+    jasperserver_setup deploy-webapp-ce
+  fi
+fi
 
 
 # Execute Everything from Entries
