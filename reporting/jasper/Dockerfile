@@ -1,4 +1,4 @@
-FROM dimaskiddo/ubuntu-oraclejre-tomcat:xenial-8.0-7.0-novol
+FROM dimaskiddo/ubuntu-oraclejre-tomcat:xenial-8.0-7.0
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
 # Setting-up Environment
