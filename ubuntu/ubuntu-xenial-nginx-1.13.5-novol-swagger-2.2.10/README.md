@@ -18,4 +18,4 @@ Dimas Restu H (<dimas.restu@student.upi.edu>)
 
 **How to get in container after run this image:**
 
-> docker exec -it ubuntu-nginx /bin/bash
+> docker exec -it ubuntu-nginx-swaggerui /bin/bash
