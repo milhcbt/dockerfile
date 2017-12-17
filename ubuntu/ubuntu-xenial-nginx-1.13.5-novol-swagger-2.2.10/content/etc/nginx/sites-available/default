@@ -1,0 +1,69 @@
+server {
+  listen      8080 default_server;
+  listen      [::]:8080 default_server ipv6only=on;
+  server_name _;
+  charset     utf-8;
+  
+  root /opt/swagger-ui;
+  index index.html index.htm;
+ 	
+  # Hardening  
+  location = /favicon.ico {
+    log_not_found off;
+    access_log off;
+  }
+  
+  location = /robots.txt {
+    allow all;
+    log_not_found off;
+    access_log off;
+  }
+  
+  location ~ /\. {
+    deny all;
+    access_log off;
+    log_not_found off;
+  }
+  
+  location ~* /images/.*\.php$ {
+    return 403;
+    error_page 403 /error.html;
+  }	
+  # END Hardening
+
+
+  # Tell browser to cache image files for 24 hours, do not log missing images
+  # I typically keep this after the yii rules, so that there is no conflict with content served by Yii
+  location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
+    expires 24h;
+    log_not_found off;
+  }
+  
+  # Fix Trailing Slash Redirect Problem
+  #location ~ ^([^.\?]*[^/])$ {
+  #  try_files  $uri @addslash;
+  #}
+  
+  #location @addslash {
+  #  return 301 $uri/;
+  #}
+  # END Fix Trailing Slash
+  
+  location / {
+    try_files $uri $uri/ =404;
+  }
+
+  location ~ /\.ht {
+    deny all;
+  }
+  
+  # Error Page
+  error_page 404 /404.html;
+    location = /40x.html {
+  }
+
+  error_page 500 502 503 504 /50x.html;
+    location = /50x.html {
+  }
+  # END Error Page
+}
