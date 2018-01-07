@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/sh -e
 
 
 # Add Custom UserID as "User" User
@@ -33,12 +33,16 @@ if [ ! -d /var/www/data/etc/supervisor/conf.d ]; then
 fi
 
 
-# Prepare etc/tomcat directory due to volume
-if [ ! -d /var/www/data/etc/tomcat ]; then
-  mkdir -p /var/www/data/etc/tomcat \
-  && chown user:root /var/www/data/etc/tomcat \
-  && chmod 755 /var/www/data/etc/tomcat \
-  && cp -R /usr/local/docker/etc/tomcat/* /var/www/data/etc/tomcat/
+# Prepare etc/apache2 directory due to volume
+if [ ! -d /var/www/data/etc/apache2 ]; then
+  mkdir -p /var/www/data/etc/apache2 \
+  && chown user:root /var/www/data/etc/apache2 \
+  && chmod 755 /var/www/data/etc/apache2 \
+  && cp -R /usr/local/docker/etc/apache2/* /var/www/data/etc/apache2/
+  
+  if [ ! -f /var/www/data/etc/apache2/httpd.conf ]; then
+    cp /usr/local/docker/etc/apache2/httpd.conf /var/www/data/etc/apache2/httpd.conf
+  fi  
 fi
 
 
@@ -53,24 +57,24 @@ if [ ! -d /var/www/data/logs ]; then
     && chown user:root /var/www/data/logs/supervisor \
     && chmod 755 /var/www/data/logs/supervisor
   fi
-  if [ ! -d /var/www/data/logs/tomcat ]; then
-    mkdir -p /var/www/data/logs/tomcat \
-    && chown user:root /var/www/data/logs/tomcat \
-    && chmod 755 /var/www/data/logs/tomcat
+  if [ ! -d /var/www/data/logs/apache2 ]; then
+    mkdir -p /var/www/data/logs/apache2 \
+    && chown user:root /var/www/data/logs/apache2 \
+    && chmod 757 /var/www/data/logs/apache2
   fi  
 fi
 
 
 # Prepare web directory due to volume
-if [ ! -d /var/www/data/web ]; then
-  mkdir -p /var/www/data/web \
-  && chown user:root /var/www/data/web \
-  && chmod 755 /var/www/data/web
+if [ ! -d /var/www/data/html ]; then
+  mkdir -p /var/www/data/html \
+  && chown user:root /var/www/data/html \
+  && chmod 755 /var/www/data/html
 fi
-if [ "$(ls -A /var/www/data/web)" ]; then
+if [ "$(ls -A /var/www/data/html)" ]; then
   :
 else
-  cp -R /usr/local/docker/web/* /var/www/data/web
+  cp /usr/local/docker/html/index.html /var/www/data/html/index.html
 fi
 
 

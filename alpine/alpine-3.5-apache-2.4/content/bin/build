@@ -1,0 +1,115 @@
+#!/bin/sh -xe
+
+# --------------------------------------------------
+# Dockerfile Build Tools
+# Email: dimas.restu@student.upi.edu
+# --------------------------------------------------
+
+
+# [1] Run Some Housekeeping
+# --------------------------------------------------
+mkdir -p /var/www/data \
+&& mkdir -p /var/www/data/etc \
+&& mkdir -p /var/www/data/html \
+&& mkdir -p /var/www/data/cgi-bin \
+&& mkdir -p /var/www/data/logs \
+&& mkdir -p /var/www/data/logs/supervisor \
+&& mkdir -p /var/www/data/logs/apache2 \
+&& chown -R root:root /var/run \
+&& chown -R root:root /var/www/data/etc \
+&& chown -R root:root /var/www/data/html \
+&& chown -R root:root /var/www/data/cgi-bin \
+&& chown -R root:root /var/www/data/logs \
+&& chown -R root:root /var/www/data/logs/supervisor \
+&& chown -R root:root /var/www/data/logs/apache2 \
+&& chown -R root:root /usr/local/docker \
+&& chown -R root:root /usr/local/docker/bin \
+&& chown -R root:root /usr/local/docker/etc \
+&& chown -R root:root /usr/local/docker/html \
+&& chmod 775 /var/run \
+&& chmod 775 /var/www/data/etc \
+&& chmod 775 /var/www/data/html \
+&& chmod 775 /var/www/data/cgi-bin \
+&& chmod 775 /var/www/data/logs \
+&& chmod 775 /var/www/data/logs/supervisor \
+&& chmod 775 /var/www/data/logs/apache2 \
+&& chmod 775 /usr/local/docker \
+&& chmod 775 /usr/local/docker/bin \
+&& chmod 775 /usr/local/docker/bin/build \
+&& chmod 775 /usr/local/docker/bin/entrypoint \
+&& chmod 775 /usr/local/docker/etc \
+&& chmod 775 /usr/local/docker/etc/supervisor \
+&& chmod 664 /usr/local/docker/etc/supervisor/supervisord.conf \
+&& chmod 775 /usr/local/docker/etc/supervisor/conf.d \
+&& chmod 664 /usr/local/docker/etc/supervisor/conf.d/01-apache.conf \
+&& chmod 775 /usr/local/docker/etc/apache2 \
+&& chmod 664 /usr/local/docker/etc/apache2/httpd.conf \
+&& chmod 775 /usr/local/docker/html \
+&& chmod 664 /usr/local/docker/html/index.html \
+&& ln -sf /var/www/data/html /root/public_html
+# --------------------------------------------------
+
+
+# [2] Installing Supervisor
+# --------------------------------------------------
+apk update \
+&& apk add \
+    supervisor \
+&& rm -rf /var/cache/apk/*
+# --------------------------------------------------
+
+
+# [3] Installing Apache HttpD
+# --------------------------------------------------
+mv /etc/apk/repositories /etc/apk/repositories.original \
+&& echo 'http://dl-cdn.alpinelinux.org/alpine/v3.6/main' >> /etc/apk/repositories \
+&& echo 'http://dl-cdn.alpinelinux.org/alpine/v3.6/community' >> /etc/apk/repositories \
+&& apk update \
+&& apk add \
+    apache2 \
+    apache2-http2 \
+    apache2-proxy \
+    apache2-utils \
+&& rm -rf /var/cache/apk/* \
+&& rm -f /etc/apk/repositories \
+&& mv /etc/apk/repositories.original /etc/apk/repositories
+# --------------------------------------------------
+
+
+# [4] Installing Git SCM
+# --------------------------------------------------
+apk update \
+&& apk add \
+    git \
+&& rm -rf /var/cache/apk/*
+# --------------------------------------------------
+
+
+# [5] Configuring Apache HttpD
+# --------------------------------------------------
+cp /etc/apache2/httpd.conf /etc/apache2/httpd.conf.original \
+&& rm -f /etc/apache2/httpd.conf \
+&& rm -rf /var/www/data/html/* \
+&& rm -rf /var/www/localhost \
+&& rm -rf /var/log/apache2 \
+&& ln -sf /var/www/data/etc/apache2/httpd.conf /etc/apache2/httpd.conf \
+&& ln -sf /var/www/data/logs/apache2 /var/log/apache2 \
+&& mkdir -p /run/apache2 \
+&& chown -R root:root /run \
+&& chown -R root:root /run/apache2 \
+&& chown -R root:root /var/run \
+&& chown -R root:root /var/lock \
+&& chmod -R ug+rwx /run \
+&& chmod -R ug+rwx /run/apache2 \
+&& chmod -R ug+rwx /var/run \
+&& chmod -R ug+rwx /var/lock
+# --------------------------------------------------
+
+
+# [6] Configuring Supervisor
+# --------------------------------------------------
+rm -rf /etc/supervisor
+# --------------------------------------------------
+
+
+exit 0

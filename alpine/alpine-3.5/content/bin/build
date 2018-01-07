@@ -14,7 +14,10 @@ chmod 770 /root \
 && chown -R root:root /usr/local/docker/bin \
 && chmod 775 /usr/local/docker \
 && chmod 775 /usr/local/docker/bin \
-&& rm -f /root/.wget-hsts \
+&& mkdir -p /var/lib/msttcorefonts \
+&& mkdir -p /usr/share/fonts/truetype/msttcorefonts \
+&& mv /usr/local/docker/bin/update-ms-fonts /usr/bin/update-ms-fonts \
+&& mv /usr/local/docker/lib/msttcorefonts/cabfiles.sha256sums /var/lib/msttcorefonts/cabfiles.sha256sums \
 && ln -sf /bin/bash /bin/sh \
 && ln -sf /usr/share/zoneinfo/Asia/Jakarta /etc/localtime \
 && echo "user:x:1000:0:User:/root:/sbin/nologin" >> /etc/passwd
@@ -27,7 +30,7 @@ apk update \
 && apk upgrade \
 && apk add \
     file \
-    msttcorefonts-installer \
+    cabextract \
     ttf-dejavu \
     binutils \
     run-parts \
@@ -47,6 +50,7 @@ apk update \
 && apk add glibc-${GLIBC_VERSION}.apk \
 && rm -rf glibc-${GLIBC_VERSION}.apk \
 && rm -rf /var/cache/apk/* \
+&& rm -f /root/.wget-hsts \
 && update-ms-fonts \
 && fc-cache -f
 # --------------------------------------------------

@@ -31,26 +31,33 @@ if [ ! -d /var/www/data/etc/supervisor/conf.d ]; then
   && chmod 755 /var/www/data/etc/supervisor/conf.d \
   && cp -R /usr/local/docker/etc/supervisor/conf.d/* /var/www/data/etc/supervisor/conf.d/
 fi
-if [ ! -d /var/www/data/etc/supervisor/log ]; then
-  mkdir -p /var/www/data/etc/supervisor/log \
-  && chown user:root /var/www/data/etc/supervisor/log \
-  && chmod 755 /var/www/data/etc/supervisor/log \
-  && cp -R /usr/local/docker/etc/supervisor/log/* /var/www/data/etc/supervisor/log/
+
+
+# Prepare etc/restheart directory due to volume
+if [ ! -d /var/www/data/etc/restheart ]; then
+  mkdir -p /var/www/data/etc/restheart \
+  && chown user:root /var/www/data/etc/restheart \
+  && chmod 755 /var/www/data/etc/restheart \
+  && cp -R /usr/local/docker/etc/restheart/* /var/www/data/etc/restheart/
 fi
 
 
-# Prepare /opt/restheart directory due to volume
-if [ ! -d /opt/restheart ]; then
-  mkdir -p /opt/restheart \
-  && chown user:root /opt/restheart \
-  && chmod 755 /opt/restheart \
-  && cp -R /usr/local/docker/opt/restheart/* /opt/restheart/
-fi
-if [ ! -d /opt/restheart/etc ]; then
-  mkdir -p /opt/restheart/etc \
-  && chown user:root /opt/restheart/etc \
-  && chmod 755 /opt/restheart/etc \
-  && cp -R /usr/local/docker/opt/restheart/etc/* /opt/restheart/etc/
+# Prepare logs directory due to volume
+if [ ! -d /var/www/data/logs ]; then
+  mkdir -p /var/www/data/logs \
+  && chown user:root /var/www/data/logs \
+  && chmod 755 /var/www/data/logs
+
+  if [ ! -d /var/www/data/logs/supervisor ]; then
+    mkdir -p /var/www/data/logs/supervisor \
+    && chown user:root /var/www/data/logs/supervisor \
+    && chmod 755 /var/www/data/logs/supervisor
+  fi
+  if [ ! -d /var/www/data/logs/restheart ]; then
+    mkdir -p /var/www/data/logs/restheart \
+    && chown user:root /var/www/data/logs/restheart \
+    && chmod 755 /var/www/data/logs/restheart
+  fi  
 fi
 
 
@@ -67,9 +74,9 @@ MONGODB_PORT=${MONGODB_PORT:-27017}
 RESTHEART_USER=${RESTHEART_USER:-$MONGODB_USER}
 RESTHEART_PASSWORD=${RESTHEART_PASSWORD:-$MONGODB_PASSWORD}
 
-sed -i "s/^\(mongo-uri:\).*/\1 mongodb\:\/\/$MONGODB_USER\:$MONGODB_PASSWORD\@$MONGODB_HOST\:$MONGODB_PORT\/\?authSource\=$MONGODB_DATABASE/" /opt/restheart/etc/restheart.yml
-sed -i -e "1,/    - userid:[a-zA-Z0-9]*/s/^\(    - userid:\).*/\1 $RESTHEART_USER/" /opt/restheart/etc/security.yml
-sed -i -e "1,/      password:[a-zA-Z0-9]*/s/^\(      password:\).*/\1 $RESTHEART_PASSWORD/" /opt/restheart/etc/security.yml
+sed -i "s/^\(mongo-uri:\).*/\1 mongodb\:\/\/$MONGODB_USER\:$MONGODB_PASSWORD\@$MONGODB_HOST\:$MONGODB_PORT\/\?authSource\=$MONGODB_DATABASE/" /var/www/data/etc/restheart/restheart.yml
+sed -i -e "1,/    - userid:[a-zA-Z0-9]*/s/^\(    - userid:\).*/\1 $RESTHEART_USER/" /var/www/data/etc/restheart/security.yml
+sed -i -e "1,/      password:[a-zA-Z0-9]*/s/^\(      password:\).*/\1 $RESTHEART_PASSWORD/" /var/www/data/etc/restheart/security.yml
 
 export ARGS=$ARGS
 export PROPS=$PROPS

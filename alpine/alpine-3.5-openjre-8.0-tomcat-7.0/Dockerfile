@@ -33,10 +33,10 @@ USER user
 # Set Labels Used in OpenShift to Describe the Builder Images
 LABEL release=1 \
       vendor="Alpine" \
-      summary="Virtual Machine (VM) like container platform for running Java web applications with Tomcat 7.0" \
+      summary="Virtual Machine (VM) like container platform with Tomcat 7.0" \
       maintainer="Dimas Restu Hidayanto <dimas.restu@student.upi.edu>" \
       io.k8s.description="Alpine (3.x) OpenJRE 8.0 with Apache Tomcat 7.0" \
       io.k8s.display-name="Alpine (3.x) OpenJRE 8.0 with Apache Tomcat 7.0" \
-      io.openshift.tags="builder,alpine3,openjre8,tomcat70" \
+      io.openshift.tags="builder,alpine,openjre,tomcat" \
       io.openshift.expose-services="8080:http,8443:https" \
       io.openshift.non-scalable="false"
