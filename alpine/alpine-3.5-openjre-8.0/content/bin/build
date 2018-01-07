@@ -1,0 +1,30 @@
+#!/bin/bash -xe
+
+# --------------------------------------------------
+# Dockerfile Build Tools
+# Email: dimas.restu@student.upi.edu
+# --------------------------------------------------
+
+
+# [1] Installing Java Configurator
+# --------------------------------------------------
+{ \
+  echo '#!/bin/bash'; \
+  echo 'set -e'; \
+  echo; \
+  echo 'dirname "$(dirname "$(readlink -f "$(which javac || which java)")")"'; \
+} > /usr/local/bin/docker-java-home \
+&& chmod +x /usr/local/bin/docker-java-home
+
+
+# [2] Installing OpenJRE
+# --------------------------------------------------
+apk update \
+&& apk add \
+    openjdk8-jre \
+&& rm -rf /var/cache/apk/* \
+&& [ "$JAVA_HOME" = "$(docker-java-home)" ]
+# --------------------------------------------------
+
+
+exit

@@ -1,0 +1,71 @@
+#!/bin/bash -xe
+
+# --------------------------------------------------
+# Dockerfile Build Tools
+# Email: dimas.restu@student.upi.edu
+# --------------------------------------------------
+
+
+# [1] Run Some Housekeeping
+# --------------------------------------------------
+mkdir -p /var/www/data \
+&& mkdir -p /var/www/data/etc \
+&& mkdir -p /opt \
+&& mkdir -p /usr/local/docker/opt/restheart \
+&& mkdir -p /usr/local/docker/opt/restheart/etc \
+&& chown -R root:root /var/run \
+&& chown -R root:root /var/www/data \
+&& chown -R root:root /var/www/data/etc \
+&& chown -R root:root /opt \
+&& chown -R root:root /usr/local/docker \
+&& chown -R root:root /usr/local/docker/bin \
+&& chown -R root:root /usr/local/docker/etc \
+&& chown -R root:root /usr/local/docker/opt \
+&& chmod 775 /var/run \
+&& chmod 775 /var/www/data/etc \
+&& chmod 775 /opt \
+&& chmod 775 /usr/local/docker \
+&& chmod 775 /usr/local/docker/bin \
+&& chmod 775 /usr/local/docker/bin/build \
+&& chmod 775 /usr/local/docker/bin/entrypoint \
+&& chmod 775 /usr/local/docker/etc \
+&& chmod 775 /usr/local/docker/etc/supervisor \
+&& chmod 664 /usr/local/docker/etc/supervisor/supervisord.conf \
+&& chmod 775 /usr/local/docker/etc/supervisor/conf.d \
+&& chmod 664 /usr/local/docker/etc/supervisor/conf.d/01-restheart.conf \
+&& chmod 775 /usr/local/docker/opt \
+&& chmod 775 /usr/local/docker/opt/restheart \
+&& chmod 775 /usr/local/docker/opt/restheart/etc \
+&& chmod 664 /usr/local/docker/opt/restheart/etc/restheart.yml \
+&& chmod 664 /usr/local/docker/opt/restheart/etc/security.yml
+# --------------------------------------------------
+
+
+# [2] Installing Supervisor
+# --------------------------------------------------
+apk update \
+&& apk add \
+    supervisor \
+&& rm -rf /var/cache/apk/*
+# --------------------------------------------------
+
+
+# [3] Installing RESTHeart
+# --------------------------------------------------
+cd /usr/local/docker/opt/restheart \
+&& wget -O restheart.tar.gz https://github.com/SoftInstigate/restheart/releases/download/${RESTHEART_VERSION}/restheart-${RESTHEART_VERSION}.tar.gz \
+&& tar xzvf restheart.tar.gz \
+&& rm -rf restheart.tar.gz \
+&& mv restheart-${RESTHEART_VERSION}/restheart.jar . \
+&& rm -rf restheart-${RESTHEART_VERSION} \
+&& chown -R root:root restheart.jar \
+&& chmod 775 restheart.jar
+# --------------------------------------------------
+
+
+# [4] Configuring Supervisor
+# --------------------------------------------------
+rm -rf /etc/supervisor
+# --------------------------------------------------
+
+exit 0

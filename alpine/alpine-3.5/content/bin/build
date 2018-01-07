@@ -1,0 +1,55 @@
+#!/bin/bash -xe
+
+# --------------------------------------------------
+# Dockerfile Build Tools
+# Email: dimas.restu@student.upi.edu
+# --------------------------------------------------
+
+
+# [1] Run Some Housekeeping
+# --------------------------------------------------
+chmod 770 /root \
+&& chmod 664 /etc/passwd \
+&& chown -R root:root /usr/local/docker \
+&& chown -R root:root /usr/local/docker/bin \
+&& chmod 775 /usr/local/docker \
+&& chmod 775 /usr/local/docker/bin \
+&& rm -f /root/.wget-hsts \
+&& ln -sf /bin/bash /bin/sh \
+&& ln -sf /usr/share/zoneinfo/Asia/Jakarta /etc/localtime \
+&& echo "user:x:1000:0:User:/root:/sbin/nologin" >> /etc/passwd
+# --------------------------------------------------
+
+
+# [2] Installing Base Tools
+# --------------------------------------------------
+apk update \
+&& apk upgrade \
+&& apk add \
+    file \
+    msttcorefonts-installer \
+    ttf-dejavu \
+    binutils \
+    run-parts \
+    curl \
+    grep \
+    sed \
+    gzip \
+    tar \
+    zip \
+    unzip \
+    net-tools \
+    rsync \
+    nano \
+    htop \
+&& wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://raw.githubusercontent.com/sgerrand/alpine-pkg-glibc/master/sgerrand.rsa.pub \
+&& wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/${GLIBC_VERSION}/glibc-${GLIBC_VERSION}.apk \
+&& apk add glibc-${GLIBC_VERSION}.apk \
+&& rm -rf glibc-${GLIBC_VERSION}.apk \
+&& rm -rf /var/cache/apk/* \
+&& update-ms-fonts \
+&& fc-cache -f
+# --------------------------------------------------
+
+
+exit

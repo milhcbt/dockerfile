@@ -1,47 +1,34 @@
-FROM dimaskiddo/alpine-openjre:3.5-8.0
+FROM dimaskiddo/alpine:openjre-8.0
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
 # Set Environment Variables
 ENV TOMCAT_MAJOR=8 \
-    TOMCAT_VERSION=8.5.20 \
-    CATALINA_HOME=/opt/tomcat
+    TOMCAT_VERSION=8.5.24 \
+    CATALINA_HOME=/opt/tomcat \
+    PATH=$PATH:/opt/tomcat/bin
 
-# Layer 01
-# Installing Tomcat
-RUN mkdir -p $CATALINA_HOME \
-    && chown -R root:root $CATALINA_HOME \
-    && chmod -R 664 $CATALINA_HOME \
-    && cd $CATALINA_HOME \
-    && wget -O tomcat.tar.gz http://www-us.apache.org/dist/tomcat/tomcat-$TOMCAT_MAJOR/v$TOMCAT_VERSION/bin/apache-tomcat-$TOMCAT_VERSION.tar.gz \
-    && tar xvfz tomcat.tar.gz --strip-components=1 \
-    && rm -f tomcat.tar.gz* \
-    && mkdir -p $CATALINA_HOME/webapps-docker \
-    && cp -R $CATALINA_HOME/webapps/* $CATALINA_HOME/webapps-docker/ \
-    && chown -R root:root $CATALINA_HOME \
-    && chmod -R 775 $CATALINA_HOME
+# Copying Prequisites Configuration
+COPY ./content/ /usr/local/docker/
 
-# Layer 02
-# Copy Container Scripts
-COPY ./entry/container-entrypoint /usr/local/bin/container-entrypoint
-
-# Layer 03
-# Change Container Scripts Permissions
-RUN chmod 755 /usr/local/bin/container-entrypoint
+# Setting-up Permissions
+RUN chmod 775 /usr/local/docker/bin/build \
+  && /usr/local/docker/bin/build \
+  && rm -f /usr/local/docker/bin/build
 
 # Set Volumes Directory
-VOLUME $CATALINA_HOME/webapps
-
-# Set Environment Variables
-ENV PATH $PATH:$CATALINA_HOME/bin
+VOLUME /var/www/data
 
 # Expose Ports
-EXPOSE 8080
+EXPOSE 8080 8443
 
 # Set Entrypoint Script
-ENTRYPOINT ["/usr/local/bin/container-entrypoint"]
+ENTRYPOINT ["/usr/local/docker/bin/entrypoint"]
 
 # Set Executor Script
-CMD ["run"]
+CMD ["/usr/bin/supervisord","-n","-c","/var/www/data/etc/supervisor/supervisord.conf","-d","/var/www/data/etc/supervisor"]
+
+# Change Working User to "User"
+USER user
 
 # Set Labels Used in OpenShift to Describe the Builder Images
 LABEL release=1 \
@@ -51,5 +38,5 @@ LABEL release=1 \
       io.k8s.description="Alpine (3.x) OpenJRE 8.0 with Apache Tomcat 8.5" \
       io.k8s.display-name="Alpine (3.x) OpenJRE 8.0 with Apache Tomcat 8.5" \
       io.openshift.tags="builder,alpine3,openjre8,tomcat85" \
-      io.openshift.expose-services="8080:http" \
+      io.openshift.expose-services="8080:http,8443:https" \
       io.openshift.non-scalable="false"

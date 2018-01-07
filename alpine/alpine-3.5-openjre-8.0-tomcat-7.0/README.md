@@ -1,4 +1,4 @@
-Apache Tomcat 7.0 + OpenJRE 8.0 Image from Modified Base Image of Alpine (3.5). This image is ready to run using custom User ID with non-root user execution for OpenShift ready.
+Apache Tomcat 7.0 + OpenJRE 8.0 Image from Modified Base Image of Alpine. This image is ready to run using custom User ID with non-root user execution for OpenShift ready.
 
 Build with love from Gegerkalong, Bandung, Indonesia.
 
@@ -8,12 +8,12 @@ Dimas Restu H (<dimas.restu@student.upi.edu>)
 
 **How to pull this image:**
 
-> docker pull dimaskiddo/alpine-openjre-tomcat:3.5-8.0-7.0
+> docker pull dimaskiddo/alpine:tomcat-7.0
 
 **How to run this image:**
 
-> docker run -p 80:8080 -v <local_data_path>:/opt/tomcat/webapps --name alpine-tomcat dimaskiddo/alpine-openjre-tomcat:3.5-8.0-7.0
+> docker run -p 80:8080 -v <local_data_path>:/var/www/data/web --name tomcat dimaskiddo/alpine:tomcat-7.0
 
 **How to get in container after run this image:**
 
-> docker exec -it alpine-tomcat /bin/bash
+> docker exec -it tomcat /bin/bash
