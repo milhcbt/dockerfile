@@ -13,7 +13,7 @@ fi
 if [ ! -d /var/www/data/etc ]; then
   mkdir -p /var/www/data/etc \
   && chown user:root /var/www/data/etc \
-  && chmod 755 /var/www/data/etc \
+  && chmod 775 /var/www/data/etc \
   && cp -R /usr/local/docker/etc/* /var/www/data/etc/
 fi
 
@@ -22,13 +22,13 @@ fi
 if [ ! -d /var/www/data/etc/supervisor ]; then
   mkdir -p /var/www/data/etc/supervisor \
   && chown user:root /var/www/data/etc/supervisor \
-  && chmod 755 /var/www/data/etc/supervisor \
+  && chmod 775 /var/www/data/etc/supervisor \
   && cp -R /usr/local/docker/etc/supervisor/* /var/www/data/etc/supervisor/
 fi
 if [ ! -d /var/www/data/etc/supervisor/conf.d ]; then
   mkdir -p /var/www/data/etc/supervisor/conf.d \
   && chown user:root /var/www/data/etc/supervisor/conf.d \
-  && chmod 755 /var/www/data/etc/supervisor/conf.d \
+  && chmod 775 /var/www/data/etc/supervisor/conf.d \
   && cp -R /usr/local/docker/etc/supervisor/conf.d/* /var/www/data/etc/supervisor/conf.d/
 fi
 
@@ -37,7 +37,7 @@ fi
 if [ ! -d /var/www/data/etc/restheart ]; then
   mkdir -p /var/www/data/etc/restheart \
   && chown user:root /var/www/data/etc/restheart \
-  && chmod 755 /var/www/data/etc/restheart \
+  && chmod 775 /var/www/data/etc/restheart \
   && cp -R /usr/local/docker/etc/restheart/* /var/www/data/etc/restheart/
 fi
 
@@ -46,18 +46,22 @@ fi
 if [ ! -d /var/www/data/logs ]; then
   mkdir -p /var/www/data/logs \
   && chown user:root /var/www/data/logs \
-  && chmod 755 /var/www/data/logs
+  && chmod 775 /var/www/data/logs
+fi
 
-  if [ ! -d /var/www/data/logs/supervisor ]; then
-    mkdir -p /var/www/data/logs/supervisor \
-    && chown user:root /var/www/data/logs/supervisor \
-    && chmod 755 /var/www/data/logs/supervisor
-  fi
-  if [ ! -d /var/www/data/logs/restheart ]; then
-    mkdir -p /var/www/data/logs/restheart \
-    && chown user:root /var/www/data/logs/restheart \
-    && chmod 755 /var/www/data/logs/restheart
-  fi  
+# Prepare logs/supervisor directory due to volume
+if [ ! -d /var/www/data/logs/supervisor ]; then
+  mkdir -p /var/www/data/logs/supervisor \
+  && chown user:root /var/www/data/logs/supervisor \
+  && chmod 775 /var/www/data/logs/supervisor
+fi
+
+
+# Prepare logs/restheart directory due to volume
+if [ ! -d /var/www/data/logs/restheart ]; then
+  mkdir -p /var/www/data/logs/restheart \
+  && chown user:root /var/www/data/logs/restheart \
+  && chmod 775 /var/www/data/logs/restheart
 fi
 
 

@@ -1,0 +1,155 @@
+#!/bin/sh -xe
+
+# --------------------------------------------------
+# Dockerfile Build Tools
+# Email: dimas.restu@student.upi.edu
+# --------------------------------------------------
+
+
+# [1] Run Some Housekeeping
+# --------------------------------------------------
+mkdir -p /var/www/data/lib \
+&& mkdir -p /var/www/data/lib/php7 \
+&& mkdir -p /var/www/data/lib/php7/sessions \
+&& mkdir -p /var/www/data/lib/php7/uploads \
+&& mkdir -p /var/www/data/logs/php7 \
+&& chown -R root:root /var/www/data/lib \
+&& chown -R root:root /var/www/data/lib/php7 \
+&& chown -R root:root /var/www/data/lib/php7/sessions \
+&& chown -R root:root /var/www/data/lib/php7/uploads \
+&& chown -R root:root /var/www/data/logs/php7 \
+&& chown -R root:root /usr/local/docker \
+&& chown -R root:root /usr/local/docker/bin \
+&& chown -R root:root /usr/local/docker/etc \
+&& chown -R root:root /usr/local/docker/html \
+&& chmod 775 /var/www/data/lib \
+&& chmod 775 /var/www/data/lib/php7 \
+&& chmod 775 /var/www/data/lib/php7/sessions \
+&& chmod 775 /var/www/data/lib/php7/uploads \
+&& chmod 775 /var/www/data/logs/php7 \
+&& chmod 775 /usr/local/docker \
+&& chmod 775 /usr/local/docker/bin \
+&& chmod 775 /usr/local/docker/bin/build \
+&& chmod 775 /usr/local/docker/bin/entrypoint \
+&& chmod 775 /usr/local/docker/etc \
+&& chmod 775 /usr/local/docker/etc/supervisor \
+&& chmod 664 /usr/local/docker/etc/supervisor/supervisord.conf \
+&& chmod 775 /usr/local/docker/etc/supervisor/conf.d \
+&& chmod 664 /usr/local/docker/etc/supervisor/conf.d/01-apache.conf \
+&& chmod 664 /usr/local/docker/etc/supervisor/conf.d/02-phpfpm.conf \
+&& chmod 775 /usr/local/docker/etc/apache2 \
+&& chmod 664 /usr/local/docker/etc/apache2/httpd.conf \
+&& chmod 775 /usr/local/docker/etc/php7 \
+&& chmod 664 /usr/local/docker/etc/php7/php-fpm.conf \
+&& chmod 664 /usr/local/docker/etc/php7/php.ini \
+&& chmod 775 /usr/local/docker/html \
+&& chmod 664 /usr/local/docker/html/index.php \
+&& chmod 664 /usr/local/docker/html/info.php \
+&& rm -f /usr/local/docker/html/index.html
+# --------------------------------------------------
+
+
+# [2] Installing PHP 7
+# --------------------------------------------------
+cp /etc/apk/repositories /etc/apk/repositories.original \
+&& echo 'http://dl-cdn.alpinelinux.org/alpine/v3.6/main' >> /etc/apk/repositories \
+&& echo 'http://dl-cdn.alpinelinux.org/alpine/v3.6/community' >> /etc/apk/repositories \
+&& apk update \
+&& apk add \
+    php7-common \
+    php7-pear \
+    php7-bcmath \
+    php7-bz2 \
+    php7-cli \
+    php7-calendar \
+    php7-curl \
+    php7-ctype \
+    php7-dom \
+    php7-exif \
+    php7-ftp \
+    php7-fileinfo \
+    php7-gd \
+    php7-gettext \
+    php7-iconv \
+    php7-imagick \
+    php7-intl \
+    php7-imap \
+    php7-ldap \
+    php7-json \
+    php7-mcrypt \
+    php7-memcached \
+    php7-opcache \
+    php7-pcntl \
+    php7-phar \
+    php7-posix \
+    php7-pspell \
+    php7-mysqlnd \
+    php7-mysqli \
+    php7-pgsql \
+    php7-sqlite3 \
+    php7-pdo \
+    php7-pdo_mysql \
+    php7-pdo_pgsql \
+    php7-pdo_sqlite \
+    php7-openssl \
+    php7-sockets \
+    php7-soap \
+    php7-sysvshm \
+    php7-sysvmsg \
+    php7-sysvsem \
+    php7-tokenizer \
+    php7-xml \
+    php7-xmlreader \
+    php7-xmlwriter \
+    php7-xmlrpc \
+    php7-xsl \
+    php7-zlib \
+    php7-zip \
+    php7-fpm \
+&& rm -rf /var/cache/apk/* \
+&& rm -f /etc/apk/repositories \
+&& mv /etc/apk/repositories.original /etc/apk/repositories
+# --------------------------------------------------
+
+
+# [3] Installing Composer
+# -------------------------------------------------
+curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
+&& chmod 755 /usr/local/bin/composer \
+&& rm -rf /root/.composer \
+&& ln -sf /var/www/data/etc/composer /root/.composer
+# --------------------------------------------------
+
+
+# [4] Configuring PHP 7
+# -------------------------------------------------
+cp /etc/php7/php.ini /etc/php7/php.ini.original \
+&& cp /etc/php7/php-fpm.conf /etc/php7/php-fpm.conf.original \
+&& cp /etc/php7/php-fpm.d/www.conf /etc/php7/php-fpm.d/www.conf.original \
+&& touch /var/www/data/logs/php7/php-fpm.log \
+&& mkdir -p /var/lib/php \
+&& rm -f /etc/php7/php.ini \
+&& rm -f /etc/php7/php-fpm.conf \
+&& rm -f /etc/php7/php-fpm.d/www.conf \
+&& rm -rf /var/lib/php/* \
+&& rm -rf /var/log/php7 \
+&& ln -sf /var/www/data/etc/php7/php.ini /etc/php7/php.ini \
+&& ln -sf /var/www/data/etc/php7/php-fpm.conf /etc/php7/php-fpm.conf \
+&& ln -sf /var/www/data/etc/php7/php-fpm.d/www.conf /etc/php7/php-fpm.d/www.conf \
+&& ln -sf /var/www/data/lib/php7/sessions /var/lib/php/sessions \
+&& ln -sf /var/www/data/lib/php7/uploads /var/lib/php/uploads \
+&& ln -sf /var/www/data/logs/php7 /var/log/php7 \
+&& chown -R root:root /var/lib/php \
+&& chown -R root:root /var/www/data/logs/php7/php-fpm.log \
+&& chmod 775 /var/lib/php \
+&& chmod 664 /var/www/data/logs/php7/php-fpm.log
+# --------------------------------------------------
+
+
+# [5] Configuring Supervisor
+# --------------------------------------------------
+rm -rf ec/supervisor
+# --------------------------------------------------
+
+
+exit 0

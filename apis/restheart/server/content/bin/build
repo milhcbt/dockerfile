@@ -25,6 +25,7 @@ mkdir -p /var/www/data \
 && chown -R root:root /usr/local/docker/bin \
 && chown -R root:root /usr/local/docker/etc \
 && chmod 775 /var/run \
+&& chmod 775 /var/www/data \
 && chmod 775 /var/www/data/etc \
 && chmod 775 /var/www/data/logs \
 && chmod 775 /var/www/data/logs/supervisor \

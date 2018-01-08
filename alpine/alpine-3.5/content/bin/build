@@ -18,6 +18,7 @@ chmod 770 /root \
 && mkdir -p /usr/share/fonts/truetype/msttcorefonts \
 && mv /usr/local/docker/bin/update-ms-fonts /usr/bin/update-ms-fonts \
 && mv /usr/local/docker/lib/msttcorefonts/cabfiles.sha256sums /var/lib/msttcorefonts/cabfiles.sha256sums \
+&& rm -rf /usr/local/docker/lib \
 && ln -sf /bin/bash /bin/sh \
 && ln -sf /usr/share/zoneinfo/Asia/Jakarta /etc/localtime \
 && echo "user:x:1000:0:User:/root:/sbin/nologin" >> /etc/passwd

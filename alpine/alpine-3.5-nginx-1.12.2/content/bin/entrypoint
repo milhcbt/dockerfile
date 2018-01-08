@@ -18,6 +18,15 @@ if [ ! -d /var/www/data/etc ]; then
 fi
 
 
+# Prepare cgi-bin directory due to volume
+if [ ! -d /var/www/data/cgi-bin ]; then
+  mkdir -p /var/www/data/cgi-bin \
+  && chown user:root /var/www/data/cgi-bin \
+  && chmod 755 /var/www/data/cgi-bin \
+  && cp -R /usr/local/docker/etc/* /var/www/data/cgi-bin/
+fi
+
+
 # Prepare etc/supervisor directory due to volume
 if [ ! -d /var/www/data/etc/supervisor ]; then
   mkdir -p /var/www/data/etc/supervisor \

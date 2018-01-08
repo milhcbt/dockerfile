@@ -24,10 +24,10 @@ USER user
 # Set Labels Used in OpenShift to Describe the Builder Images
 LABEL release=1 \
       vendor="Alpine" \
-      summary="Virtual Machine (VM) like container platform with Apache 2.4 & PHP 5.6" \
+      summary="Virtual Machine (VM) like container platform with Apache 2.4 & PHP 7.1" \
       maintainer="Dimas Restu Hidayanto <dimas.restu@student.upi.edu>" \
-      io.k8s.description="Alpine (3.x) with Apache 2.4 & PHP 5.6" \
-      io.k8s.display-name="Alpine (3.x) with Apache 2.4 & PHP 5.6" \
+      io.k8s.description="Alpine (3.x) with Apache 2.4 & PHP 7.1" \
+      io.k8s.display-name="Alpine (3.x) with Apache 2.4 & PHP 7.1" \
       io.openshift.tags="builder,alpine,apache,php" \
       io.openshift.expose-services="8080:http,8443:https" \
       io.openshift.non-scalable="false"
