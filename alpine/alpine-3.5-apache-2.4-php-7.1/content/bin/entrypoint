@@ -78,7 +78,7 @@ if [ ! -f /var/www/data/etc/php7/php.ini ]; then
 fi
 
 
-# Prepare etc directory due to volume
+# Prepare lib directory due to volume
 if [ ! -d /var/www/data/lib ]; then
   mkdir -p /var/www/data/lib \
   && chown user:root /var/www/data/lib \
