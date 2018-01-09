@@ -1,4 +1,4 @@
-Swagger UI 2.2.10 with Nginx 1.13.5 Image from Modified Base Image of Ubuntu Xenial (16.04).
+Swagger UI 3.7.0 with Nginx 1.13.5 Image from Modified Base Image of Ubuntu Xenial (16.04).
 
 This image is ready to run using custom User ID with non-root user execution for OpenShift ready.
 
@@ -10,11 +10,11 @@ Dimas Restu H (<dimas.restu@student.upi.edu>)
 
 **How to pull this image:**
 
-> docker pull dimaskiddo/ubuntu-nginx-swaggerui:xenial-1.13.5-2.2.10
+> docker pull dimaskiddo/ubuntu-nginx-swaggerui:xenial-1.13.5-3.7.0
 
 **How to run this image:**
 
-> docker run -p 80:8080 -p 443:8443 -v <local_data_path>:/var/www --name ubuntu-swaggerui dimaskiddo/ubuntu-nginx-swaggerui:xenial-1.13.5-2.2.10
+> docker run -p 80:8080 -p 443:8443 -v <local_data_path>:/var/www --name ubuntu-swaggerui dimaskiddo/ubuntu-nginx-swaggerui:xenial-1.13.5-3.7.0
 
 **How to get in container after run this image:**
 

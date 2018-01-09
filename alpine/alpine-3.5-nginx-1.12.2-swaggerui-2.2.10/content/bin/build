@@ -1,0 +1,26 @@
+#!/bin/bash -xe
+
+# --------------------------------------------------
+# Dockerfile Build Tools
+# Email: dimas.restu@student.upi.edu
+# --------------------------------------------------
+
+
+# [1] Run Some Housekeeping
+# --------------------------------------------------
+chmod 664 /usr/local/docker/etc/nginx/conf.d/default.conf
+# --------------------------------------------------
+
+
+# [2] Installing Swagger UI
+# --------------------------------------------------
+cd /tmp \
+&& curl -Lk https://github.com/swagger-api/swagger-ui/archive/v${SWAGGERUI_VERSION}.tar.gz -o swagger-ui-${SWAGGERUI_VERSION}.tar.gz \
+&& tar -xzf swagger-ui-${SWAGGERUI_VERSION}.tar.gz \
+&& mkdir -p /opt/swagger-ui \
+&& mv swagger-ui-${SWAGGERUI_VERSION}/dist/* /opt/swagger-ui \
+&& rm -rf swagger-ui-${SWAGGERUI_VERSION}* \
+&& rm -rf /tmp/*
+# --------------------------------------------------
+
+exit 0

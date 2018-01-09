@@ -2,7 +2,7 @@ FROM dimaskiddo/ubuntu-nginx:xenial-1.13.5-novol
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
 # Setting-up Environment
-ENV SWAGGERUI_VERSION 2.1.2
+ENV SWAGGERUI_VERSION 2.2.10
 
 # Change Working User to "Root"
 USER root
