@@ -1,11 +1,5 @@
-FROM dimaskiddo/alpine:openjre-8.0
+FROM dimaskiddo/alpine:base
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
-
-# Set Environment Variables
-ENV TOMCAT_MAJOR=8 \
-    TOMCAT_VERSION=8.5.24 \
-    CATALINA_HOME=/opt/tomcat \
-    PATH=$PATH:/opt/tomcat/bin
 
 # Copying Prequisites Configuration
 COPY ./content/ /usr/local/docker/
@@ -16,16 +10,16 @@ RUN chmod 775 /usr/local/docker/bin/build \
   && rm -f /usr/local/docker/bin/build
 
 # Set Volumes Directory
-VOLUME /var/www/data
+VOLUME /data
 
 # Expose Ports
-EXPOSE 8080 8443
+EXPOSE 6379
 
 # Set Entrypoint Script
 ENTRYPOINT ["/usr/local/docker/bin/entrypoint"]
 
 # Set Executor Script
-CMD ["sh","-c","$CATALINA_HOME/bin/catalina.sh run $ARGS"]
+CMD ["sh","-c","redis-server $ARGS"]
 
 # Change Working User to "User"
 USER user
@@ -33,10 +27,10 @@ USER user
 # Set Labels Used in OpenShift to Describe the Builder Images
 LABEL release=1 \
       vendor="Alpine" \
-      summary="Virtual Machine (VM) like container platform with Tomcat 8.5" \
+      summary="Virtual Machine (VM) like container platform with Redis 4.0" \
       maintainer="Dimas Restu Hidayanto <dimas.restu@student.upi.edu>" \
-      io.k8s.description="Alpine (3.x) OpenJRE 8.0 with Apache Tomcat 8.5" \
-      io.k8s.display-name="Alpine (3.x) OpenJRE 8.0 with Apache Tomcat 8.5" \
-      io.openshift.tags="builder,alpine,openjre,tomcat" \
-      io.openshift.expose-services="8080:http,8443:https" \
+      io.k8s.description="Alpine (3.x) with Redis 4.0" \
+      io.k8s.display-name="Alpine (3.x) with Redis 4.0" \
+      io.openshift.tags="builder,alpine,redis" \
+      io.openshift.expose-services="6379:redis" \
       io.openshift.non-scalable="false"

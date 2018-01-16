@@ -9,8 +9,8 @@ networks:
 
 services:
   restheart:
-    build: ./server
-    image: dimaskiddo/alpine:restheart-3.2-novol
+    build: .
+    image: dimaskiddo/alpine:restheart-3.2
     networks:
       - restnet
     ports:
@@ -24,10 +24,13 @@ services:
     depends_on:
       - mongodb
     restart: always
+  
   mongodb:
     image: centos/mongodb-32-centos7:3.2
     networks:
       - restnet
+    ports:
+      - 27017:27017      
     environment:
       - MONGODB_USER=restheart
       - MONGODB_PASSWORD=restheart

@@ -1,0 +1,46 @@
+version: '2.1'
+
+networks:
+  redisnet:
+    driver: bridge
+
+services:
+  # redis-sentinel:
+  #   build: .
+  #   image: 'dimaskiddo/alpine:redis-3.2'
+  #   networks:
+  #     - redisnet
+  #   ports:
+  #     - '6379'
+  #   environment:
+  #     - ALLOW_EMPTY_PASSWORD=yes
+  #     - REDIS_REPLICATION=sentinel
+  #     - REDIS_MASTER_HOST=redis-master
+  #     - REDIS_MASTER_PORT=6379
+  #     - REDIS_MASTER_QUORUM=1      
+  
+  redis-master:
+    build: .
+    image: 'dimaskiddo/alpine:redis-3.2'
+    networks:
+      - redisnet
+    ports:
+      - '6379'
+    environment:
+      - REDIS_REPLICATION=master
+      - REDIS_PASSWORD=password
+
+  redis-slave:
+    build: .
+    image: 'dimaskiddo/alpine:redis-3.2'
+    networks:
+      - redisnet    
+    ports:
+      - '6379'
+    depends_on:
+      - redis-master
+    environment:
+      - REDIS_REPLICATION=slave
+      - REDIS_PASSWORD=password
+      - REDIS_MASTER_HOST=redis-master
+      - REDIS_MASTER_PORT=6379

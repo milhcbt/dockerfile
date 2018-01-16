@@ -1,0 +1,130 @@
+#!/bin/sh -e
+
+
+# Add Custom UserID as "User" User
+if [ "$(id -u)" != "0" ]; then
+  sed "s/^user:\(.*\):[0-9]\+:\([0-9]\+\):.*:\(.*:.*\)/user:\1:$(id -u):\2:User:\3/g" < /etc/passwd > /tmp/passwd \
+  && cat /tmp/passwd > /etc/passwd \
+  && rm -f /tmp/passwd
+fi
+
+
+# Prepare data directory due to volume
+if [ ! -d /data ]; then
+  mkdir -p /data \
+  && chown user:root /data \
+  && chmod 775 /data
+fi
+
+
+# Prepare data/redis directory due to volume
+if [ ! -d /data/redis ]; then
+  mkdir -p /data/redis \
+  && chown user:root /data/redis \
+  && chmod 775 /data/redis
+fi
+
+
+# Prepare Redis configuration
+IS_NUMBER='^[0-9]+$'
+# ------------------------------------------------
+# Redis Password variable configuration
+ALLOW_EMPTY_PASSWORD=${ALLOW_EMPTY_PASSWORD:-yes}
+REDIS_PASSWORD=${REDIS_PASSWORD:-}
+# ------------------------------------------------
+# Redis Replication variable configuration
+REDIS_REPLICATION=${REDIS_REPLICATION:-}
+REDIS_MASTER_HOST=${REDIS_MASTER_HOST:-}
+REDIS_MASTER_PORT=${REDIS_MASTER_PORT:-6379}
+REDIS_MASTER_QUORUM=${REDIS_MASTER_QUORUM:-}
+# ------------------------------------------------
+# Redis Arguments variable configuration
+ARGS=${ARGS:-}
+ARGS_EXTRA=" --daemonize no \
+             --bind 0.0.0.0 \
+             --port 6379 \
+             --dir /data/redis \
+             --appendonly yes"
+ARGS_REPLC=" "
+# ------------------------------------------------
+# Prepare Redis Extra Arguments variable as parameters
+if [[ $ALLOW_EMPTY_PASSWORD == "no" || ! -z $REDIS_PASSWORD ]]; then
+  ARGS_EXTRA="${ARGS_EXTRA} \
+              --requirepass ${REDIS_PASSWORD}"
+else
+  echo "Redis will using no authentication password"
+fi
+# ------------------------------------------------
+# Prepare Redis Replication Arguments variable as parameters
+if ! [[ -z $REDIS_REPLICATION ]]; then
+  if [[ $REDIS_REPLICATION == "master" ]]; then
+    ARGS_REPLC="${ARGS_REPLC} \
+                --masterauth ${REDIS_PASSWORD}"
+  elif [[ $REDIS_REPLICATION == "slave" ]]; then
+    if ! [[ -z $REDIS_MASTER_HOST ]]; then
+      if ! [[ -z $REDIS_MASTER_PORT ]]; then
+        if [[ $REDIS_MASTER_PORT=~$IS_NUMBER ]]; then
+          ARGS_REPLC="${ARGS_REPLC} \
+                      --masterauth ${REDIS_PASSWORD}
+                      --slaveof ${REDIS_MASTER_HOST} ${REDIS_MASTER_PORT}"
+        else
+          echo "Redis Replication configuration failed. REDIS_MASTER_PORT must in numeric format!"
+        fi
+      else
+        echo "Redis Replication configuration failed. REDIS_MASTER_PORT must be filled!"        
+      fi
+    fi
+  elif [[ $REDIS_REPLICATION == "sentinel" ]]; then
+    rm -f /data/redis/sentinel.conf
+    REDIS_SENTINEL_IP=$(iproute | grep default | awk -F' ' '{print $3}')
+    { \
+      echo "port 6379"; \
+      echo "dir /data/redis"; \
+      echo "";
+      echo "sentinel announce-ip ${REDIS_SENTINEL_IP}"; \
+      echo "sentinel announce-port 6379"; \
+      echo ""; \
+      echo "sentinel monitor master ${REDIS_MASTER_HOST} ${REDIS_MASTER_PORT} ${REDIS_MASTER_QUORUM}"; \
+      echo "sentinel down-after-milliseconds master 10000"; \
+      echo "sentinel failover-timeout master 30000"; \
+      echo "sentinel parallel-syncs master 1"; \
+      echo ""; \
+    } > /data/redis/sentinel.conf
+    ARGS_REPLC="${ARGS_REPLC} \
+                /data/redis/sentinel.conf \
+                --sentinel"
+  else
+    echo "Redis Replication configuration failed. REDIS_REPLICATION must be filled with master or slave or sentinel!"  
+  fi
+fi
+# ------------------------------------------------
+# Export Redis parameters to be loaded by Supervisor
+if [[ $REDIS_REPLICATION == "sentinel" ]]; then
+  ARGS=${ARGS_REPLC}
+elif [[ -z $ARGS && ! -z $REDIS_REPLICATION ]]; then
+  ARGS=${ARGS}${ARGS_EXTRA}${ARGS_REPLC}
+else
+  ARGS=${ARGS}${ARGS_EXTRA}
+fi
+export ARGS=$ARGS
+# ------------------------------------------------
+# Wait for Redis Master to be Ready
+if ! [[ -z $REDIS_REPLICATION ]]; then
+  if [[ $REDIS_REPLICATION == "slave" ]]; then
+    if ! [[ -z $REDIS_MASTER_HOST ]]; then
+      if ! [[ -z $REDIS_MASTER_PORT ]]; then
+        if [[ $REDIS_MASTER_PORT=~$IS_NUMBER ]]; then
+          while [[ $(nc -vz ${REDIS_MASTER_HOST} ${REDIS_MASTER_PORT} 2>&1 | wc -l) -eq 0 ]]
+          do
+            echo "Waiting for Redis Master: ${REDIS_MASTER_HOST}:${REDIS_MASTER_PORT}"
+            sleep 2
+          done
+        fi
+      fi
+    fi
+  fi
+fi
+
+
+# Execute Everything from Entries
+exec "$@"

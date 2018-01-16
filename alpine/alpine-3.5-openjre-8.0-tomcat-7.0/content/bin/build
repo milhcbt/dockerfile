@@ -12,7 +12,6 @@ mkdir -p /var/www/data \
 && mkdir -p /var/www/data/etc \
 && mkdir -p /var/www/data/web \
 && mkdir -p /var/www/data/logs \
-&& mkdir -p /var/www/data/logs/supervisor \
 && mkdir -p /var/www/data/logs/tomcat \
 && mkdir -p /usr/local/docker/etc \
 && mkdir -p /usr/local/docker/etc/tomcat \
@@ -22,7 +21,6 @@ mkdir -p /var/www/data \
 && chown -R root:root /var/www/data/etc \
 && chown -R root:root /var/www/data/web \
 && chown -R root:root /var/www/data/logs \
-&& chown -R root:root /var/www/data/logs/supervisor \
 && chown -R root:root /var/www/data/logs/tomcat \
 && chown -R root:root /usr/local/docker \
 && chown -R root:root /usr/local/docker/bin \
@@ -33,32 +31,18 @@ mkdir -p /var/www/data \
 && chmod 775 /var/www/data/etc \
 && chmod 775 /var/www/data/web \
 && chmod 775 /var/www/data/logs \
-&& chmod 775 /var/www/data/logs/supervisor \
 && chmod 775 /var/www/data/logs/tomcat \
 && chmod 775 /usr/local/docker \
 && chmod 775 /usr/local/docker/bin \
 && chmod 775 /usr/local/docker/bin/build \
 && chmod 775 /usr/local/docker/bin/entrypoint \
 && chmod 775 /usr/local/docker/etc \
-&& chmod 775 /usr/local/docker/etc/supervisor \
-&& chmod 664 /usr/local/docker/etc/supervisor/supervisord.conf \
-&& chmod 775 /usr/local/docker/etc/supervisor/conf.d \
-&& chmod 664 /usr/local/docker/etc/supervisor/conf.d/01-catalina.conf \
 && chmod 775 /usr/local/docker/etc/tomcat \
 && chmod 775 /usr/local/docker/web
 # --------------------------------------------------
 
 
-# [2] Installing Supervisor
-# --------------------------------------------------
-apk update \
-&& apk add \
-    supervisor \
-&& rm -rf /var/cache/apk/*
-# --------------------------------------------------
-
-
-# [3] Installing Apache Tomcat
+# [2] Installing Apache Tomcat
 # --------------------------------------------------
 mkdir -p $CATALINA_HOME \
 && chown -R root:root $CATALINA_HOME \
@@ -81,12 +65,6 @@ mkdir -p $CATALINA_HOME \
 && ln -sf /var/www/data/etc/tomcat $CATALINA_HOME/conf \
 && ln -sf /var/www/data/logs/tomcat $CATALINA_HOME/logs \
 && ln -sf /var/www/data/web $CATALINA_HOME/webapps
-# --------------------------------------------------
-
-
-# [4] Configuring Supervisor
-# --------------------------------------------------
-rm -rf /etc/supervisor
 # --------------------------------------------------
 
 

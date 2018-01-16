@@ -25,7 +25,7 @@ EXPOSE 8080 8443
 ENTRYPOINT ["/usr/local/docker/bin/entrypoint"]
 
 # Set Executor Script
-CMD ["/usr/bin/supervisord","-n","-c","/var/www/data/etc/supervisor/supervisord.conf","-d","/var/www/data/etc/supervisor"]
+CMD ["sh","-c","$CATALINA_HOME/bin/catalina.sh run $ARGS"]
 
 # Change Working User to "User"
 USER user

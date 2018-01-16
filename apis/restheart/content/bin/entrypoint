@@ -1,0 +1,47 @@
+#!/bin/bash -e
+
+
+# Add Custom UserID as "User" User
+if [ "$(id -u)" != "0" ]; then
+  sed "s/^user:\(.*\):[0-9]\+:\([0-9]\+\):.*:\(.*:.*\)/user:\1:$(id -u):\2:User:\3/g" < /etc/passwd > /tmp/passwd \
+  && cat /tmp/passwd > /etc/passwd \
+  && rm -f /tmp/passwd
+fi
+
+
+# Prepare opt/restheart/etc directory due to volume
+if [ ! -d /opt/restheart/etc ]; then
+  mkdir -p /opt/restheart/etc \
+  && chown user:root /opt/restheart/etc \
+  && chmod 775 /opt/restheart/etc \
+  && cp -R /usr/local/docker/opt/restheart/etc/* /opt/restheart/etc/
+fi
+if [ ! -f /opt/restheart/etc/restheart.yml ]; then
+  cp -R /usr/local/docker/opt/restheart/etc/restheart.yml /opt/restheart/etc/restheart.yml
+fi
+if [ ! -f /opt/restheart/etc/security.yml ]; then
+  cp -R /usr/local/docker/opt/restheart/etc/security.yml /opt/restheart/etc/security.yml
+fi
+
+
+# Prepare RESTHeart configuration
+# ------------------------------------------------
+# RESTHeart MongoDB variable configuration
+MONGODB_USER=${MONGODB_USER:-admin}
+MONGODB_PASSWORD=${MONGODB_PASSWORD:-admin}
+MONGODB_DATABASE=${MONGODB_DATABASE:-admin}
+MONGODB_HOST=${MONGODB_HOST:-127.0.0.1}
+MONGODB_PORT=${MONGODB_PORT:-27017}
+# ------------------------------------------------
+# RESTHeart Authentication variable configuration
+RESTHEART_USER=${RESTHEART_USER:-$MONGODB_USER}
+RESTHEART_PASSWORD=${RESTHEART_PASSWORD:-$MONGODB_PASSWORD}
+# ------------------------------------------------
+# Prepare RESTHeart Authentication variable to configuration file
+sed -i "s/^\(mongo-uri:\).*/\1 mongodb\:\/\/$MONGODB_USER\:$MONGODB_PASSWORD\@$MONGODB_HOST\:$MONGODB_PORT\/\?authSource\=$MONGODB_DATABASE/" /opt/restheart/etc/restheart.yml
+sed -i -e "1,/    - userid:[a-zA-Z0-9]*/s/^\(    - userid:\).*/\1 $RESTHEART_USER/" /opt/restheart/etc/security.yml
+sed -i -e "1,/      password:[a-zA-Z0-9]*/s/^\(      password:\).*/\1 $RESTHEART_PASSWORD/" /opt/restheart/etc/security.yml
+
+
+# Execute Everything from Entries
+exec "$@"
