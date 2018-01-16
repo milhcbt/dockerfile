@@ -3,8 +3,8 @@ MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
 # Setting-up Environment
 ENV JS_VERSION=6.2.0 \
-    JS_HOME=/opt/jasperreports-server \
-    JS_BUILD=/opt/jasperreports-server/buildomatic \
+    JS_HOME=/opt/jasper-ce \
+    JS_BUILD=/opt/jasper-ce/buildomatic \
     JS_XMX=1024m \
     JS_MAXPERMSIZE=256m \
     JS_CATALINA_OPTS="-XX:+UseBiasedLocking -XX:BiasedLockingStartupDelay=0 -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC -XX:+CMSIncrementalMode -XX:+CMSIncrementalPacing -XX:+CMSParallelRemarkEnabled -XX:+UseCompressedOops -XX:+UseCMSInitiatingOccupancyOnly"
@@ -19,6 +19,9 @@ COPY ./content/ /usr/local/docker/
 RUN chmod 775 /usr/local/docker/bin/build \
   && /usr/local/docker/bin/build \
   && rm -f /usr/local/docker/bin/build
+
+# Set Volumes Directory
+VOLUME /var/www/data
 
 # Change Working User to "User"
 USER user

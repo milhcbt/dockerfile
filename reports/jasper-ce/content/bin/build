@@ -16,14 +16,14 @@ chown -R root:root /usr/local/docker \
 && chmod 775 /usr/local/docker/bin/build \
 && chmod 775 /usr/local/docker/bin/entrypoint \
 && chmod 775 /usr/local/docker/temp \
-&& chmod 664 /usr/local/docker/temp/jasperreports-server.zip
+&& chmod 664 /usr/local/docker/temp/jasper-ce.zip
 # --------------------------------------------------
 
 
 # [2] Installing JasperReports Server
 # --------------------------------------------------
 mkdir -p $JS_HOME \
-&& unzip /usr/local/docker/temp/jasperreports-server.zip -d $JS_HOME \
+&& unzip /usr/local/docker/temp/jasper-ce.zip -d $JS_HOME \
 && mv $JS_HOME/jasperreports-server-cp-${JS_VERSION}-bin/* $JS_HOME \
 && rm -rf $JS_HOME/jasperreports-server-cp-${JS_VERSION}-bin \
 && rm -rf /usr/local/docker/temp \
