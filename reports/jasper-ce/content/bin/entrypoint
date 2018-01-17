@@ -91,5 +91,9 @@ else
 fi
 
 
+# Prepare JasperReports Server configuration
+export CATALINA_OPTS="${CATALINA_OPTS} -Xmx${JS_XMX} -XX:MaxPermSize=${JS_MAXPERMSIZE} ${JS_CATALINA_OPTS}"
+
+
 # Execute Everything from Entries
 exec "$@"

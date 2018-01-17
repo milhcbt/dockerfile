@@ -10,23 +10,21 @@
 # --------------------------------------------------
 chown -R root:root /usr/local/docker \
 && chown -R root:root /usr/local/docker/bin \
-&& chown -R root:root /usr/local/docker/temp \
 && chmod 775 /usr/local/docker \
 && chmod 775 /usr/local/docker/bin \
 && chmod 775 /usr/local/docker/bin/build \
-&& chmod 775 /usr/local/docker/bin/entrypoint \
-&& chmod 775 /usr/local/docker/temp \
-&& chmod 664 /usr/local/docker/temp/jasper-ce.zip
+&& chmod 775 /usr/local/docker/bin/entrypoint
 # --------------------------------------------------
 
 
 # [2] Installing JasperReports Server
 # --------------------------------------------------
 mkdir -p $JS_HOME \
-&& unzip /usr/local/docker/temp/jasper-ce.zip -d $JS_HOME \
+&& curl -SL https://sourceforge.net/projects/jasperserver/files/JasperServer/JasperReports%20Server%20Community%20Edition%20${JS_VERSION}/jasperreports-server-cp-${JS_VERSION}-bin.zip -o /tmp/jasper-ce.zip \
+&& unzip /tmp/jasper-ce.zip -d $JS_HOME \
 && mv $JS_HOME/jasperreports-server-cp-${JS_VERSION}-bin/* $JS_HOME \
 && rm -rf $JS_HOME/jasperreports-server-cp-${JS_VERSION}-bin \
-&& rm -rf /usr/local/docker/temp \
+&& rm -rf /tmp/* \
 && chown -R root:root $JS_HOME \
 && chown -R root:root $CATALINA_HOME \
 && chmod -R 775 $JS_HOME \
