@@ -20,7 +20,7 @@ chown -R root:root /usr/local/docker \
 # [2] Installing JasperReports Server
 # --------------------------------------------------
 mkdir -p $JS_HOME \
-&& curl -SL https://sourceforge.net/projects/jasperserver/files/JasperServer/JasperReports%20Server%20Community%20Edition%20${JS_VERSION}/jasperreports-server-cp-${JS_VERSION}-bin.zip -o /tmp/jasper-ce.zip \
+&& wget -O /tmp/jasper-ce.zip https://sourceforge.net/projects/jasperserver/files/JasperServer/JasperReports%20Server%20Community%20Edition%20${JS_VERSION}/jasperreports-server-cp-${JS_VERSION}-bin.zip \
 && unzip /tmp/jasper-ce.zip -d $JS_HOME \
 && mv $JS_HOME/jasperreports-server-cp-${JS_VERSION}-bin/* $JS_HOME \
 && rm -rf $JS_HOME/jasperreports-server-cp-${JS_VERSION}-bin \
