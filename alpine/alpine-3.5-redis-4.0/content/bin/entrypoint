@@ -29,7 +29,6 @@ fi
 IS_NUMBER='^[0-9]+$'
 # ------------------------------------------------
 # Redis Password variable configuration
-ALLOW_EMPTY_PASSWORD=${ALLOW_EMPTY_PASSWORD:-yes}
 REDIS_PASSWORD=${REDIS_PASSWORD:-}
 # ------------------------------------------------
 # Redis Replication variable configuration
@@ -37,6 +36,9 @@ REDIS_REPLICATION=${REDIS_REPLICATION:-}
 REDIS_MASTER_HOST=${REDIS_MASTER_HOST:-}
 REDIS_MASTER_PORT=${REDIS_MASTER_PORT:-6379}
 REDIS_MASTER_QUORUM=${REDIS_MASTER_QUORUM:-}
+REDIS_SLAVE_HOST=${REDIS_SLAVE_HOST:-}
+REDIS_SLAVE_PORT=${REDIS_SLAVE_PORT:-6379}
+REDIS_SLAVE_QUORUM=${REDIS_SLAVE_QUORUM:-}
 # ------------------------------------------------
 # Redis Arguments variable configuration
 ARGS=${ARGS:-}
@@ -48,7 +50,7 @@ ARGS_EXTRA=" --daemonize no \
 ARGS_REPLC=" "
 # ------------------------------------------------
 # Prepare Redis Extra Arguments variable as parameters
-if [[ $ALLOW_EMPTY_PASSWORD == "no" || ! -z $REDIS_PASSWORD ]]; then
+if ! [[ -z $REDIS_PASSWORD ]]; then
   ARGS_EXTRA="${ARGS_EXTRA} \
               --requirepass ${REDIS_PASSWORD}"
 else
@@ -73,36 +75,56 @@ if ! [[ -z $REDIS_REPLICATION ]]; then
       else
         echo "Redis Replication configuration failed. REDIS_MASTER_PORT must be filled!"        
       fi
+    else
+      echo "Redis Replication configuration failed. REDIS_MASTER_HOST must be filled!"
     fi
   elif [[ $REDIS_REPLICATION == "sentinel" ]]; then
-    rm -f /data/redis/sentinel.conf
-    REDIS_SENTINEL_IP=$(iproute | grep default | awk -F' ' '{print $3}')
-    { \
-      echo "port 6379"; \
-      echo "dir /data/redis"; \
-      echo "";
-      echo "sentinel announce-ip ${REDIS_SENTINEL_IP}"; \
-      echo "sentinel announce-port 6379"; \
-      echo ""; \
-      echo "sentinel monitor master ${REDIS_MASTER_HOST} ${REDIS_MASTER_PORT} ${REDIS_MASTER_QUORUM}"; \
-      echo "sentinel down-after-milliseconds master 10000"; \
-      echo "sentinel failover-timeout master 30000"; \
-      echo "sentinel parallel-syncs master 1"; \
-      echo ""; \
-    } > /data/redis/sentinel.conf
-    ARGS_REPLC="${ARGS_REPLC} \
-                /data/redis/sentinel.conf \
-                --sentinel"
+    if [[ ! -z $REDIS_MASTER_HOST && ! -z $REDIS_SLAVE_HOST ]]; then
+      if [[ ! -z $REDIS_MASTER_PORT && ! -z $REDIS_SLAVE_PORT ]]; then
+        if [[ $REDIS_MASTER_PORT=~$IS_NUMBER && $REDIS_SLAVE_PORT=~$IS_NUMBER ]]; then
+          rm -f /data/redis/sentinel.conf
+          REDIS_SENTINEL_IP=$(iproute | grep default | awk -F' ' '{print $3}')
+          { \
+            echo "port 6379"; \
+            echo "dir /data/redis"; \
+            echo "";
+            echo "sentinel announce-ip ${REDIS_SENTINEL_IP}"; \
+            echo "sentinel announce-port 6379"; \
+            echo ""; \
+            echo "sentinel monitor master ${REDIS_MASTER_HOST} ${REDIS_MASTER_PORT} ${REDIS_MASTER_QUORUM}"; \
+            echo "sentinel down-after-milliseconds master 10000"; \
+            echo "sentinel failover-timeout master 30000"; \
+            echo "sentinel parallel-syncs master 1"; \
+            echo ""; \
+            echo "sentinel monitor master ${REDIS_SLAVE_HOST} ${REDIS_SLAVE_PORT} ${REDIS_SLAVE_QUORUM}"; \
+            echo "sentinel down-after-milliseconds master 10000"; \
+            echo "sentinel failover-timeout master 30000"; \
+            echo "sentinel parallel-syncs master 1"; \      
+          } > /data/redis/sentinel.conf
+          ARGS_REPLC="${ARGS_REPLC} \
+                      /data/redis/sentinel.conf \
+                      --sentinel"
+        else
+          echo "Redis Replication configuration failed. REDIS_MASTER_PORT & REDIS_SLAVE_PORT must in numeric format!"
+        fi
+      else
+        echo "Redis Replication configuration failed. REDIS_MASTER_PORT & REDIS_SLAVE_PORT must be filled!"        
+      fi
+    else
+      echo "Redis Replication configuration failed. REDIS_MASTER_HOST & REDIS_SLAVE_HOST must be filled!"
+    fi
   else
     echo "Redis Replication configuration failed. REDIS_REPLICATION must be filled with master or slave or sentinel!"  
   fi
 fi
 # ------------------------------------------------
 # Export Redis parameters to be loaded by Supervisor
-if [[ $REDIS_REPLICATION == "sentinel" ]]; then
-  ARGS=${ARGS_REPLC}
-elif [[ -z $ARGS && ! -z $REDIS_REPLICATION ]]; then
-  ARGS=${ARGS}${ARGS_EXTRA}${ARGS_REPLC}
+if ! [[ -z $REDIS_REPLICATION ]]; then
+  if [[ $REDIS_REPLICATION == "sentinel" ]]; then
+    ARGS=${ARGS_REPLC}
+  else
+    ARGS=${ARGS}${ARGS_EXTRA}${ARGS_REPLC}
+  fi
 else
   ARGS=${ARGS}${ARGS_EXTRA}
 fi

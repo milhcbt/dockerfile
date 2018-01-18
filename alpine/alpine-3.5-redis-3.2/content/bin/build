@@ -27,7 +27,7 @@ mkdir -p /data \
 
 # [2] Installing Redis
 # --------------------------------------------------
-mv /etc/apk/repositories /etc/apk/repositories.original \
+cp /etc/apk/repositories /etc/apk/repositories.original \
 && echo 'http://dl-cdn.alpinelinux.org/alpine/v3.6/main' >> /etc/apk/repositories \
 && echo 'http://dl-cdn.alpinelinux.org/alpine/v3.6/community' >> /etc/apk/repositories \
 && apk update \
