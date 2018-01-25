@@ -1,0 +1,49 @@
+#!/bin/sh -xe
+
+# --------------------------------------------------
+# Dockerfile Build Tools
+# Email: dimas.restu@student.upi.edu
+# --------------------------------------------------
+
+
+# [1] Run Some Housekeeping
+# --------------------------------------------------
+mkdir -p /data \
+&& mkdir -p /data/mysql \
+&& chown -R root:root /var/run \
+&& chown -R root:root /data \
+&& chown -R root:root /data/mysql \
+&& chown -R root:root /usr/local/docker \
+&& chown -R root:root /usr/local/docker/bin \
+&& chmod 775 /var/run \
+&& chmod 775 /data \
+&& chmod 775 /data/mysql \
+&& chmod 775 /usr/local/docker \
+&& chmod 775 /usr/local/docker/bin \
+&& chmod 775 /usr/local/docker/bin/build \
+&& chmod 775 /usr/local/docker/bin/entrypoint
+# --------------------------------------------------
+
+
+# [2] Installing MySQL/MariaDB
+# --------------------------------------------------
+cp /etc/apk/repositories /etc/apk/repositories.original \
+&& echo 'http://dl-cdn.alpinelinux.org/alpine/v3.6/main' >> /etc/apk/repositories \
+&& echo 'http://dl-cdn.alpinelinux.org/alpine/v3.6/community' >> /etc/apk/repositories \
+&& apk update \
+&& apk add \
+    mysql \
+    mysql-client \
+&& rm -rf /var/cache/apk/* \
+&& rm -f /etc/apk/repositories \
+&& mv /etc/apk/repositories.original /etc/apk/repositories
+# --------------------------------------------------
+
+
+# [3] Configuring MySQL
+# --------------------------------------------------
+rm -f /etc/mysql/my.cnf
+# --------------------------------------------------
+
+
+exit 0

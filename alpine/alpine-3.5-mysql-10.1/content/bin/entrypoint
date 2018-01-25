@@ -1,0 +1,47 @@
+#!/bin/sh -e
+
+
+# Add Custom UserID as "User" User
+if [ "$(id -u)" != "0" ]; then
+  sed "s/^user:\(.*\):[0-9]\+:\([0-9]\+\):.*:\(.*:.*\)/user:\1:$(id -u):\2:User:\3/g" < /etc/passwd > /tmp/passwd \
+  && cat /tmp/passwd > /etc/passwd \
+  && rm -f /tmp/passwd
+fi
+
+
+# Prepare data directory due to volume
+if [ ! -d /data ]; then
+  mkdir -p /data \
+  && chown user:root /data \
+  && chmod 775 /data
+fi
+
+
+# Prepare data/mysql directory due to volume
+if [ ! -d /data/mysql ]; then
+  mkdir -p /data/mysql \
+  && chown user:root /data/mysql \
+  && chmod 775 /data/mysql
+fi
+
+
+# Prepare MySQL configuration
+IS_NUMBER='^[0-9]+$'
+# ------------------------------------------------
+# MySQL credentials variable configuration
+MYSQL_USERNAME=${MYSQL_USERNAME:-}
+MYSQL_PASSWORD=${MYSQL_PASSWORD:-}
+MYSQL_DATABASE=${MYSQL_DATABASE:-}
+MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-}
+# ------------------------------------------------
+# MySQL extra variable configuration
+
+# ------------------------------------------------
+# Write MySQL variable to configuration file
+{ \
+
+} > /etc/mysql/my.cnf
+
+
+# Execute Everything from Entries
+exec "$@"
