@@ -12,7 +12,7 @@ Dimas Restu H (<dimas.restu@student.upi.edu>)
 
 **How to run this image:**
 
-> docker run -p 80:8080 -v <local_data_path>:/var/www/data --name redis dimaskiddo/alpine:mysql-10.1
+> docker run -p 3306:3306 -v <local_data_path>:/data --name mysql dimaskiddo/alpine:mysql-10.1
 
 **How to get in container after run this image:**
 
