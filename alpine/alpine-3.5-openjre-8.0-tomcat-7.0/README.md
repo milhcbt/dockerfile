@@ -12,7 +12,7 @@ Dimas Restu H (<dimas.restu@student.upi.edu>)
 
 **How to run this image:**
 
-> docker run -p 80:8080 -v <local_data_path>:/var/www/data/web --name tomcat dimaskiddo/alpine:tomcat-7.0
+> docker run -p 80:8080 -v <local_data_path>:/var/www/data --name tomcat dimaskiddo/alpine:tomcat-7.0
 
 **How to get in container after run this image:**
 
