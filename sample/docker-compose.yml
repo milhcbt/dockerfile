@@ -1,0 +1,43 @@
+# Docker Compose API Version
+version: '2'
+
+networks:
+  # Create "Sample" Bridge Network
+  sample:
+    driver: bridge
+
+services:
+  # Application 1: Redis (Database Application)
+  redis:
+    image: dimaskiddo/alpine:redis-3.2
+    networks:
+      - virtualnet
+    volumes:
+      - ./data/redis:/data/redis:rw
+    restart: always
+
+  # Application 2: App (Main Application)
+  app:
+    build: ./app
+    image: dimaskiddo/sample:python-2.7
+    networks:
+      - virtualnet
+    environment:
+      - NAME=DimasKiddo
+    depends_on:
+      - redis
+    restart: always
+
+  # Application 3: Nginx (Load Balancer)
+  nginx:
+    image: dimaskiddo/alpine:nginx-1.12.2-novol
+    networks:
+      - virtualnet
+    ports:
+      - 80:8080
+      - 443:8443
+    volumes:
+      - ./conf/nginx:/var/www/data/etc/nginx:rw
+    depends_on:
+      - app
+    restart: always

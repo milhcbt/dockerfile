@@ -56,10 +56,10 @@ if [ ! -d /var/www/data/etc/nginx/conf.d ]; then
   mkdir -p /var/www/data/etc/nginx/conf.d \
   && chown user:root /var/www/data/etc/nginx/conf.d \
   && chmod 775 /var/www/data/etc/nginx/conf.d \
-  && cp -R /usr/local/docker/etc/nginx/* /var/www/data/etc/nginx/conf.d/  
+  && cp -R /usr/local/docker/etc/nginx/conf.d/* /var/www/data/etc/nginx/conf.d/  
 fi
 if [ ! -f /var/www/data/etc/nginx/conf.d/default.conf ]; then
-  cp /usr/local/docker/etc/nginx/default.conf /var/www/data/etc/nginx/conf.d/default.conf
+  cp /usr/local/docker/etc/nginx/conf.d/default.conf /var/www/data/etc/nginx/conf.d/default.conf
 fi
 
 
