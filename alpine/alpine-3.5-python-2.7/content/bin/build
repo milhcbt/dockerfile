@@ -1,0 +1,49 @@
+#!/bin/bash -xe
+
+# --------------------------------------------------
+# Dockerfile Build Tools
+# Email: dimas.restu@student.upi.edu
+# --------------------------------------------------
+
+
+# [1] Run Some Housekeeping
+# --------------------------------------------------
+mkdir -p /usr/src/app \
+&& chown -R root:root /var/run \
+&& chown -R root:root /usr/src/app \
+&& chmod 775 /var/run \
+&& chmod 775 /usr/src/app
+# --------------------------------------------------
+
+
+# [2] Installing Python
+# --------------------------------------------------
+cp /etc/apk/repositories /etc/apk/repositories.original \
+&& echo 'http://dl-cdn.alpinelinux.org/alpine/v3.6/main' >> /etc/apk/repositories \
+&& echo 'http://dl-cdn.alpinelinux.org/alpine/v3.6/community' >> /etc/apk/repositories \
+&& apk update \
+&& apk add \
+    python2 \
+    python2-doc \
+    python2-dev \
+    python2-tests \
+&& rm -rf /var/cache/apk/* \
+&& rm -f /etc/apk/repositories \
+&& mv /etc/apk/repositories.original /etc/apk/repositories
+# --------------------------------------------------
+
+
+# [3] Configuring Python
+# --------------------------------------------------
+if [[ ! -e /usr/bin/python ]]; then ln -sf /usr/bin/python2.7 /usr/bin/python; fi \
+&& if [[ ! -e /usr/bin/python-config ]]; then ln -sf /usr/bin/python2.7-config /usr/bin/python-config; fi \
+&& if [[ ! -e /usr/bin/easy_install ]]; then ln -sf /usr/bin/easy_install-2.7 /usr/bin/easy_install; fi \
+&& wget -O get-pip.py https://bootstrap.pypa.io/get-pip.py \
+&& python get-pip.py \
+&& ln -sf /usr/bin/pip2 /usr/bin/pip \
+&& pip install --upgrade pip \
+&& rm -f get-pip.py
+# --------------------------------------------------
+
+
+exit 0

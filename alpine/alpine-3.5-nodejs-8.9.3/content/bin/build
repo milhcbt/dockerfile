@@ -1,0 +1,42 @@
+#!/bin/bash -xe
+
+# --------------------------------------------------
+# Dockerfile Build Tools
+# Email: dimas.restu@student.upi.edu
+# --------------------------------------------------
+
+
+# [1] Run Some Housekeeping
+# --------------------------------------------------
+mkdir -p /usr/src/app \
+&& chown -R root:root /var/run \
+&& chown -R root:root /usr/src/app \
+&& chmod 775 /var/run \
+&& chmod 775 /usr/src/app
+# --------------------------------------------------
+
+
+# [2] Installing NodeJS
+# --------------------------------------------------
+cp /etc/apk/repositories /etc/apk/repositories.original \
+&& echo 'http://dl-cdn.alpinelinux.org/alpine/v3.7/main' >> /etc/apk/repositories \
+&& echo 'http://dl-cdn.alpinelinux.org/alpine/v3.7/community' >> /etc/apk/repositories \
+&& apk update \
+&& apk add \
+    nodejs \
+    yarn \
+&& rm -rf /var/cache/apk/* \
+&& rm -f /etc/apk/repositories \
+&& mv /etc/apk/repositories.original /etc/apk/repositories
+# --------------------------------------------------
+
+
+# [3] Configuring NodeJS
+# --------------------------------------------------
+npm install -g npm \
+&& npm install -g nodemon \
+&& npm install -g pm2
+# --------------------------------------------------
+
+
+exit 0
