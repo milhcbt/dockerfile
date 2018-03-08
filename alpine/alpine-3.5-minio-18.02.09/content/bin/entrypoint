@@ -1,0 +1,50 @@
+#!/bin/sh -e
+
+
+# Add Custom UserID as "User" User
+if [ "$(id -u)" != "0" ]; then
+  sed "s/^user:\(.*\):[0-9]\+:\([0-9]\+\):.*:\(.*:.*\)/user:\1:$(id -u):\2:User:\3/g" < /etc/passwd > /tmp/passwd \
+  && cat /tmp/passwd > /etc/passwd \
+  && rm -f /tmp/passwd
+fi
+
+
+# Prepare data directory due to volume
+if [ ! -d /data ]; then
+  mkdir -p /data \
+  && chown user:root /data \
+  && chmod 775 /data
+fi
+
+
+# Prepare data/minio directory due to volume
+if [ ! -d /data/minio ]; then
+  mkdir -p /data/minio \
+  && chown user:root /data/minio \
+  && chmod 775 /data/minio
+fi
+
+# Prepare data/minio/config directory due to volume
+if [ ! -d /data/minio/config ]; then
+  mkdir -p /data/minio/config \
+  && chown user:root /data/minio/config \
+  && chmod 775 /data/minio/config
+fi
+
+# Prepare data/minio/data directory due to volume
+if [ ! -d /data/minio/data ]; then
+  mkdir -p /data/minio/data \
+  && chown user:root /data/minio/data \
+  && chmod 775 /data/minio/data
+fi
+
+
+# Prepare Minio configuration
+# ------------------------------------------------
+# Export Minio parameters to be loaded
+MINIO_ARGS="server --config-dir=/data/minio/config /data/minio/data "
+export ARGS=${MINIO_ARGS}${ARGS}
+
+
+# Execute Everything from Entries
+exec "$@"

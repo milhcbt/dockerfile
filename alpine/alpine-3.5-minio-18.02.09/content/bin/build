@@ -1,0 +1,42 @@
+#!/bin/sh -xe
+
+# --------------------------------------------------
+# Dockerfile Build Tools
+# Email: dimas.restu@student.upi.edu
+# --------------------------------------------------
+
+
+# [1] Run Some Housekeeping
+# --------------------------------------------------
+mkdir -p /data \
+&& mkdir -p /data/minio \
+&& mkdir -p /data/minio/config \
+&& mkdir -p /data/minio/data \
+&& chown -R root:root /var/run \
+&& chown -R root:root /data \
+&& chown -R root:root /data/minio \
+&& chown -R root:root /data/minio/config \
+&& chown -R root:root /data/minio/data \
+&& chown -R root:root /usr/local/docker \
+&& chown -R root:root /usr/local/docker/bin \
+&& chmod 775 /var/run \
+&& chmod 775 /data \
+&& chmod 775 /data/minio \
+&& chmod 775 /data/minio/config \
+&& chmod 775 /data/minio/data \
+&& chmod 775 /usr/local/docker \
+&& chmod 775 /usr/local/docker/bin \
+&& chmod 775 /usr/local/docker/bin/build \
+&& chmod 775 /usr/local/docker/bin/entrypoint
+# --------------------------------------------------
+
+
+# [2] Installing Minio
+# --------------------------------------------------
+cd /usr/bin \
+&& wget https://dl.minio.io/server/minio/release/linux-amd64/minio \
+&& chmod 755 minio
+# --------------------------------------------------
+
+
+exit 0

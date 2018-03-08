@@ -1,4 +1,5 @@
-Python 2.7 Image from Modified Base Image of Alpine. This image is ready to run using custom User ID with non-root user execution for OpenShift ready.
+Python 2.7 Image from Modified Base Image of Alpine
+This Image is ready to serve with custom User ID execution using entrypoint script.
 
 Build with love from Gegerkalong, Bandung, Indonesia.
 
@@ -9,11 +10,3 @@ Dimas Restu H (<dimas.restu@student.upi.edu>)
 **How to pull this image:**
 
 > docker pull dimaskiddo/alpine:python-2.7
-
-**How to run this image:**
-
-> docker run -p 80:8080 -v <local_data_path>:/var/www/data --name tomcat dimaskiddo/alpine:python-2.7
-
-**How to get in container after run this image:**
-
-> docker exec -it tomcat /bin/bash
