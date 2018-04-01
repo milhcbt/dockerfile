@@ -16,4 +16,4 @@ Dimas Restu H (<dimas.restu@student.upi.edu>)
 
 **How to get in container after run this image:**
 
-> docker exec -it apache /bin/bash
+> docker exec -it mysql /bin/bash

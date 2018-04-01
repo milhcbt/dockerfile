@@ -1,0 +1,39 @@
+#!/bin/bash -e
+
+
+# Add Custom UserID as "User" User
+if [ "$(id -u)" != "0" ]; then
+  sed "s/^user:\(.*\):[0-9]\+:\([0-9]\+\):.*:\(.*:.*\)/user:\1:$(id -u):\2:User:\3/g" < /etc/passwd > /tmp/passwd \
+  && cat /tmp/passwd > /etc/passwd \
+  && rm -f /tmp/passwd
+fi
+
+
+# Configuring JMETER_NODE_TYPE
+if [[ -z $JMETER_NODE_TYPE ]]; then
+  echo "JMeter node type is not set, will run JMeter as master node"
+  
+  JMETER_NODE_TYPE="master"
+  export JMETER_NODE_TYPE="master"
+elif [[ ! $JMETER_NODE_TYPE == "master" && ! $JMETER_NODE_TYPE == "slave" ]]; then
+  echo "JMeter node type is not set, will run JMeter as master node"
+  
+  JMETER_NODE_TYPE="master"
+  export JMETER_NODE_TYPE="master"
+fi
+
+
+# Configuring JMETER_HOST_IP
+JMETER_HOST_IP=$(ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p')
+
+
+# Configuring JMeter Properties
+sed -i -e "1,/remote_hosts=127.0.0.1/s/remote_hosts=127.0.0.1/remote_hosts=${JMETER_REMOTE_HOSTS}/" /opt/jmeter/bin/jmeter.properties
+
+
+# Configuring JMeter Server
+sed -i -e "1,/#RMI_HOST_DEF=-Djava.rmi.server.hostname=xxx.xxx.xxx.xxx/s/#RMI_HOST_DEF=-Djava.rmi.server.hostname=xxx.xxx.xxx.xxx/RMI_HOST_DEF=-Djava.rmi.server.hostname=${JMETER_HOST_IP}/" /opt/jmeter/bin/jmeter-server
+
+
+# Execute Everything from Entries
+exec "$@"

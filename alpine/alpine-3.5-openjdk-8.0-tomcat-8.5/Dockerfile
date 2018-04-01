@@ -3,7 +3,7 @@ MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
 # Set Environment Variables
 ENV TOMCAT_MAJOR=8 \
-    TOMCAT_VERSION=8.5.28 \
+    TOMCAT_VERSION=8.5.29 \
     CATALINA_HOME=/opt/tomcat \
     PATH=$PATH:/opt/tomcat/bin
 

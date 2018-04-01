@@ -15,6 +15,7 @@
   echo 'dirname "$(dirname "$(readlink -f "$(which javac || which java)")")"'; \
 } > /usr/local/bin/docker-java-home \
 && chmod 755 /usr/local/bin/docker-java-home
+# --------------------------------------------------
 
 
 # [2] Installing OpenJRE

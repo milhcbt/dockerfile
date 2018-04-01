@@ -1,0 +1,47 @@
+#!/bin/bash -xe
+
+# --------------------------------------------------
+# Dockerfile Build Tools
+# Email: dimas.restu@student.upi.edu
+# --------------------------------------------------
+
+
+# [1] Run Some Housekeeping
+# --------------------------------------------------
+chown -R root:root /var/run \
+&& chown -R root:root /usr/local/docker \
+&& chown -R root:root /usr/local/docker/bin \
+&& chmod 775 /var/run \
+&& chmod 775 /usr/local/docker \
+&& chmod 775 /usr/local/docker/bin \
+&& chmod 775 /usr/local/docker/bin/build \
+&& chmod 775 /usr/local/docker/bin/command \
+&& chmod 775 /usr/local/docker/bin/entrypoint
+# --------------------------------------------------
+
+
+# [2] Installing Apache JMeter
+# --------------------------------------------------
+mkdir -p $JMETER_HOME \
+&& cd $JMETER_HOME \
+&& wget -O jmeter.tar.gz http://www-eu.apache.org/dist/jmeter/binaries/apache-jmeter-$JMETER_VERSION.tgz \
+&& tar xvfz jmeter.tar.gz --strip-components=1 \
+&& rm -f jmeter.tar.gz* \
+&& chown -R root:root $JMETER_HOME \
+&& chmod -R 775 $JMETER_HOME
+# --------------------------------------------------
+
+
+# [3] Configuring Apache JMeter
+# --------------------------------------------------
+sed -i -e '1,/#server_port=1099/s/#server_port=1099/server_port=1099/' /opt/jmeter/bin/jmeter.properties \
+&& sed -i -e '1,/#server.rmi.port=1234/s/#server.rmi.port=1234/server.rmi.port=1099/' /opt/jmeter/bin/jmeter.properties \
+&& sed -i -e '1,/#server.rmi.localport=32001/s/#server.rmi.localport=32001/server.rmi.localport=32001/' /opt/jmeter/bin/jmeter.properties \
+&& sed -i -e '1,/#server.rmi.ssl.disable=false/s/#server.rmi.ssl.disable=false/server.rmi.ssl.disable=true/' /opt/jmeter/bin/jmeter.properties \
+&& sed -i -e '1,/#client.rmi.localport=0/s/#client.rmi.localport=0/client.rmi.localport=32001/' /opt/jmeter/bin/jmeter.properties \
+&& sed -i -e '1,/#save_automatically_before_run=true/s/#save_automatically_before_run=true/save_automatically_before_run=false/' /opt/jmeter/bin/jmeter.properties \
+&& sed -i -e '1,/# RUN_IN_DOCKER="-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"/s/# RUN_IN_DOCKER="-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"/RUN_IN_DOCKER="-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"/' /opt/jmeter/bin/jmeter
+# --------------------------------------------------
+
+
+exit 0

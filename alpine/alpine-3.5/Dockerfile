@@ -2,8 +2,9 @@ FROM alpine:3.5
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
 # Setting-up Environment
-ENV LC_ALL=C.UTF-8 \
-    GLIBC_VERSION=2.26-r0 \
+ENV LANG=C.UTF-8\
+    LC_ALL=C.UTF-8 \
+    GLIBC_VERSION=2.27-r0 \
     TZ=Asia/Jakarta
 
 # Change Working User to "Root"

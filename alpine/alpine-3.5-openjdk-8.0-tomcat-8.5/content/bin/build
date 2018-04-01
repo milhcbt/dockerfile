@@ -48,7 +48,7 @@ mkdir -p $CATALINA_HOME \
 && chown -R root:root $CATALINA_HOME \
 && chmod -R 664 $CATALINA_HOME \
 && cd $CATALINA_HOME \
-&& wget -O tomcat.tar.gz http://www-us.apache.org/dist/tomcat/tomcat-$TOMCAT_MAJOR/v$TOMCAT_VERSION/bin/apache-tomcat-$TOMCAT_VERSION.tar.gz \
+&& wget -O tomcat.tar.gz http://www-eu.apache.org/dist/tomcat/tomcat-$TOMCAT_MAJOR/v$TOMCAT_VERSION/bin/apache-tomcat-$TOMCAT_VERSION.tar.gz \
 && tar xvfz tomcat.tar.gz --strip-components=1 \
 && rm -f tomcat.tar.gz* \
 && cp -R $CATALINA_HOME/conf/* /usr/local/docker/etc/tomcat \

@@ -1,0 +1,24 @@
+version: '2'
+
+networks:
+  jmeternet:
+    driver: bridge
+
+services:
+  jmeter-master:
+    build: .
+    image: 'dimaskiddo/alpine:jmeter-4.0'
+    networks:
+      - jmeternet
+    depends_on:
+      - jmeter-slave
+    environment:
+      - JMETER_NODE_TYPE=master
+      - JMETER_REMOTE_HOSTS=jmeter-slave
+
+  jmeter-slave:
+    image: 'dimaskiddo/alpine:jmeter-4.0'
+    networks:
+      - jmeternet
+    environment:
+      - JMETER_NODE_TYPE=slave

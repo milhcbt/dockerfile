@@ -30,6 +30,7 @@ chmod 770 /root \
 apk update \
 && apk upgrade \
 && apk add \
+    sigar \
     file \
     cabextract \
     ttf-dejavu \
@@ -48,10 +49,15 @@ apk update \
     htop \
 && wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://raw.githubusercontent.com/sgerrand/alpine-pkg-glibc/master/sgerrand.rsa.pub \
 && wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/${GLIBC_VERSION}/glibc-${GLIBC_VERSION}.apk \
-&& apk add glibc-${GLIBC_VERSION}.apk \
-&& rm -rf glibc-${GLIBC_VERSION}.apk \
+&& wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/${GLIBC_VERSION}/glibc-bin-${GLIBC_VERSION}.apk \
+&& wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/${GLIBC_VERSION}/glibc-i18n-${GLIBC_VERSION}.apk \
+&& apk add --no-cache glibc-${GLIBC_VERSION}.apk glibc-bin-${GLIBC_VERSION}.apk glibc-i18n-${GLIBC_VERSION}.apk \
+&& rm -f glibc-${GLIBC_VERSION}.apk glibc-bin-${GLIBC_VERSION}.apk glibc-i18n-${GLIBC_VERSION}.apk \
+&& rm -f /etc/apk/keys/sgerrand.rsa.pub \
 && rm -rf /var/cache/apk/* \
 && rm -f /root/.wget-hsts \
+&& /usr/glibc-compat/bin/localedef --force --inputfile POSIX --charmap UTF-8 "$LANG" || true \
+&& echo "export LANG=$LANG" > /etc/profile.d/locale.sh \
 && update-ms-fonts \
 && fc-cache -f
 # --------------------------------------------------

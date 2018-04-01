@@ -1,0 +1,51 @@
+#!/bin/bash -xe
+
+# --------------------------------------------------
+# Dockerfile Build Tools
+# Email: dimas.restu@student.upi.edu
+# --------------------------------------------------
+
+
+# [1] Installing Java Home Configurator
+# --------------------------------------------------
+{ \
+  echo '#!/bin/bash'; \
+  echo 'set -e'; \
+  echo; \
+  echo 'dirname "$(dirname "$(readlink -f "$(which javac || which java)")")"'; \
+} > /usr/local/bin/docker-java-home \
+&& chmod 755 /usr/local/bin/docker-java-home
+# --------------------------------------------------
+
+
+# [2] Installing OpenJRE
+# --------------------------------------------------
+mv /etc/apk/repositories /etc/apk/repositories.original \
+&& echo 'http://dl-cdn.alpinelinux.org/alpine/v3.6/main' >> /etc/apk/repositories \
+&& echo 'http://dl-cdn.alpinelinux.org/alpine/v3.6/community' >> /etc/apk/repositories \
+&& apk update \
+&& apk add \
+    openjdk8-jre \
+&& rm -rf /var/cache/apk/* \
+&& rm -f /etc/apk/repositories \
+&& mv /etc/apk/repositories.original /etc/apk/repositories \
+&& [ "$JAVA_HOME" = "$(docker-java-home)" ]
+# --------------------------------------------------
+
+
+# [3] Installing PerfMon Server Agent
+# --------------------------------------------------
+mkdir -p /opt/perfmon-agent \
+&& cd /opt/perfmon-agent \
+&& wget https://github.com/undera/perfmon-agent/releases/download/${SERVER_AGENT_VERSION}/ServerAgent-${SERVER_AGENT_VERSION}.zip \
+&& unzip ServerAgent-${SERVER_AGENT_VERSION}.zip \
+&& mv ServerAgent-${SERVER_AGENT_VERSION}/* . \
+&& rm -rf ServerAgent-${SERVER_AGENT_VERSION} \
+&& rm -f ServerAgent-${SERVER_AGENT_VERSION}.zip \
+&& rm -f lib/*.so \
+&& rm -f lib/*.dylib \
+&& rm -f lib/*.dll
+# --------------------------------------------------
+
+
+exit 0

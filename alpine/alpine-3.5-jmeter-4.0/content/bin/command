@@ -1,0 +1,13 @@
+#!/bin/bash -e
+
+
+# Running JMeter according to JMETER_NODE_TYPE
+if [[ $JMETER_NODE_TYPE == "master" ]]; then
+  exec tail -F /dev/null
+elif [[ $JMETER_NODE_TYPE == "slave" ]]; then
+  cd $JMETER_HOME/bin
+  exec jmeter-server
+fi
+
+
+exit 0
