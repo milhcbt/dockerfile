@@ -218,9 +218,9 @@ if [ "$(ls -A /data/mysql)" ]; then
 else
   echo "MySQL not yet initialized, starting initialization"
   mysql_install_db > /dev/null
-  mysqld --bootstrap --verbose=0 < $MYSQL_TEMP_FILE
-  rm -f $MYSQL_TEMP_FILE
 fi
+mysqld --bootstrap --verbose=0 < $MYSQL_TEMP_FILE
+rm -f $MYSQL_TEMP_FILE
 # ------------------------------------------------
 # Cleaning-up configuration variable
 unset MYSQL_USERNAME MYSQL_PASSWORD MYSQL_DATABASE MYSQL_ROOT_PASSWORD
