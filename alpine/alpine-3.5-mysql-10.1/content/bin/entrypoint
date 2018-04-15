@@ -30,10 +30,10 @@ IS_STRING='^[a-zA-Z0-9_]+$'
 IS_PASSWORD='^[a-zA-Z0-9_~!@#$%^&*()-=<>,.?;:|]+$'
 # ------------------------------------------------
 # MySQL credentials variable configuration
-MYSQL_USERNAME=${MYSQL_USERNAME:-}
+MYSQL_USER=${MYSQL_USER:-}
 MYSQL_PASSWORD=${MYSQL_PASSWORD:-}
-MYSQL_DATABASE=${MYSQL_DATABASE:-}
 MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-}
+MYSQL_DATABASE=${MYSQL_DATABASE:-}
 # ------------------------------------------------
 # MySQL extra variable configuration
 MYSQL_FT_MIN_WORD_LEN=${MYSQL_FT_MIN_WORD_LEN:-4}
@@ -143,19 +143,19 @@ MYSQL_REPLICATION_PASSWORD=${MYSQL_REPLICATION_PASSWORD:-}
 } > /etc/mysql/my.cnf
 # ------------------------------------------------
 # Validate MySQL credentials variable configuration
-if [[ ! -z $MYSQL_USERNAME ]]; then
-  if ! [[ $MYSQL_USERNAME =~ $IS_STRING ]]; then
-    echo "Failed to configure MYSQL_USERNAME variable. Fallback to default MYSQL_USERNAME value as admin"
-    MYSQL_USERNAME="admin"
+if [[ ! -z $MYSQL_USER ]]; then
+  if ! [[ $MYSQL_USER =~ $IS_STRING ]]; then
+    echo "Failed to configure MYSQL_USER variable. Fallback to default MYSQL_USER value as admin"
+    MYSQL_USER="admin"
   else
-    if [[ ${#MYSQL_USERNAME} -gt 32 ]]; then
-      echo "Failed to configure MYSQL_USERNAME variable. Fallback to default MYSQL_USERNAME value as admin"
-      MYSQL_USERNAME="admin"
+    if [[ ${#MYSQL_USER} -gt 32 ]]; then
+      echo "Failed to configure MYSQL_USER variable. Fallback to default MYSQL_USER value as admin"
+      MYSQL_USER="admin"
     fi
   fi
 else
-  echo "Failed to configure MYSQL_USERNAME variable. Fallback to default MYSQL_USERNAME value as admin"
-  MYSQL_USERNAME="admin"
+  echo "Failed to configure MYSQL_USER variable. Fallback to default MYSQL_USER value as admin"
+  MYSQL_USER="admin"
 fi
 if [[ ! -z $MYSQL_PASSWORD ]]; then
   if ! [[ $MYSQL_PASSWORD =~ $IS_PASSWORD ]]; then
@@ -165,6 +165,15 @@ if [[ ! -z $MYSQL_PASSWORD ]]; then
 else
   echo "Failed to configure MYSQL_PASSWORD variable. Fallback to default MYSQL_PASSWORD value as password"
   MYSQL_PASSWORD="password"
+fi
+if [[ ! -z $MYSQL_ROOT_PASSWORD ]]; then
+  if ! [[ $MYSQL_ROOT_PASSWORD =~ $IS_PASSWORD ]]; then
+    echo "Failed to configure MYSQL_ROOT_PASSWORD variable. Fallback to default MYSQL_ROOT_PASSWORD value as password"
+    MYSQL_ROOT_PASSWORD="password"
+  fi
+else
+  echo "Failed to configure MYSQL_ROOT_PASSWORD variable. Fallback to default MYSQL_ROOT_PASSWORD value as password"
+  MYSQL_ROOT_PASSWORD="password"
 fi
 if [[ ! -z $MYSQL_DATABASE ]]; then
   if ! [[ $MYSQL_DATABASE =~ $IS_STRING ]]; then
@@ -179,15 +188,6 @@ if [[ ! -z $MYSQL_DATABASE ]]; then
 else
   echo "Failed to configure MYSQL_DATABASE variable. Fallback to default MYSQL_DATABASE value as database"
   MYSQL_DATABASE="database"
-fi
-if [[ ! -z $MYSQL_ROOT_PASSWORD ]]; then
-  if ! [[ $MYSQL_ROOT_PASSWORD =~ $IS_PASSWORD ]]; then
-    echo "Failed to configure MYSQL_ROOT_PASSWORD variable. Fallback to default MYSQL_ROOT_PASSWORD value as password"
-    MYSQL_ROOT_PASSWORD="password"
-  fi
-else
-  echo "Failed to configure MYSQL_ROOT_PASSWORD variable. Fallback to default MYSQL_ROOT_PASSWORD value as password"
-  MYSQL_ROOT_PASSWORD="password"
 fi
 # ------------------------------------------------
 # Creating MySQL credentials file
@@ -206,8 +206,8 @@ UPDATE user SET password=PASSWORD("") WHERE user='root' AND host='localhost';
 
 CREATE DATABASE IF NOT EXISTS $MYSQL_DATABASE CHARACTER SET utf8 COLLATE utf8_general_ci;
 
-GRANT ALL ON $MYSQL_DATABASE.* to '$MYSQL_USERNAME'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';
-GRANT ALL ON $MYSQL_DATABASE.* to '$MYSQL_USERNAME'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD';
+GRANT ALL ON $MYSQL_DATABASE.* to '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';
+GRANT ALL ON $MYSQL_DATABASE.* to '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD';
 
 FLUSH PRIVILEGES;
 EOF
@@ -223,7 +223,7 @@ mysqld --bootstrap --verbose=0 < $MYSQL_TEMP_FILE
 rm -f $MYSQL_TEMP_FILE
 # ------------------------------------------------
 # Cleaning-up configuration variable
-unset MYSQL_USERNAME MYSQL_PASSWORD MYSQL_DATABASE MYSQL_ROOT_PASSWORD
+unset MYSQL_USER MYSQL_PASSWORD MYSQL_ROOT_PASSWORD MYSQL_DATABASE
 unset MYSQL_FT_MIN_WORD_LEN MYSQL_FT_MAX_WORD_LEN MYSQL_TABLE_OPEN_CACHE \
       MYSQL_KEY_BUFFER_SIZE MYSQL_SORT_BUFFER_SIZE MYSQL_READ_BUFFER_SIZE \
       MYSQL_WRITE_BUFFER_SIZE MYSQL_READ_RND_BUFFER_SIZE MYSQL_MAX_ALLOWED_PACKET \
