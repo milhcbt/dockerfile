@@ -9,24 +9,33 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 
-# Prepare data directory due to volume
-if [ ! -d /data ]; then
-  mkdir -p /data \
-  && chown user:root /data \
-  && chmod 775 /data
+# Prepare var/lib directory due to volume
+if [ ! -d /var/lib ]; then
+  mkdir -p /var/lib \
+  && chown user:root /var/lib \
+  && chmod 775 /var/lib
 fi
 
 
-# Prepare data/redis directory due to volume
-if [ ! -d /data/redis ]; then
-  mkdir -p /data/redis \
-  && chown user:root /data/redis \
-  && chmod 775 /data/redis
+# Prepare var/lib/redis directory due to volume
+if [ ! -d /var/lib/redis ]; then
+  mkdir -p /var/lib/redis \
+  && chown user:root /var/lib/redis \
+  && chmod 775 /var/lib/redis
+fi
+
+
+# Prepare var/lib/redis/data directory due to volume
+if [ ! -d /var/lib/redis/data ]; then
+  mkdir -p /var/lib/redis/data \
+  && chown user:root /var/lib/redis/data \
+  && chmod 775 /var/lib/redis/data
 fi
 
 
 # Prepare Redis configuration
 IS_NUMBER='^[0-9]+$'
+IS_PASSWORD='^[a-zA-Z0-9_~!@#$%^&*()-=<>,.?;:|]+$'
 # ------------------------------------------------
 # Redis Password variable configuration
 REDIS_PASSWORD=${REDIS_PASSWORD:-}
@@ -45,19 +54,24 @@ ARGS=${ARGS:-}
 ARGS_EXTRA=" --daemonize no \
              --bind 0.0.0.0 \
              --port 6379 \
-             --dir /data/redis \
-             --appendonly yes"
+             --dir /var/lib/redis/data \
+             --appendonly yes \
+             --appendfilename dump.aof"
 ARGS_REPLC=" "
 # ------------------------------------------------
-# Prepare Redis Extra Arguments variable as parameters
+# Validate Redis credentials variable configuration
 if ! [[ -z $REDIS_PASSWORD ]]; then
-  ARGS_EXTRA="${ARGS_EXTRA} \
-              --requirepass ${REDIS_PASSWORD}"
+  if ! [[ $REDIS_PASSWORD =~ $IS_PASSWORD ]]; then
+    echo "Failed to configure REDIS_PASSWORD variable. Redis will using no authentication password"
+  else
+    ARGS_EXTRA="${ARGS_EXTRA} \
+                --requirepass ${REDIS_PASSWORD}"
+  fi
 else
   echo "Redis will using no authentication password"
 fi
 # ------------------------------------------------
-# Prepare Redis Replication Arguments variable as parameters
+# Vaildate Redis replication variable configuration
 if ! [[ -z $REDIS_REPLICATION ]]; then
   if [[ $REDIS_REPLICATION == "master" ]]; then
     ARGS_REPLC="${ARGS_REPLC} \
@@ -118,7 +132,7 @@ if ! [[ -z $REDIS_REPLICATION ]]; then
   fi
 fi
 # ------------------------------------------------
-# Export Redis parameters to be loaded by Supervisor
+# Export Redis parameters
 if ! [[ -z $REDIS_REPLICATION ]]; then
   if [[ $REDIS_REPLICATION == "sentinel" ]]; then
     ARGS=${ARGS_REPLC}
@@ -130,7 +144,7 @@ else
 fi
 export ARGS=$ARGS
 # ------------------------------------------------
-# Wait for Redis Master to be Ready
+# Wait for Redis Master to be ready
 if ! [[ -z $REDIS_REPLICATION ]]; then
   if [[ $REDIS_REPLICATION == "slave" ]]; then
     if ! [[ -z $REDIS_MASTER_HOST ]]; then

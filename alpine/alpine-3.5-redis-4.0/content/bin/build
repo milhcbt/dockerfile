@@ -8,16 +8,19 @@
 
 # [1] Run Some Housekeeping
 # --------------------------------------------------
-mkdir -p /data \
-&& mkdir -p /data/redis \
+mkdir -p /var/lib \
+&& mkdir -p /var/lib/redis \
+&& mkdir -p /var/lib/redis/data \
 && chown -R root:root /var/run \
-&& chown -R root:root /data \
-&& chown -R root:root /data/redis \
+&& chown -R root:root /var/lib \
+&& chown -R root:root /var/lib/redis \
+&& chown -R root:root /var/lib/redis/data \
 && chown -R root:root /usr/local/docker \
 && chown -R root:root /usr/local/docker/bin \
 && chmod 775 /var/run \
-&& chmod 775 /data \
-&& chmod 775 /data/redis \
+&& chmod 775 /var/lib \
+&& chmod 775 /var/lib/redis \
+&& chmod 775 /var/lib/redis/data \
 && chmod 775 /usr/local/docker \
 && chmod 775 /usr/local/docker/bin \
 && chmod 775 /usr/local/docker/bin/build \

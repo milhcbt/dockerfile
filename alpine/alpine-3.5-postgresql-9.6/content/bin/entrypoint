@@ -1,0 +1,401 @@
+#!/bin/sh -e
+
+# Extends Shell Operations
+shopt -s dotglob
+shopt -s extglob
+
+
+# Add Custom UserID as "Postgres" User
+if [ "$(id -u)" != "0" ]; then
+  sed "s/^postgres:\(.*\):[0-9]\+:\([0-9]\+\):.*:.*:\(.*\)/postgres:\1:$(id -u):0:PostgreSQL Server:\/var\/lib\/pgsql:\3/g" < /etc/passwd > /tmp/passwd \
+  && cat /tmp/passwd > /etc/passwd \
+  && rm -f /tmp/passwd
+fi
+
+
+# Prepare var/lib directory due to volume
+if [ ! -d /var/lib ]; then
+  mkdir -p /var/lib \
+  && chown postgres:root /var/lib \
+  && chmod 775 /var/lib
+fi
+
+
+# Prepare var/lib/postgresql directory due to volume
+if [ ! -d /var/lib/pgsql ]; then
+  mkdir -p /var/lib/pgsql \
+  && chown postgres:root /var/lib/pgsql \
+  && chmod 775 /var/lib/pgsql
+fi
+
+
+# Prepare var/lib/postgresql/data directory due to volume
+if [ ! -d /var/lib/pgsql/data ]; then
+  mkdir -p /var/lib/pgsql/data \
+  && chown postgres:root /var/lib/pgsql/data \
+  && chmod 775 /var/lib/pgsql/data
+fi
+
+
+# Prepare PostgreSQL configuration
+IS_STRING='^[a-zA-Z0-9_]+$'
+IS_PASSWORD='^[a-zA-Z0-9_~!@#$%^&*()-=<>,.?;:|]+$'
+POSTGRESQL_INITIALIZED=${POSTGRESQL_INITIALIZED:-false}
+# ------------------------------------------------
+# PostgreSQL credentials variable configuration
+POSTGRESQL_USER=${POSTGRESQL_USER:-}
+POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD:-}
+POSTGRESQL_ADMIN_PASSWORD=${POSTGRESQL_ADMIN_PASSWORD:-}
+POSTGRESQL_DATABASE=${POSTGRESQL_DATABASE:-}
+# ------------------------------------------------
+# PostgreSQL extra variable configuration
+POSTGRESQL_SHARED_BUFFERS=${POSTGRESQL_SHARED_BUFFERS:-32MB}
+POSTGRESQL_EFFECTIVE_CACHE_SIZE=${POSTGRESQL_EFFECTIVE_CACHE_SIZE:-128MB}
+# ------------------------------------------------
+# PostgreSQL replication variable configuration
+POSTGRESQL_ENABLE_REPLICATION=${POSTGRESQL_ENABLE_REPLICATION:-false}
+POSTGRESQL_MASTER_SERVICE_NAME=${POSTGRESQL_MASTER_SERVICE_NAME:-}
+POSTGRESQL_MASTER_USER=${POSTGRESQL_MASTER_USER:-}
+POSTGRESQL_MASTER_PASSWORD=${POSTGRESQL_MASTER_PASSWORD:-}
+# ------------------------------------------------
+# PostgreSQL remote migration variable configuration
+POSTGRESQL_MIGRATION_REMOTE_HOST=${POSTGRESQL_MIGRATION_REMOTE_HOST:-}
+POSTGRESQL_MIGRATION_ADMIN_PASSWORD=${POSTGRESQL_MIGRATION_ADMIN_PASSWORD:-}
+POSTGRESQL_MIGRATION_IGNORE_ERRORS=${POSTGRESQL_MIGRATION_IGNORE_ERRORS:-false}
+# ------------------------------------------------
+# PostgreSQL upgrade variable configuration
+POSTGRESQL_UPGRADE_INITDB_OPTIONS=${POSTGRESQL_UPGRADE_INITDB_OPTIONS:-}
+POSTGRESQL_UPGRADE_PGUPGRADE_OPTIONS=${POSTGRESQL_UPGRADE_PGUPGRADE_OPTIONS:-}
+# ------------------------------------------------
+# Validate PostgreSQL credentials variable configuration
+if [[ ! -z $POSTGRESQL_USER ]]; then
+  if ! [[ $POSTGRESQL_USER =~ $IS_STRING ]]; then
+    echo "Failed to configure POSTGRESQL_USER variable. Fallback to default POSTGRESQL_USER value as admin"
+    POSTGRESQL_USER="admin"
+  else
+    if [[ ${#POSTGRESQL_USER} -gt 64 ]]; then
+      echo "Failed to configure POSTGRESQL_USER variable. Fallback to default POSTGRESQL_USER value as admin"
+      POSTGRESQL_USER="admin"
+    fi
+  fi
+else
+  echo "Failed to configure POSTGRESQL_USER variable. Fallback to default POSTGRESQL_USER value as admin"
+  POSTGRESQL_USER="admin"
+fi
+if [[ ! -z $POSTGRESQL_PASSWORD ]]; then
+  if ! [[ $POSTGRESQL_PASSWORD =~ $IS_PASSWORD ]]; then
+    echo "Failed to configure POSTGRESQL_PASSWORD variable. Fallback to default POSTGRESQL_PASSWORD value as password"
+    POSTGRESQL_PASSWORD="password"
+  fi
+else
+  echo "Failed to configure POSTGRESQL_PASSWORD variable. Fallback to default POSTGRESQL_PASSWORD value as password"
+  POSTGRESQL_PASSWORD="password"
+fi
+if [[ ! -z $POSTGRESQL_ADMIN_PASSWORD ]]; then
+  if ! [[ $POSTGRESQL_ADMIN_PASSWORD =~ $IS_PASSWORD ]]; then
+    echo "Failed to configure POSTGRESQL_ADMIN_PASSWORD variable"
+    POSTGRESQL_ADMIN_PASSWORD="password"
+  fi
+fi
+if [[ ! -z $POSTGRESQL_DATABASE ]]; then
+  if ! [[ $POSTGRESQL_DATABASE =~ $IS_STRING ]]; then
+    echo "Failed to configure POSTGRESQL_DATABASE variable. Fallback to default POSTGRESQL_DATABASE value as database"
+    POSTGRESQL_DATABASE="database"
+  else
+    if [[ ${#POSTGRESQL_DATABASE} -gt 64 ]]; then
+      echo "Failed to configure POSTGRESQL_DATABASE variable. Fallback to default POSTGRESQL_DATABASE value as database"
+      POSTGRESQL_DATABASE="database"
+    fi
+  fi
+else
+  echo "Failed to configure POSTGRESQL_DATABASE variable. Fallback to default POSTGRESQL_DATABASE value as database"
+  POSTGRESQL_DATABASE="database"
+fi
+# ------------------------------------------------
+# Validate PostgreSQL replication variable configuration
+if [[ -z $POSTGRESQL_ENABLE_REPLICATION ]]; then
+  if [[ $POSTGRESQL_ENABLE_REPLICATION == "true" ]]; then
+    if [[ ! -z $POSTGRESQL_MASTER_SERVICE_NAME ]]; then
+      if ! [[ $POSTGRESQL_MASTER_SERVICE_NAME =~ $IS_STRING ]]; then
+        echo "Failed to configure POSTGRESQL_MASTER_SERVICE_NAME variable"
+      fi
+    fi
+    if [[ ! -z $POSTGRESQL_MASTER_USER ]]; then
+      if ! [[ $POSTGRESQL_MASTER_USER =~ $IS_STRING ]]; then
+        echo "Failed to configure POSTGRESQL_MASTER_USER variable"
+      fi
+    fi
+    if [[ ! -z $POSTGRESQL_MASTER_PASSWORD ]]; then
+      if ! [[ $POSTGRESQL_MASTER_PASSWORD =~ $IS_PASSWORD ]]; then
+        echo "Failed to configure POSTGRESQL_MASTER_PASSWORD variable"
+      fi
+    fi
+  fi
+fi
+# ------------------------------------------------
+# PostgreSQL Fix Permissions function
+function fix_permissions() {
+  chown -R postgres:root $1
+  chmod 700 $1
+}
+# ------------------------------------------------
+# PostgreSQL Initialize Configuration function
+function initialize_cfg() {
+  if [[ -f $PGDATA/recovery.conf ]]; then
+    sed -i -e "/include .*$/d" $PGDATA/recovery.conf
+    
+    sed -i -e :a -e '/^\n*$/{$d;N;};/\n$/ba' $PGDATA/recovery.conf
+    echo "" >> $PGDATA/recovery.conf
+  fi
+
+  if [[ -f $PGDATA/postgresql.conf ]]; then
+    sed -i -e "/log_timezone .*$/d" $PGDATA/postgresql.conf
+    sed -i -e "/timezone .*$/d" $PGDATA/postgresql.conf
+    sed -i -e "/include .*$/d" $PGDATA/postgresql.conf
+
+    sed -i -e :a -e '/^\n*$/{$d;N;};/\n$/ba' $PGDATA/postgresql.conf
+    echo "" >> $PGDATA/postgresql.conf
+  fi
+
+  if [[ -f $PGDATA/pg_hba.conf ]]; then
+    sed -i -e "/# Allow replication connections from all hosts/d" $PGDATA/pg_hba.conf
+    sed -i -e "/host replication all all md5/d" $PGDATA/pg_hba.conf
+    sed -i -e "/# Allow connections from all hosts/d" $PGDATA/pg_hba.conf
+    sed -i -e "/host all all all md5/d" $PGDATA/pg_hba.conf
+    
+    sed -i -e :a -e '/^\n*$/{$d;N;};/\n$/ba' $PGDATA/pg_hba.conf
+    echo "" >> $PGDATA/pg_hba.conf
+  fi
+
+  { \
+    echo "# NOTE: This file is rewritten every time the container is started!"; \
+    echo "#       Changes to this file will be overwritten."; \
+    echo ""; \
+    echo "# Listen on all interfaces."; \
+    echo "listen_addresses = '*'"; \
+    echo ""; \
+    echo "# Sets the amount of memory the database server uses for shared memory buffers. Default: 32MB"; \
+    echo "shared_buffers = ${POSTGRESQL_SHARED_BUFFERS}"; \
+    echo ""; \
+    echo "# Sets the planner's assumption about the effective size of the disk cache that is available to a single query"; \
+    echo "effective_cache_size = ${POSTGRESQL_EFFECTIVE_CACHE_SIZE}"; \
+    echo ""; \
+    echo "# Sets timezone to TZ environment variable"
+    echo "timezone = '${TZ}'"; \
+    echo ""; \
+    echo "# Sets logging configuration"; \
+    echo "logging_collector = on"; \
+    echo "log_truncate_on_rotation = on"; \
+    echo "log_directory = 'pg_log'"; \
+    echo "log_filename = 'postgresql-%a.log'";
+    echo "log_rotation_age = 1d"; \
+    echo "log_rotation_size = 0"; \
+    echo "log_timezone = '${TZ}'"; \
+    echo ""; \
+    if [[ $POSTGRESQL_ENABLE_REPLICATION == "true" ]]; \
+    then
+      echo "# Required on Master for replication"; \
+      echo "wal_level = hot_standby         # minimal, archive, hot_standby, or logical"; \
+      echo "max_wal_senders = 6             # max number of walsender processes"; \
+      echo "wal_keep_segments = 400         # in logfile segments, 16MB each; 0 disables"; \
+      echo ""; \
+      echo "# Required on Slave for replication"; \
+      echo "hot_standby = on"; \
+    fi; \
+  } > /etc/pgsql/postgresql.conf
+  echo "include '/etc/pgsql/postgresql.conf'" >> $PGDATA/postgresql.conf
+
+  echo "# Allow replication connections from all hosts" >> $PGDATA/pg_hba.conf
+  echo "host replication all all md5" >> $PGDATA/pg_hba.conf
+  echo "" >> $PGDATA/pg_hba.conf
+  echo "# Allow connections from all hosts" >> $PGDATA/pg_hba.conf
+  echo "host all all all md5" >> $PGDATA/pg_hba.conf
+  echo "" >> $PGDATA/pg_hba.conf  
+}
+# ------------------------------------------------
+# PostgreSQL Initialize Credentials function
+function initialize_creds() {
+  if [[ $POSTGRESQL_INITIALIZED == "true" ]]; then
+    if [[ ! -z $POSTGRESQL_USER && ! -z $POSTGRESQL_DATABASE ]]; then
+      createuser "$POSTGRESQL_USER"
+      createdb --owner="$POSTGRESQL_USER" "$POSTGRESQL_DATABASE"
+    fi
+
+    if [[ ! -z $POSTGRESQL_MASTER_USER && ! -z $POSTGRESQL_MASTER_PASSWORD ]]; then
+      createuser "$POSTGRESQL_MASTER_USER"
+    fi
+  fi
+}
+# ------------------------------------------------
+# PostgreSQL Upgrade Credentials function
+function upgrade_creds() {
+  if [[ ! -z $POSTGRESQL_USER && ! -z $POSTGRESQL_DATABASE ]]; then
+    psql --command "ALTER USER \"${POSTGRESQL_USER}\" WITH ENCRYPTED PASSWORD '${POSTGRESQL_PASSWORD}';"
+  fi
+
+  if [[ ! -z $POSTGRESQL_ADMIN_PASSWORD ]]; then
+    psql --command "ALTER USER \"postgres\" WITH ENCRYPTED PASSWORD '${POSTGRESQL_ADMIN_PASSWORD}';"
+  fi
+
+  if [[ ! -z $POSTGRESQL_MASTER_USER && ! -z $POSTGRESQL_MASTER_PASSWORD ]]; then
+    psql --command "ALTER USER \"${POSTGRESQL_MASTER_USER}\" WITH REPLICATION;"
+    psql --command "ALTER USER \"${POSTGRESQL_MASTER_USER}\" WITH ENCRYPTED PASSWORD '${POSTGRESQL_MASTER_PASSWORD}';"
+  fi
+}
+# ------------------------------------------------
+# PostgreSQL Initialize DBs function
+function initialize_dbs() {
+  mkdir -p $PGDATA
+
+  if [[ -f /var/lib/pgsql/data/PG_VERSION ]]; then
+    mv /var/lib/pgsql/data/!(userdata) $PGDATA
+  fi
+
+  fix_permissions $PGDATA
+  initdb
+}
+# ------------------------------------------------
+# PostgreSQL Migrate DBs function
+function migrate_dbs() {
+  if [[ $POSTGRESQL_INITIALIZED == "true" ]]; then
+    if [[ ! -z $POSTGRESQL_MIGRATION_REMOTE_HOST && ! -z $POSTGRESQL_MIGRATION_ADMIN_PASSWORD ]]; then
+      (
+        if [[ $POSTGRESQL_MIGRATION_IGNORE_ERRORS == "false" ]]; then
+            echo '\set ON_ERROR_STOP on'
+        fi
+        
+        PGPASSWORD="$POSTGRESQL_MIGRATION_ADMIN_PASSWORD" \
+          pg_dumpall -h "$POSTGRESQL_MIGRATION_REMOTE_HOST" \
+          | grep -v '^CREATE ROLE postgres;'
+      ) | psql
+    fi
+  fi
+}
+# ------------------------------------------------
+# PostgreSQL Upgrade DBs function
+function upgrade_dbs() {
+  local DATE=$(date +"%Y%m%d-%H%M")
+  local POSTGRESQL_OLD_DATA=$PGDATA
+  local POSTGRESQL_NEW_DATA=$PGDATA-new
+
+  if [[ -d $POSTGRESQL_NEW_DATA ]]; then
+    rm -rf ${POSTGRESQL_NEW_DATA}
+    mkdir -p ${POSTGRESQL_NEW_DATA}
+  fi
+
+  fix_permissions $POSTGRESQL_OLD_DATA
+  fix_permissions $POSTGRESQL_NEW_DATA
+
+  local POSTGRESQL_INITDB_CMD=(initdb ${POSTGRESQL_NEW_DATA})
+  "${POSTGRESQL_INITDB_CMD[@]} ${POSTGRESQL_UPGRADE_INITDB_OPTIONS}" || { rm -rf ${POSTGRESQL_NEW_DATA}; false; }
+  
+  local POSTGRESQL_UPGRADE_CMD=(pg_upgrade --old-datadir=${POSTGRESQL_OLD_DATA} --new-datadir=${POSTGRESQL_NEW_DATA})
+  "${POSTGRESQL_UPGRADE_CMD[@]} ${POSTGRESQL_UPGRADE_PGUPGRADE_OPTIONS}" || { rm -rf ${POSTGRESQL_NEW_DATA}; false; }
+
+  cp ${POSTGRESQL_OLD_DATA}/*.conf ${POSTGRESQL_NEW_DATA}
+  mv ${POSTGRESQL_OLD_DATA} ${POSTGRESQL_OLD_DATA}-${POSTGRESQL_OLD_VERSION}-${DATE}
+  mv ${POSTGRESQL_NEW_DATA} ${POSTGRESQL_OLD_DATA}
+}
+# ------------------------------------------------
+# PostgreSQL Master Address function
+function postgresql_master_addr() {
+  local POSTGRESQL_MASTER_ENDPOINT=$(dig ${POSTGRESQL_MASTER_SERVICE_NAME} A +search | grep ";${POSTGRESQL_MASTER_SERVICE_NAME}" | cut -d ';' -f 2 2>/dev/null)
+
+  if [[ -z $POSTGRESQL_MASTER_IP ]]; then
+    POSTGRESQL_MASTER_ENDPOINT=${POSTGRESQL_MASTER_IP}
+  fi
+
+  if [[ ! -z $POSTGRESQL_MASTER_ENDPOINT ]]; then
+    echo -n "$(echo $POSTGRESQL_MASTER_ENDPOINT | cut -d ' ' -f 1)"
+  fi
+}
+# ------------------------------------------------
+# PostgreSQL Master Wait function
+function postgresql_master_wait() {
+  while true; do
+    POSTGRESQL_MASTER_ADDR=$(postgresql_master_addr)
+    echo "Waiting for PostgreSQL Master (${POSTGRESQL_MASTER_ADDR}) to accept connections ..."
+    
+    if [[ -z POSTGRESQL_MASTER_PASSWORD ]]; then
+      PGPASSWORD=${POSTGRESQL_MASTER_PASSWORD} psql "postgresql://postgres@${POSTGRESQL_MASTER_ADDR}" -c "SELECT 1;" && return 0
+    else
+      PGPASSWORD=${POSTGRESQL_PASSWORD} psql "postgresql://${POSTGRESQL_USER}@${POSTGRESQL_MASTER_ADDR}/${POSTGRESQL_DATABASE}" -c "SELECT 1;" && return 0
+    fi
+    sleep 1
+  done
+}
+# ------------------------------------------------
+# PostgreSQL Slave Initialize function
+function postgresql_slave_init() {  
+  rm -rf $PGDATA
+  PGPASSWORD="${POSTGRESQL_MASTER_PASSWORD}" pg_basebackup -X fetch --no-password --pgdata ${PGDATA} --host=${POSTGRESQL_MASTER_ADDR} --port=5432 -U "${POSTGRESQL_MASTER_USER}"
+
+  { \
+    echo "# NOTE: This file is rewritten every time the container is started!"; \
+    echo "#       Changes to this file will be overwritten."; \
+    echo ""; \
+    echo "standby_mode = on"; \
+    echo "primary_conninfo = 'host=${POSTGRESQL_MASTER_ADDR} port=5432 user=${POSTGRESQL_MASTER_USER} password=${POSTGRESQL_MASTER_PASSWORD}'"; \
+  } > /etc/pgsql/recovery.conf
+  echo "include '/etc/pgsql/recovery.conf'" >> $PGDATA/recovery.conf
+}
+# ------------------------------------------------
+# Initialize PostgreSQL
+PGDATA=/var/lib/pgsql/data/userdata
+export PGDATA=/var/lib/pgsql/data/userdata
+
+if [[ $POSTGRESQL_ENABLE_REPLICATION == "false" ]]; then
+  if [[ -f $PGDATA/PG_VERSION ]]; then
+    echo "PostgreSQL already initialized, skipping initialization"
+    POSTGRESQL_INITIALIZED="false"
+
+    POSTGRESQL_OLD_VERSION=$(cat $PGDATA/PG_VERSION)
+    POSTGRESQL_NEW_VERSION=$POSTGRESQL_VERSION
+    
+    if [[ "$POSTGRESQL_NEW_VERSION" != "$POSTGRESQL_OLD_VERSION" ]]; then
+      echo ""
+      echo "Can't Start PostgreSQL, Current Database Version $POSTGRESQL_OLD_VERSION"
+      echo "PostgreSQL Version $POSTGRESQL_NEW_VERSION"
+      echo ""
+      echo "Please do manual upgrade by using pg_dumpall or refer to:"
+      echo "https://www.postgresql.org/docs/current/static/upgrading.html"
+      echo ""
+      exit 0
+      
+      ## echo "Upgrading PostgreSQL $POSTGRESQL_OLD_VERSION to $POSTGRESQL_NEW_VERSION ..."      
+      ## upgrade_dbs
+    fi
+  else
+    echo "PostgreSQL not yet initialized, starting initialization"
+    POSTGRESQL_INITIALIZED="true"
+    initialize_dbs
+  fi
+  fix_permissions $PGDATA  
+  initialize_cfg
+
+  pg_ctl -D $PGDATA -w start -o "-c listen_addresses=''"
+  if [[ $POSTGRESQL_INITIALIZED == "true" ]] ; then
+    migrate_dbs
+    initialize_creds
+  fi
+  upgrade_creds
+  pg_ctl -D $PGDATA -w stop -m fast
+else
+  POSTGRESQL_MASTER_ADDR=$(postgresql_master_addr)
+  export POSTGRESQL_MASTER_ADDR=$(postgresql_master_addr)
+
+  postgresql_master_wait
+  postgresql_slave_init
+fi
+# ------------------------------------------------
+# Cleaning-up configuration variable
+unset POSTGRESQL_INITIALIZED
+unset POSTGRESQL_USER POSTGRESQL_PASSWORD POSTGRESQL_ADMIN_PASSWORD POSTGRESQL_DATABASE
+unset POSTGRESQL_SHARED_BUFFERS POSTGRESQL_EFFECTIVE_CACHE_SIZE
+unset POSTGRESQL_ENABLE_REPLICATION POSTGRESQL_MASTER_SERVICE_NAME POSTGRESQL_MASTER_USER POSTGRESQL_MASTER_PASSWORD
+unset POSTGRESQL_MIGRATION_REMOTE_HOST POSTGRESQL_MIGRATION_ADMIN_PASSWORD POSTGRESQL_MIGRATION_IGNORE_ERRORS
+unset POSTGRESQL_UPGRADE_INITDB_OPTIONS POSTGRESQL_UPGRADE_PGUPGRADE_OPTIONS
+
+
+# Execute Everything from Entries
+exec "$@"

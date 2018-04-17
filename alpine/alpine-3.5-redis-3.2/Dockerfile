@@ -10,7 +10,7 @@ RUN chmod 775 /usr/local/docker/bin/build \
   && rm -f /usr/local/docker/bin/build
 
 # Set Volumes Directory
-VOLUME /data
+VOLUME /var/lib/redis/data
 
 # Expose Ports
 EXPOSE 6379

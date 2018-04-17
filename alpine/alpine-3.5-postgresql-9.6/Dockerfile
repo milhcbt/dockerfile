@@ -1,6 +1,9 @@
 FROM dimaskiddo/alpine:base
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
+# Setting-up Environment
+ENV POSTGRESQL_VERSION 9.6
+
 # Copying Prequisites Configuration
 COPY ./content/ /usr/local/docker/
 
@@ -10,27 +13,27 @@ RUN chmod 775 /usr/local/docker/bin/build \
   && rm -f /usr/local/docker/bin/build
 
 # Set Volumes Directory
-VOLUME /var/lib/mysql/data
+VOLUME /var/lib/pgsql/data
 
 # Expose Ports
-EXPOSE 3306
+EXPOSE 5432
 
 # Set Entrypoint Script
 ENTRYPOINT ["/usr/local/docker/bin/entrypoint"]
 
 # Set Executor Script
-CMD ["sh","-c","mysqld --console $ARGS"]
+CMD ["sh","-c","postgres $ARGS"]
 
-# Change Working User to "User"
-USER user
+# Change Working User to "Postgres"
+USER postgres
 
 # Set Labels Used in OpenShift to Describe the Builder Images
 LABEL release=1 \
       vendor="Alpine" \
-      summary="Virtual Machine (VM) like container platform with MySQL/MariDB 10.1" \
+      summary="Virtual Machine (VM) like container platform with PostgreSQL 9.6" \
       maintainer="Dimas Restu Hidayanto <dimas.restu@student.upi.edu>" \
-      io.k8s.description="Alpine (3.x) with MySQL/MariDB 10.1" \
-      io.k8s.display-name="Alpine (3.x) with MySQL/MariDB 10.1" \
-      io.openshift.tags="builder,alpine,mysql" \
-      io.openshift.expose-services="3306:mysql" \
+      io.k8s.description="Alpine (3.x) with PostgreSQL 9.6" \
+      io.k8s.display-name="Alpine (3.x) with PostgreSQL 9.6" \
+      io.openshift.tags="builder,alpine,postgresql" \
+      io.openshift.expose-services="5432:postgresql" \
       io.openshift.non-scalable="false"
