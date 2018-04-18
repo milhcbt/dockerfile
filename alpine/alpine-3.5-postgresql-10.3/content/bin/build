@@ -1,0 +1,68 @@
+#!/bin/sh -xe
+
+# --------------------------------------------------
+# Dockerfile Build Tools
+# Email: dimas.restu@student.upi.edu
+# --------------------------------------------------
+
+
+# [1] Run Some Housekeeping
+# --------------------------------------------------
+mkdir -p /run \
+&& mkdir -p /run/postgresql \
+&& mkdir -p /var/lib \
+&& mkdir -p /var/lib/pgsql \
+&& mkdir -p /var/lib/pgsql/data \
+&& mkdir -p /etc \
+&& mkdir -p /etc/pgsql \
+&& chown -R root:root /run \
+&& chown -R root:root /run/postgresql \
+&& chown -R root:root /var/run \
+&& chown -R root:root /var/lib \
+&& chown -R root:root /var/lib/pgsql \
+&& chown -R root:root /var/lib/pgsql/data \
+&& chown -R root:root /etc \
+&& chown -R root:root /etc/pgsql \
+&& chown -R root:root /usr/local/docker \
+&& chown -R root:root /usr/local/docker/bin \
+&& chmod 775 /run \
+&& chmod 775 /run/postgresql \
+&& chmod 775 /var/run \
+&& chmod 775 /var/lib \
+&& chmod 775 /var/lib/pgsql \
+&& chmod 775 /var/lib/pgsql/data \
+&& chmod 775 /etc \
+&& chmod 775 /etc/pgsql \
+&& chmod 775 /usr/local/docker \
+&& chmod 775 /usr/local/docker/bin \
+&& chmod 775 /usr/local/docker/bin/build \
+&& chmod 775 /usr/local/docker/bin/entrypoint
+# --------------------------------------------------
+
+
+# [2] Installing PostgreSQL
+# --------------------------------------------------
+cp /etc/apk/repositories /etc/apk/repositories.original \
+&& echo 'http://dl-cdn.alpinelinux.org/alpine/edge/main' >> /etc/apk/repositories \
+&& echo 'http://dl-cdn.alpinelinux.org/alpine/edge/community' >> /etc/apk/repositories \
+&& apk update \
+&& apk add \
+    postgresql \
+    postgresql-client \
+    postgresql-contrib \
+&& rm -rf /var/cache/apk/* \
+&& rm -f /etc/apk/repositories \
+&& mv /etc/apk/repositories.original /etc/apk/repositories
+# --------------------------------------------------
+
+
+# [3] Configuring PostgreSQL
+# --------------------------------------------------
+rm -rf /var/lib/postgresql \
+&& rm -f /bin/sh \
+&& ln -sf /bin/bash /bin/sh \
+&& sed -i -e "/user:x:1000:0:User:/root:/sbin/nologin/d" /etc/passwd
+# --------------------------------------------------
+
+
+exit 0
