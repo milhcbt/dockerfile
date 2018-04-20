@@ -1,0 +1,57 @@
+#!/bin/bash -e
+
+
+# Sourcing the Entrypoint script
+source /usr/local/docker/bin/entrypoint
+
+
+# Validate MongoDB variable
+validate_creds_vars
+validate_repls_vars
+
+
+# Initialize MongoDB configuration
+initialize_cfg
+
+
+# Run MongoDB
+if [[ $MONGODB_ENABLE_REPLICATION == "false" ]]; then
+  mongod --config /etc/mongodb/mongod.conf --quiet --noauth --bind_ip 127.0.0.1 &
+  mongod_wait 1
+
+  upgrade_dbs
+  initialize_creds
+
+  mongod --config /etc/mongodb/mongod.conf --quiet --shutdown
+  mongod_wait 0
+
+  clean_up_vars
+  exec mongod --config /etc/mongodb/mongod.conf --quiet --auth $ARGS
+else
+  export readonly MONGODB_MEMBER_ID="${HOSTNAME##*-}"
+  export readonly MONGODB_MEMBER_HOST="$(hostname -f)"
+
+  mongod --config /etc/mongodb/mongod.conf --quiet --keyFile /etc/mongodb/key.pem $ARGS &
+  mongod_wait 1
+
+  if [[ $(mongo --eval 'db.isMaster().setName' --quiet) == "${MONGODB_REPLICA_NAME}" ]]; then
+    exit 1
+  fi
+
+  if [ "${MONGODB_MEMBER_ID}" = '0' ]; then
+    initialize_repls "${MONGODB_MEMBER_HOST}"
+  else
+    add_member_repls "${MONGODB_MEMBER_HOST}"
+  fi
+
+  if [ "${MONGODB_MEMBER_ID}" -eq 0 ]; then
+    upgrade_dbs
+    initialize_creds_admin
+    if [[ $MONGODB_CREATE_USER -eq 1 ]]; then
+      initialize_creds_user "-u admin -p ${MONGODB_ADMIN_PASSWORD}"
+    fi
+  fi
+
+  clean_up_vars
+  wait
+fi

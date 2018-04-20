@@ -8,44 +8,61 @@
 
 # [1] Run Some Housekeeping
 # --------------------------------------------------
-mkdir -p /var/lib \
-&& mkdir -p /var/lib/redis \
-&& mkdir -p /var/lib/redis/data \
+mkdir -p /run \
+&& mkdir -p /run/mongodb \
+&& mkdir -p /var/run \
+&& mkdir -p /var/run/mongodb \
+&& mkdir -p /var/lib \
+&& mkdir -p /var/lib/mongodb \
+&& mkdir -p /var/lib/mongodb/data \
+&& mkdir -p /etc \
+&& mkdir -p /etc/mongodb \
+&& chown -R root:root /run \
+&& chown -R root:root /run/mongodb \
 && chown -R root:root /var/run \
+&& chown -R root:root /var/run/mongodb \
 && chown -R root:root /var/lib \
-&& chown -R root:root /var/lib/redis \
-&& chown -R root:root /var/lib/redis/data \
+&& chown -R root:root /var/lib/mongodb \
+&& chown -R root:root /var/lib/mongodb/data \
+&& chown -R root:root /etc \
+&& chown -R root:root /etc/mongodb \
 && chown -R root:root /usr/local/docker \
 && chown -R root:root /usr/local/docker/bin \
+&& chmod 775 /run \
+&& chmod 775 /run/mongodb \
 && chmod 775 /var/run \
+&& chmod 775 /var/run/mongodb \
 && chmod 775 /var/lib \
-&& chmod 775 /var/lib/redis \
-&& chmod 775 /var/lib/redis/data \
+&& chmod 775 /var/lib/mongodb \
+&& chmod 775 /var/lib/mongodb/data \
+&& chmod 775 /etc \
+&& chmod 775 /etc/mongodb \
 && chmod 775 /usr/local/docker \
 && chmod 775 /usr/local/docker/bin \
 && chmod 775 /usr/local/docker/bin/build \
-&& chmod 775 /usr/local/docker/bin/entrypoint
+&& chmod 775 /usr/local/docker/bin/entrypoint \
+&& chmod 775 /usr/local/docker/bin/run-mongod
 # --------------------------------------------------
 
 
-# [2] Installing Redis
+# [2] Installing MongoDB
 # --------------------------------------------------
-cp /etc/apk/repositories /etc/apk/repositories.original \
+mv /etc/apk/repositories /etc/apk/repositories.original \
 && echo 'http://dl-cdn.alpinelinux.org/alpine/edge/main' >> /etc/apk/repositories \
 && echo 'http://dl-cdn.alpinelinux.org/alpine/edge/community' >> /etc/apk/repositories \
 && apk update \
 && apk add \
-    redis \
+    mongodb \
+    mongodb-tools \
 && rm -rf /var/cache/apk/* \
 && rm -f /etc/apk/repositories \
 && mv /etc/apk/repositories.original /etc/apk/repositories
 # --------------------------------------------------
 
 
-# [3] Configuring Redis
+# [3] Configuring MongoDB
 # --------------------------------------------------
-rm -f /etc/redis.conf \
-&& rm -rf /var/log/redis \
+ln -sf /usr/local/docker/bin/run-mongod /usr/local/bin/run-mongod \
 && rm -f /bin/sh \
 && ln -sf /bin/bash /bin/sh
 # --------------------------------------------------

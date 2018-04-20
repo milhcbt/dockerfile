@@ -98,14 +98,9 @@ if [[ ! -z $POSTGRESQL_ADMIN_PASSWORD ]]; then
   fi
 fi
 if [[ ! -z $POSTGRESQL_DATABASE ]]; then
-  if ! [[ $POSTGRESQL_DATABASE =~ $IS_STRING ]]; then
+  if [[ ${#POSTGRESQL_DATABASE} -gt 64 ]]; then
     echo "Failed to configure POSTGRESQL_DATABASE variable. Fallback to default POSTGRESQL_DATABASE value as database"
     POSTGRESQL_DATABASE="database"
-  else
-    if [[ ${#POSTGRESQL_DATABASE} -gt 64 ]]; then
-      echo "Failed to configure POSTGRESQL_DATABASE variable. Fallback to default POSTGRESQL_DATABASE value as database"
-      POSTGRESQL_DATABASE="database"
-    fi
   fi
 else
   echo "Failed to configure POSTGRESQL_DATABASE variable. Fallback to default POSTGRESQL_DATABASE value as database"

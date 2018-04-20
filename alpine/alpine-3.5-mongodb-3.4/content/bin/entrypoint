@@ -1,0 +1,358 @@
+#!/bin/sh -e
+
+
+# Add Custom UserID as "User" User
+if [ "$(id -u)" != "0" ]; then
+  sed "s/^user:\(.*\):[0-9]\+:\([0-9]\+\):.*:\(.*:.*\)/user:\1:$(id -u):\2:User:\3/g" < /etc/passwd > /tmp/passwd \
+  && cat /tmp/passwd > /etc/passwd \
+  && rm -f /tmp/passwd
+fi
+
+
+# Prepare var/lib directory due to volume
+if [ ! -d /var/lib ]; then
+  mkdir -p /var/lib \
+  && chown user:root /var/lib \
+  && chmod 775 /var/lib
+fi
+
+
+# Prepare var/lib/mongodb directory due to volume
+if [ ! -d /var/lib/mongodb ]; then
+  mkdir -p /var/lib/mongodb \
+  && chown user:root /var/lib/mongodb \
+  && chmod 775 /var/lib/mongodb
+fi
+
+
+# Prepare var/lib/mongodb/data directory due to volume
+if [ ! -d /var/lib/mongodb/data ]; then
+  mkdir -p /var/lib/mongodb/data \
+  && chown user:root /var/lib/mongodb/data \
+  && chmod 775 /var/lib/mongodb/data
+fi
+
+
+# Prepare MongoDB configuration
+IS_STRING='^[a-zA-Z0-9_]+$'
+IS_PASSWORD='^[a-zA-Z0-9_~!@#$%^&*()-=<>,.?;:|]+$'
+MONGODB_WAIT_MAX_ATTEMPTS=${MONGODB_WAIT_MAX_ATTEMPTS:-60}
+MONGODB_WAIT_SLEEP_TIME=${MONGODB_WAIT_SLEEP_TIME:-1}
+# ------------------------------------------------
+# MongoDB credentials variable configuration
+MONGODB_USER=${MONGODB_USER:-}
+MONGODB_PASSWORD=${MONGODB_PASSWORD:-}
+MONGODB_ADMIN_PASSWORD=${MONGODB_ADMIN_PASSWORD:-}
+MONGODB_DATABASE=${MONGODB_DATABASE:-}
+# ------------------------------------------------
+# MongoDB extra variable configuration
+MONGODB_QUIET=${MONGODB_QUIET:-true}
+MONGODB_WIREDTIGER_CACHE_SIZE=${MONGODB_WIREDTIGER_CACHE_SIZE:-1}
+# ------------------------------------------------
+# MongoDB replication variable configuration
+MONGODB_ENABLE_REPLICATION=${MONGODB_ENABLE_REPLICATION:-false}
+MONGODB_SERVICE_NAME=${MONGODB_SERVICE_NAME:-}
+MONGODB_REPLICA_NAME=${MONGODB_REPLICA_NAME:-}
+MONGODB_KEYFILE_VALUE=${MONGODB_KEYFILE_VALUE:-}
+# ------------------------------------------------
+# Validate MongoDB credentials variable configuration
+function validate_creds_vars() {
+  if [[ ! -z $MONGODB_USER ]]; then
+    if ! [[ $MONGODB_USER =~ $IS_STRING ]]; then
+      echo "Failed to configure MONGODB_USER variable. Fallback to default MONGODB_USER value as user"
+      MONGODB_USER="user"
+    else
+      if [[ ${#MONGODB_USER} -gt 64 ]]; then
+        echo "Failed to configure MONGODB_USER variable. Fallback to default MONGODB_USER value as user"
+        MONGODB_USER="user"
+      fi
+    fi
+  else
+    echo "Failed to configure MONGODB_USER variable. Fallback to default MONGODB_USER value as user"
+    MONGODB_USER="user"
+  fi
+  if [[ ! -z $MONGODB_PASSWORD ]]; then
+    if ! [[ $MONGODB_PASSWORD =~ $IS_PASSWORD ]]; then
+      echo "Failed to configure MONGODB_PASSWORD variable. Fallback to default MONGODB_PASSWORD value as password"
+      MONGODB_PASSWORD="password"
+    fi
+  else
+    echo "Failed to configure MONGODB_PASSWORD variable. Fallback to default MONGODB_PASSWORD value as password"
+    MONGODB_PASSWORD="password"
+  fi
+  if [[ ! -z $MONGODB_ADMIN_PASSWORD ]]; then
+    if ! [[ $MONGODB_ADMIN_PASSWORD =~ $IS_PASSWORD ]]; then
+      echo "Failed to configure MONGODB_ADMIN_PASSWORD variable. Fallback to default MONGODB_ADMIN_PASSWORD value as password"
+      MONGODB_ADMIN_PASSWORD="password"
+    fi
+  else
+    echo "Failed to configure MONGODB_ADMIN_PASSWORD variable. Fallback to default MONGODB_ADMIN_PASSWORD value as password"
+    MONGODB_ADMIN_PASSWORD="password"
+  fi
+  if [[ ! -z $MONGODB_DATABASE ]]; then
+    if [[ ${#MONGODB_DATABASE} -gt 64 ]]; then
+      echo "Failed to configure MONGODB_DATABASE variable. Fallback to default MONGODB_DATABASE value as database"
+      MONGODB_DATABASE="database"
+    fi
+  else
+    echo "Failed to configure MONGODB_DATABASE variable. Fallback to default MONGODB_DATABASE value as database"
+    MONGODB_DATABASE="database"
+  fi
+  if [[ ! -z $MONGODB_USER && ! -z $MONGODB_PASSWORD && ! -z $MONGODB_DATABASE ]]; then
+    export MONGODB_CREATE_USER=1
+  fi
+}
+# ------------------------------------------------
+# Validate MongoDB replication variable configuration
+function validate_repls_vars() {
+  if [[ ! -z $MONGODB_ENABLE_REPLICATION ]]; then
+    if [[ $MONGODB_ENABLE_REPLICATION == "true" ]]; then
+      if [[ ! -z $MONGODB_SERVICE_NAME ]]; then
+        if ! [[ $MONGODB_SERVICE_NAME =~ $IS_STRING ]]; then
+          echo "Failed to configure MONGODB_SERVICE_NAME variable. Fallback to default MONGODB_SERVICE_NAME value as mongodb"
+          MONGODB_SERVICE_NAME="mongodb"
+        fi
+      fi
+      if [[ ! -z $MONGODB_REPLICA_NAME ]]; then
+        if ! [[ $MONGODB_REPLICA_NAME =~ $IS_STRING ]]; then
+          echo "Failed to configure MONGODB_REPLICA_NAME variable. Fallback to default MONGODB_REPLICA_NAME value as rs"
+          MONGODB_REPLICA_NAME="rs"
+        fi
+      fi
+      if [[ -z $MONGODB_KEYFILE_VALUE ]]; then
+        echo "Failed to configure MONGODB_KEYFILE_VALUE variable"
+        echo "Disabling MongoDB Replication"
+        echo ""
+        echo "Please generate and configure MONGODB_KEYFILE_VALUE variable with following command:"
+        echo "openssl rand -base64 756"
+        echo ""
+
+        MONGODB_ENABLE_REPLICATION="false"
+      fi
+    fi
+  fi
+}
+# ------------------------------------------------
+# MongoDB Fix Permissions function
+function fix_permissions() {
+  chown -R user:root $1
+  chmod 775 $1
+}
+# ------------------------------------------------
+# MongoDB Daemon Wait function
+function mongod_wait() {
+  local MONGODB_HOST=${2:-"localhost"}
+
+  local MONGODB_WAIT_LOOP
+  local MONGODB_WAIT_OPERATION=${1:-1}
+  local MONGODB_WAIT_MESSAGE="up"
+
+  if [[ ${MONGODB_WAIT_OPERATION} -eq 0 ]]; then
+    MONGODB_WAIT_MESSAGE="down"
+  fi
+
+  for MONGODB_WAIT_LOOP in $(seq $MONGODB_WAIT_MAX_ATTEMPTS); do
+    echo "Waiting for MongoDB Daemon to ${MONGODB_WAIT_MESSAGE} ..."  
+    if ([[ ${MONGODB_WAIT_OPERATION} -eq 1 ]] && mongo ${MONGODB_HOST} --eval "quit()" &>/dev/null) || ([[ ${MONGODB_WAIT_OPERATION} -eq 0 ]] && ! mongo ${MONGODB_HOST} --eval "quit()" &>/dev/null); then
+      return 0
+    fi
+    sleep ${MONGODB_WAIT_SLEEP_TIME}
+  done
+
+  echo "Failed to Wait MongoDB Daemon to ${MONGODB_WAIT_MESSAGE}"
+  return 1
+}
+# ------------------------------------------------
+# MongoDB Get Replica Address function
+function repls_address() {
+  local MONGODB_CURRENT_ENDPOINT="$(dig ${MONGODB_SERVICE_NAME} A +search +short 2>/dev/null)"
+  local MONGODB_DATABASE_REPLICA="${1:-}"
+
+  if [ -z "${MONGODB_CURRENT_ENDPOINT}" ]; then
+    echo "MongoDB cannot get address of Replica Set. No nodes are listed in service"
+    echo "CAUSE: DNS lookup for '${MONGODB_SERVICE_NAME}' returned no results"
+    return 1
+  fi
+
+  echo "mongodb://${MONGODB_CURRENT_ENDPOINT//[[:space:]]/,}/${MONGODB_DATABASE_REPLICA}?replicaSet=${MONGODB_REPLICA_NAME}"
+}
+# ------------------------------------------------
+# MongoDB Upgrade DBs function
+function upgrade_dbs() {
+  local MONGODB_COMMAND=${MONGODB_COMMAND:-}
+
+  # Upgrade Database
+  MONGODB_COMMAND="db.adminCommand( { setFeatureCompatibilityVersion: \"3.4\" } )"
+  if ! mongo admin --eval "${MONGODB_COMMAND}"; then
+    echo "Failed to upgrade user with value admin"
+    exit 1
+  fi
+}
+# ------------------------------------------------
+# MongoDB Initialize Configuration function
+function initialize_cfg() {
+  { \
+    echo "# How to write logging data."; \
+    echo "systemLog:"; \
+    echo "   quiet: ${MONGODB_QUIET}"; \
+    echo ""; \
+    echo "# Where and how to store data."; \
+    echo "storage:"; \
+    echo "   dbPath: /var/lib/mongodb/data"; \
+    echo "   journal:"; \
+    echo "      enabled: true"; \
+    echo "   wiredTiger:"; \
+    echo "      engineConfig:"; \
+    echo "         cacheSizeGB: ${MONGODB_WIREDTIGER_CACHE_SIZE}"; \
+    echo ""; \
+    echo "# How the process runs"; \
+    echo "processManagement:"; \
+    echo "   pidFilePath: /var/run/mongodb/mongod.pid"; \
+    echo ""; \
+    echo "# Network interfaces"; \
+    echo "net:"; \
+    echo "   port: 27017"; \
+    echo "   bindIp: 0.0.0.0"; \
+    echo ""; \
+    echo "# How to replicate"; \
+    echo "replication:"; \
+    echo "   oplogSizeMB: 64";\
+    if [[ $MONGODB_ENABLE_REPLICATION == "true" ]]; \
+    then
+      if [[ ! -z $MONGODB_REPLICA_NAME ]]; \
+      then
+        echo "   replSetName: ${MONGODB_REPLICA_NAME}"; \
+      fi \
+    fi \
+  } > /etc/mongodb/mongod.conf
+
+  if [[ ! -z $MONGODB_ENABLE_REPLICATION ]]; then
+    if [[ $MONGODB_ENABLE_REPLICATION == "true" ]]; then
+      if [[ ! -z $MONGODB_KEYFILE_VALUE ]]; then
+        echo "${MONGODB_KEYFILE_VALUE}" >> /etc/mongodb/key.pem
+        
+        chown user:root /etc/mongodb/key.pem
+        chmod 0600 /etc/mongodb/key.pem
+      fi
+    fi
+  fi
+}
+# ------------------------------------------------
+# MongoDB Initialize Credentials for Admin function
+function initialize_creds_admin() {
+  local MONGODB_HOST=${1:-"localhost"}
+  local MONGODB_COMMAND=${MONGODB_COMMAND:-}
+
+  # Create Admin
+  MONGODB_COMMAND="db.createUser({user: 'admin', pwd: '${MONGODB_ADMIN_PASSWORD}', roles: ['dbAdminAnyDatabase', 'userAdminAnyDatabase' , 'readWriteAnyDatabase','clusterAdmin' ]});"
+  if ! mongo ${MONGODB_HOST}/admin --eval "${MONGODB_COMMAND}"; then
+    echo "Failed to create user with value admin"
+    exit 1
+  fi
+}
+# ------------------------------------------------
+# MongoDB Initialize Credentials for User function
+function initialize_creds_user() {
+  local MONGODB_HOST=${1:-"localhost"}
+  local MONGODB_LOGIN=${2:-}
+
+  local MONGODB_COMMAND=${MONGODB_COMMAND:-}
+
+  # Create User in Database
+  MONGODB_COMMAND="db.getSiblingDB('${MONGODB_DATABASE}').createUser({user: '${MONGODB_USER}', pwd: '${MONGODB_PASSWORD}', roles: [ 'readWrite' ]});"
+  if ! mongo ${MONGODB_HOST}/admin ${MONGODB_LOGIN} --eval "${MONGODB_COMMAND}"; then
+    echo "Failed to create user with value ${MONGODB_USER}"
+    exit 1
+  fi  
+}
+# ------------------------------------------------
+# MongoDB Upgrade Credentials for Admin function
+function upgrade_creds_admin() {
+  local MONGODB_COMMAND=${MONGODB_COMMAND:-}
+
+  # Upgrade Admin
+  MONGODB_COMMAND="db.changeUserPassword('admin', '${MONGODB_ADMIN_PASSWORD}')"
+  if ! mongo admin --eval "${MONGODB_COMMAND}"; then
+    echo "Failed to upgrade user with value admin"
+    exit 1
+  fi
+}
+# ------------------------------------------------
+# MongoDB Upgrade Credentials for User function
+function upgrade_creds_user() {
+  local MONGODB_COMMAND=${MONGODB_COMMAND:-}
+
+  # Upgrade User in Database
+  MONGODB_COMMAND="db.changeUserPassword('${MONGODB_USER}', '${MONGODB_PASSWORD}')"
+  if ! mongo ${MONGODB_DATABASE} --eval "${MONGODB_COMMAND}"; then
+    echo "Failed to upgrade user with value ${MONGODB_USER}"
+    exit 1
+  fi
+}
+# ------------------------------------------------
+# MongoDB Initialize Credentials function
+function initialize_creds() {
+  local MONGODB_COMMAND=${MONGODB_COMMAND:-}
+  
+  MONGODB_COMMAND="db.system.users.count({'user':'admin', 'db':'admin'})"
+  if [ "$(mongo admin --quiet --eval "$MONGODB_COMMAND")" == "1" ]; then
+    upgrade_creds_admin
+  else
+    initialize_creds_admin
+  fi
+
+  if [[ $MONGODB_CREATE_USER -eq 1 ]]; then
+    MONGODB_COMMAND="db.system.users.count({'user':'${MONGODB_USER}', 'db':'${MONGODB_DATABASE}'})"
+    if [ "$(mongo admin --quiet --eval "$MONGODB_COMMAND")" == "1" ]; then
+      upgrade_creds_user
+    else
+      initialize_creds_user
+    fi
+  fi
+}
+# ------------------------------------------------
+# MongoDB Initialize Replicas function
+function initialize_repls() {
+  local MONGODB_HOSTNAME="$1"
+  local MONGODB_REPLICA_CONFIG="{_id: '${MONGODB_REPLICA_NAME}', members: [{_id: 0, host: '${MONGODB_HOSTNAME}'}]}"
+
+  echo "Initialize MongoDB Replica using: ${MONGODB_REPLICA_CONFIG}"
+  mongo --eval "quit(rs.initiate(${MONGODB_REPLICA_CONFIG}).ok ? 0 : 1)" --quiet
+
+  echo "Waiting for MongoDB Replica with Primary status ..."
+  mongo --eval "while (!rs.isMaster().ismaster) { sleep(100); }" --quiet
+
+  echo "Successfully Initialized MongoDB Replica Set"
+}
+# ------------------------------------------------
+# MongoDB Add Member Replicas function
+function add_member_repls() {
+  local MONGODB_HOSTNAME="$1"
+  
+  echo "Adding MongoDB Replica Member: ${MONGODB_HOSTNAME}"
+  if ! mongo "$(repls_address admin)" -u admin -p "${MONGODB_ADMIN_PASSWORD}" --eval "while (!rs.add('${MONGODB_HOSTNAME}').ok) { sleep(100); }" --quiet ]]; then
+    echo "MongoDB could not add $MONGODB_HOSTNAME to Replica Set!"
+    return 1
+  fi
+
+  echo "Waiting for MongoDB Replica with Primary/Secondary status ..."
+  mongo --eval "while (!rs.isMaster().ismaster && !rs.isMaster().secondary) { sleep(100); }" --quiet
+
+  echo "Successfully Adding MongoDB Replica Set Member"
+}
+# ------------------------------------------------
+# Initialized MongoDB
+MONGODB_DATADIR=/var/lib/mongodb/data
+export MONGODB_DATADIR=/var/lib/mongodb/data
+# ------------------------------------------------
+# Cleaning-up configuration variable
+function clean_up_vars() {
+  unset ARGS_EXTRA
+  unset MONGODB_USER MONGODB_PASSWORD MONGODB_ADMIN_PASSWORD MONGODB_DATABASE
+  unset MONGODB_QUIET MONGODB_WIREDTIGER_CACHE_SIZE
+  unset MONGODB_ENABLE_REPLICATION MONGODB_SERVICE_NAME MONGODB_REPLICA_NAME MONGODB_KEYFILE_VALUE
+}
+
+
+# Execute Everything from Entries
+exec "$@"

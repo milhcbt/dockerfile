@@ -184,14 +184,9 @@ else
   MYSQL_ROOT_PASSWORD="password"
 fi
 if [[ ! -z $MYSQL_DATABASE ]]; then
-  if ! [[ $MYSQL_DATABASE =~ $IS_STRING ]]; then
+  if [[ ${#MYSQL_DATABASE} -gt 32 ]]; then
     echo "Failed to configure MYSQL_DATABASE variable. Fallback to default MYSQL_DATABASE value as database"
     MYSQL_DATABASE="database"
-  else
-    if [[ ${#MYSQL_DATABASE} -gt 32 ]]; then
-      echo "Failed to configure MYSQL_DATABASE variable. Fallback to default MYSQL_DATABASE value as database"
-      MYSQL_DATABASE="database"
-    fi
   fi
 else
   echo "Failed to configure MYSQL_DATABASE variable. Fallback to default MYSQL_DATABASE value as database"

@@ -12,7 +12,7 @@ Dimas Restu H (<dimas.restu@student.upi.edu>)
 
 **How to run this image:**
 
-> docker run -p 3306:3306 -v <local_data_path>:/data --name postgresql dimaskiddo/alpine:postgresql-9.6
+> docker run -p 5432:5432 -v <local_data_path>:/data --name postgresql dimaskiddo/alpine:postgresql-9.6
 
 **How to get in container after run this image:**
 
