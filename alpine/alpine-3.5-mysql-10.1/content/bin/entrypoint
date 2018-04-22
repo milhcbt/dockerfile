@@ -36,6 +36,9 @@ fi
 # Prepare MySQL configuration
 IS_STRING='^[a-zA-Z0-9_]+$'
 IS_PASSWORD='^[a-zA-Z0-9_~!@#$%^&*()-=<>,.?;:|]+$'
+MYSQL_INITIALIZED=${MYSQL_INITIALIZED:-false}
+MYSQL_WAIT_MAX_ATTEMPTS=${MYSQL_WAIT_MAX_ATTEMPTS:-60}
+MYSQL_WAIT_SLEEP_TIME=${MYSQL_WAIT_SLEEP_TIME:-1}
 # ------------------------------------------------
 # MySQL credentials variable configuration
 MYSQL_USER=${MYSQL_USER:-}
@@ -213,15 +216,51 @@ GRANT ALL ON $MYSQL_DATABASE.* to '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQ
 FLUSH PRIVILEGES;
 EOF
 # ------------------------------------------------
+# MySQL Daemon Wait function
+function mysqld_wait() {
+  local MYSQL_WAIT_LOOP
+  local MYSQL_WAIT_OPERATION=${1:-1}
+  local MYSQL_WAIT_MESSAGE="up"
+
+  if [[ ${MYSQL_WAIT_OPERATION} -eq 0 ]]; then
+    MYSQL_WAIT_MESSAGE="down"
+  fi
+
+  for MYSQL_WAIT_LOOP in $(seq $MYSQL_WAIT_MAX_ATTEMPTS); do
+    echo "Waiting for MySQL Daemon to ${MYSQL_WAIT_MESSAGE} ..."  
+    if ([[ ${MYSQL_WAIT_OPERATION} -eq 1 ]] && mysqladmin ping &>/dev/null) || ([[ ${MYSQL_WAIT_OPERATION} -eq 0 ]] && ! mysqladmin ping &>/dev/null); then
+      return 0
+    fi
+    sleep ${MYSQL_WAIT_SLEEP_TIME}
+  done
+
+  echo "Failed to Wait MySQL Daemon to ${MYSQL_WAIT_MESSAGE}"
+  return 1
+}
+# ------------------------------------------------
 # Configuring MySQL credentials
 if [ "$(ls -A /var/lib/mysql/data)" ]; then
   echo "MySQL already initialized, skipping initialization"
+  MYSQL_INITIALIZED="false"
 else
   echo "MySQL not yet initialized, starting initialization"
+  MYSQL_INITIALIZED="true"  
   mysql_install_db > /dev/null
 fi
+
 mysqld --bootstrap --verbose=0 < $MYSQL_TEMP_FILE
 rm -f $MYSQL_TEMP_FILE
+
+if [[ $MYSQL_INITIALIZED == "false" ]]; then
+  mysqld --console $ARGS &
+  mysqld_wait 1
+
+  echo "Upgrading MySQL Databases ..."
+  mysql_upgrade -uroot -p$MYSQL_ROOT_PASSWORD > /dev/null
+  mysqladmin -uroot -p$MYSQL_ROOT_PASSWORD shutdown > /dev/null
+
+  mysqld_wait 0
+fi
 # ------------------------------------------------
 # Cleaning-up configuration variable
 unset MYSQL_USER MYSQL_PASSWORD MYSQL_ROOT_PASSWORD MYSQL_DATABASE

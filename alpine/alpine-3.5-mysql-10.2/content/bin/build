@@ -49,6 +49,7 @@ cp /etc/apk/repositories /etc/apk/repositories.original \
 && apk add \
     mysql \
     mysql-client \
+    mariadb-server-utils \
 && rm -rf /var/cache/apk/* \
 && rm -f /etc/apk/repositories \
 && mv /etc/apk/repositories.original /etc/apk/repositories
