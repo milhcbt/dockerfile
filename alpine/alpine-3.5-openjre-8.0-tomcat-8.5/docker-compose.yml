@@ -1,0 +1,16 @@
+version: '2'
+
+networks:
+  tomcatnet:
+    driver: bridge
+
+services:
+  tomcat:
+    image: 'dimaskiddo/alpine:tomcat-8.5-openjre'
+    networks:
+      - tomcatnet
+    ports:
+      - 8080:8080
+    volumes:
+      - ./data:/var/www/data      
+    restart: always

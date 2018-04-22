@@ -26,7 +26,7 @@ services:
     restart: always
   
   mongodb:
-    image: 'centos/mongodb-32-centos7:3.2'
+    image: 'dimaskiddo/alpine:mongodb-3.6'
     networks:
       - restnet
     ports:
