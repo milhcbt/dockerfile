@@ -47,6 +47,7 @@ MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-}
 MYSQL_DATABASE=${MYSQL_DATABASE:-}
 # ------------------------------------------------
 # MySQL extra variable configuration
+MYSQL_SQL_MODE=${MYSQL_SQL_MODE:-STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION}
 MYSQL_FT_MIN_WORD_LEN=${MYSQL_FT_MIN_WORD_LEN:-4}
 MYSQL_FT_MAX_WORD_LEN=${MYSQL_FT_MAX_WORD_LEN:-20}
 MYSQL_TABLE_OPEN_CACHE=${MYSQL_TABLE_OPEN_CACHE:-400}
@@ -55,7 +56,7 @@ MYSQL_SORT_BUFFER_SIZE=${MYSQL_SORT_BUFFER_SIZE:-512K}
 MYSQL_READ_BUFFER_SIZE=${MYSQL_READ_BUFFER_SIZE:-8M}
 MYSQL_WRITE_BUFFER_SIZE=${MYSQL_WRITE_BUFFER_SIZE:-8M}
 MYSQL_READ_RND_BUFFER_SIZE=${MYSQL_READ_RND_BUFFER_SIZE:-512k}
-MYSQL_MAX_CONNECTIONS=${MYSQL_MAX_CONNECTIONS:-250}
+MYSQL_MAX_CONNECTIONS=${MYSQL_MAX_CONNECTIONS:-150}
 MYSQL_MAX_ALLOWED_PACKET=${MYSQL_MAX_ALLOWED_PACKET:-200M}
 MYSQL_NET_BUFFER_LENGTH=${MYSQL_NET_BUFFER_LENGTH:-8k}
 MYSQL_MYISAM_SORT_BUFFER_SIZE=${MYSQL_MYISAM_SORT_BUFFER_SIZE:-8M}
@@ -63,6 +64,8 @@ MYSQL_INNODB_LOG_FILE_SIZE=${MYSQL_INNODB_LOG_FILE_SIZE:-8M}
 MYSQL_INNODB_LOG_BUFFER_SIZE=${MYSQL_INNODB_LOG_BUFFER_SIZE:-8M}
 MYSQL_INNODB_BUFFER_POOL_SIZE=${MYSQL_INNODB_BUFFER_POOL_SIZE:-32M}
 MYSQL_INNODB_USE_NATIVE_AIO=${MYSQL_INNODB_USE_NATIVE_AIO:-1}
+MYSQL_LOG_QUERIES_ENABLED=${MYSQL_LOG_QUERIES_ENABLED:-0}
+MYSQL_DEFAULTS_FILE=${MYSQL_DEFAULTS_FILE:-}
 # ------------------------------------------------
 # MySQL replication variable configuration
 MYSQL_REPLICATION=${MYSQL_REPLICATION:-}
@@ -76,85 +79,92 @@ MYSQL_REPLICATION_USER=${MYSQL_REPLICATION_USER:-}
 MYSQL_REPLICATION_PASSWORD=${MYSQL_REPLICATION_PASSWORD:-}
 # ------------------------------------------------
 # Write MySQL variable to configuration file
-{ \
-  echo "[client]"; \
-  echo "port=3306"; \
-  echo "socket=/run/mysqld/mysqld.sock"; \
-  echo ""; \
-  echo ""; \
-  echo "[mysql]"; \
-  echo "no-auto-rehash"; \
-  echo ""; \
-  echo ""; \
-  echo "[mysqld]"; \
-  echo "port=3306"; \
-  echo "socket=/run/mysqld/mysqld.sock"; \
-  echo ""; \
-  echo "datadir=/var/lib/mysql/data"; \
-  echo "ignore-db-dirs=lost+found"; \
-  echo ""; \
-  echo "skip-external-locking"; \
-  echo "skip_name_resolve"; \
-  echo ""; \
-  echo "lower_case_table_names=0"; \
-  echo "symbolic-links=0"; \
-  echo "sql_mode=''"; \
-  echo ""; \
-  echo "max_connections=${MYSQL_MAX_CONNECTIONS}"; \
-  echo ""; \
-  echo "ft_min_word_len=${MYSQL_FT_MIN_WORD_LEN}"; \
-  echo "ft_max_word_len=${MYSQL_FT_MAX_WORD_LEN}"; \
-  echo ""; \
-  echo "table_open_cache=${MYSQL_TABLE_OPEN_CACHE}"; \
-  echo "key_buffer_size=${MYSQL_KEY_BUFFER_SIZE}"; \
-  echo "sort_buffer_size=${MYSQL_SORT_BUFFER_SIZE}"; \
-  echo "read_buffer_size=${MYSQL_READ_BUFFER_SIZE}"; \
-  echo "read_rnd_buffer_size=${MYSQL_READ_RND_BUFFER_SIZE}"; \
-  echo "max_allowed_packet=${MYSQL_MAX_ALLOWED_PACKET}"; \
-  echo "net_buffer_length=${MYSQL_NET_BUFFER_LENGTH}"; \
-  echo "thread_stack=256K"; \
-  echo ""; \
-  echo "myisam_sort_buffer_size=${MYSQL_MYISAM_SORT_BUFFER_SIZE}"; \
-  echo ""; \
-  echo "innodb_log_file_size=${MYSQL_INNODB_LOG_FILE_SIZE}"; \
-  echo "innodb_log_buffer_size=${MYSQL_INNODB_LOG_BUFFER_SIZE}"; \
-  echo "innodb_buffer_pool_size=${MYSQL_INNODB_BUFFER_POOL_SIZE}"; \
-  echo "innodb_use_native_aio=${MYSQL_INNODB_USE_NATIVE_AIO}"; \
-  echo ""; \
-  echo "# Replication"; \
-  echo "log-bin=mysql-bin"; \
-  echo "binlog_format=mixed"; \
-  echo ""; \
-  if [[ $MYSQL_REPLICATION == "slave" ]]; \
-  then
-    echo "server-id=${MYSQL_REPLICATION_SERVER_ID}"; \  
-    echo "master-host=${MYSQL_REPLICATION_MASTER_HOST}"; \
-    echo "master-port=${MYSQL_REPLICATION_MASTER_PORT}"; \
-    echo "master-user=${MYSQL_REPLICATION_USER}"; \
-    echo "master-password=${MYSQL_REPLICATION_PASSWORD}"; \
-  else
-    echo "server-id=1"; \
-  fi; \
-  echo ""; \
-  echo ""; \
-  echo "[myisamchk]"; \
-  echo "ft_min_word_len=${MYSQL_FT_MIN_WORD_LEN}"; \
-  echo "ft_max_word_len=${MYSQL_FT_MAX_WORD_LEN}"; \
-  echo ""; \
-  echo "key_buffer_size=${MYSQL_KEY_BUFFER_SIZE}"; \
-  echo "sort_buffer_size=${MYSQL_SORT_BUFFER_SIZE}"; \
-  echo "read_buffer=${MYSQL_READ_BUFFER_SIZE}"; \
-  echo "write_buffer=${MYSQL_WRITE_BUFFER_SIZE}"; \
-  echo ""; \
-  echo ""; \
-  echo "[mysqldump]"; \
-  echo "quick"; \
-  echo "max_allowed_packet=${MYSQL_MAX_ALLOWED_PACKET}"; \
-  echo ""; \
-  echo ""; \
-  echo "[mysqlhotcopy]"; \
-  echo "interactive-timeout"; \
-} > /etc/mysql/my.cnf
+if [[ -z $MYSQL_DEFAULTS_FILE && ! -f $MYSQL_DEFAULTS_FILE ]]; then
+  { \
+    echo "[client]"; \
+    echo "port=3306"; \
+    echo "socket=/run/mysqld/mysqld.sock"; \
+    echo ""; \
+    echo ""; \
+    echo "[mysql]"; \
+    echo "no-auto-rehash"; \
+    echo ""; \
+    echo ""; \
+    echo "[mysqld]"; \
+    echo "port=3306"; \
+    echo "socket=/run/mysqld/mysqld.sock"; \
+    echo ""; \
+    echo "datadir=/var/lib/mysql/data"; \
+    echo "ignore-db-dirs=lost+found"; \
+    echo ""; \
+    echo "skip-external-locking"; \
+    echo "skip_name_resolve"; \
+    echo ""; \
+    echo "lower_case_table_names=0"; \
+    echo "symbolic-links=0"; \
+    echo ""; \
+    echo "general_log=${MYSQL_LOG_QUERIES_ENABLED}"; \
+    echo "general_log_file=${MYSQL_DATADIR}/mysql-query.log"; \
+    echo ""; \
+    echo "sql_mode='${MYSQL_SQL_MODE}'"; \
+    echo ""; \
+    echo "max_connections=${MYSQL_MAX_CONNECTIONS}"; \
+    echo ""; \
+    echo "ft_min_word_len=${MYSQL_FT_MIN_WORD_LEN}"; \
+    echo "ft_max_word_len=${MYSQL_FT_MAX_WORD_LEN}"; \
+    echo ""; \
+    echo "table_open_cache=${MYSQL_TABLE_OPEN_CACHE}"; \
+    echo "key_buffer_size=${MYSQL_KEY_BUFFER_SIZE}"; \
+    echo "sort_buffer_size=${MYSQL_SORT_BUFFER_SIZE}"; \
+    echo "read_buffer_size=${MYSQL_READ_BUFFER_SIZE}"; \
+    echo "read_rnd_buffer_size=${MYSQL_READ_RND_BUFFER_SIZE}"; \
+    echo "max_allowed_packet=${MYSQL_MAX_ALLOWED_PACKET}"; \
+    echo "net_buffer_length=${MYSQL_NET_BUFFER_LENGTH}"; \
+    echo ""; \
+    echo "myisam_sort_buffer_size=${MYSQL_MYISAM_SORT_BUFFER_SIZE}"; \
+    echo ""; \
+    echo "innodb_log_file_size=${MYSQL_INNODB_LOG_FILE_SIZE}"; \
+    echo "innodb_log_buffer_size=${MYSQL_INNODB_LOG_BUFFER_SIZE}"; \
+    echo "innodb_buffer_pool_size=${MYSQL_INNODB_BUFFER_POOL_SIZE}"; \
+    echo "innodb_use_native_aio=${MYSQL_INNODB_USE_NATIVE_AIO}"; \
+    echo ""; \
+    echo "# Replication"; \
+    echo "log-bin=mysql-bin"; \
+    echo "binlog_format=mixed"; \
+    echo ""; \
+    if [[ $MYSQL_REPLICATION == "slave" ]]; \
+    then
+      echo "server-id=${MYSQL_REPLICATION_SERVER_ID}"; \  
+      echo "master-host=${MYSQL_REPLICATION_MASTER_HOST}"; \
+      echo "master-port=${MYSQL_REPLICATION_MASTER_PORT}"; \
+      echo "master-user=${MYSQL_REPLICATION_USER}"; \
+      echo "master-password=${MYSQL_REPLICATION_PASSWORD}"; \
+    else
+      echo "server-id=1"; \
+    fi; \
+    echo ""; \
+    echo ""; \
+    echo "[myisamchk]"; \
+    echo "ft_min_word_len=${MYSQL_FT_MIN_WORD_LEN}"; \
+    echo "ft_max_word_len=${MYSQL_FT_MAX_WORD_LEN}"; \
+    echo ""; \
+    echo "key_buffer_size=${MYSQL_KEY_BUFFER_SIZE}"; \
+    echo "sort_buffer_size=${MYSQL_SORT_BUFFER_SIZE}"; \
+    echo "read_buffer=${MYSQL_READ_BUFFER_SIZE}"; \
+    echo "write_buffer=${MYSQL_WRITE_BUFFER_SIZE}"; \
+    echo ""; \
+    echo ""; \
+    echo "[mysqldump]"; \
+    echo "quick"; \
+    echo "max_allowed_packet=${MYSQL_MAX_ALLOWED_PACKET}"; \
+    echo ""; \
+    echo ""; \
+    echo "[mysqlhotcopy]"; \
+    echo "interactive-timeout"; \
+  } > /etc/mysql/my.cnf
+else
+  cp $MYSQL_DEFAULTS_FILE /etc/mysql/my.cnf
+fi
 # ------------------------------------------------
 # Validate MySQL credentials variable configuration
 if [[ ! -z $MYSQL_USER ]]; then
@@ -191,12 +201,12 @@ else
 fi
 if [[ ! -z $MYSQL_DATABASE ]]; then
   if [[ ${#MYSQL_DATABASE} -gt 32 ]]; then
-    echo "Failed to configure MYSQL_DATABASE variable. Fallback to default MYSQL_DATABASE value as database"
-    MYSQL_DATABASE="database"
+    echo "Failed to configure MYSQL_DATABASE variable. Fallback to default MYSQL_DATABASE value as db"
+    MYSQL_DATABASE="db"
   fi
 else
-  echo "Failed to configure MYSQL_DATABASE variable. Fallback to default MYSQL_DATABASE value as database"
-  MYSQL_DATABASE="database"
+  echo "Failed to configure MYSQL_DATABASE variable. Fallback to default MYSQL_DATABASE value as db"
+  MYSQL_DATABASE="db"
 fi
 # ------------------------------------------------
 # Creating MySQL credentials file
@@ -242,7 +252,10 @@ function mysqld_wait() {
 }
 # ------------------------------------------------
 # Configuring MySQL credentials
-if [ "$(ls -A /var/lib/mysql/data)" ]; then
+MYSQL_DATADIR=/var/lib/mysql/data
+export MYSQL_DATADIR=/var/lib/mysql/data
+
+if [ "$(ls -A $MYSQL_DATADIR)" ]; then
   echo "MySQL already initialized, skipping initialization"
   MYSQL_INITIALIZED="false"
 else
@@ -267,11 +280,12 @@ fi
 # ------------------------------------------------
 # Cleaning-up configuration variable
 unset MYSQL_USER MYSQL_PASSWORD MYSQL_ROOT_PASSWORD MYSQL_DATABASE
-unset MYSQL_FT_MIN_WORD_LEN MYSQL_FT_MAX_WORD_LEN MYSQL_TABLE_OPEN_CACHE \
+unset MYSQL_SQL_MODE MYSQL_FT_MIN_WORD_LEN MYSQL_FT_MAX_WORD_LEN MYSQL_TABLE_OPEN_CACHE \
       MYSQL_KEY_BUFFER_SIZE MYSQL_SORT_BUFFER_SIZE MYSQL_READ_BUFFER_SIZE \
       MYSQL_WRITE_BUFFER_SIZE MYSQL_READ_RND_BUFFER_SIZE MYSQL_MAX_CONNECTIONS MYSQL_MAX_ALLOWED_PACKET \
       MYSQL_NET_BUFFER_LENGTH MYSQL_MYISAM_SORT_BUFFER_SIZE MYSQL_INNODB_LOG_FILE_SIZE \
-      MYSQL_INNODB_LOG_BUFFER_SIZE MYSQL_INNODB_BUFFER_POOL_SIZE MYSQL_INNODB_USE_NATIVE_AIO      
+      MYSQL_INNODB_LOG_BUFFER_SIZE MYSQL_INNODB_BUFFER_POOL_SIZE MYSQL_INNODB_USE_NATIVE_AIO \
+      MYSQL_LOG_QUERIES_ENABLED MYSQL_DEFAULTS_FILE
 unset MYSQL_REPLICATION MYSQL_REPLICATION_SERVER_ID_DEFAULT MYSQL_REPLICATION_SERVER_ID \
       MYSQL_REPLICATION_MASTER_HOST MYSQL_REPLICATION_MASTER_PORT \
       MYSQL_REPLICATION_USER MYSQL_REPLICATION_PASSWORD

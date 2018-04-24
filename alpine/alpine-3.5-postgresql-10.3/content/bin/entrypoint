@@ -1,5 +1,6 @@
 #!/bin/sh -e
 
+
 # Extends Shell Operations
 shopt -s dotglob
 shopt -s extglob
@@ -99,12 +100,12 @@ if [[ ! -z $POSTGRESQL_ADMIN_PASSWORD ]]; then
 fi
 if [[ ! -z $POSTGRESQL_DATABASE ]]; then
   if [[ ${#POSTGRESQL_DATABASE} -gt 64 ]]; then
-    echo "Failed to configure POSTGRESQL_DATABASE variable. Fallback to default POSTGRESQL_DATABASE value as database"
-    POSTGRESQL_DATABASE="database"
+    echo "Failed to configure POSTGRESQL_DATABASE variable. Fallback to default POSTGRESQL_DATABASE value as db"
+    POSTGRESQL_DATABASE="db"
   fi
 else
-  echo "Failed to configure POSTGRESQL_DATABASE variable. Fallback to default POSTGRESQL_DATABASE value as database"
-  POSTGRESQL_DATABASE="database"
+  echo "Failed to configure POSTGRESQL_DATABASE variable. Fallback to default POSTGRESQL_DATABASE value as db"
+  POSTGRESQL_DATABASE="db"
 fi
 # ------------------------------------------------
 # Validate PostgreSQL replication variable configuration

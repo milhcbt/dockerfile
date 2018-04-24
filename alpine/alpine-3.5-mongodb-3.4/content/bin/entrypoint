@@ -48,6 +48,7 @@ MONGODB_DATABASE=${MONGODB_DATABASE:-}
 # MongoDB extra variable configuration
 MONGODB_QUIET=${MONGODB_QUIET:-true}
 MONGODB_WIREDTIGER_CACHE_SIZE=${MONGODB_WIREDTIGER_CACHE_SIZE:-1}
+MONGODB_DEFAULT_FILE=${MONGODB_DEFAULT_FILE:-}
 # ------------------------------------------------
 # MongoDB replication variable configuration
 MONGODB_ENABLE_REPLICATION=${MONGODB_ENABLE_REPLICATION:-false}
@@ -91,12 +92,12 @@ function validate_creds_vars() {
   fi
   if [[ ! -z $MONGODB_DATABASE ]]; then
     if [[ ${#MONGODB_DATABASE} -gt 64 ]]; then
-      echo "Failed to configure MONGODB_DATABASE variable. Fallback to default MONGODB_DATABASE value as database"
-      MONGODB_DATABASE="database"
+      echo "Failed to configure MONGODB_DATABASE variable. Fallback to default MONGODB_DATABASE value as db"
+      MONGODB_DATABASE="db"
     fi
   else
-    echo "Failed to configure MONGODB_DATABASE variable. Fallback to default MONGODB_DATABASE value as database"
-    MONGODB_DATABASE="database"
+    echo "Failed to configure MONGODB_DATABASE variable. Fallback to default MONGODB_DATABASE value as db"
+    MONGODB_DATABASE="db"
   fi
   if [[ ! -z $MONGODB_USER && ! -z $MONGODB_PASSWORD && ! -z $MONGODB_DATABASE ]]; then
     export MONGODB_CREATE_USER=1
@@ -191,40 +192,44 @@ function upgrade_dbs() {
 # ------------------------------------------------
 # MongoDB Initialize Configuration function
 function initialize_cfg() {
-  { \
-    echo "# How to write logging data."; \
-    echo "systemLog:"; \
-    echo "   quiet: ${MONGODB_QUIET}"; \
-    echo ""; \
-    echo "# Where and how to store data."; \
-    echo "storage:"; \
-    echo "   dbPath: /var/lib/mongodb/data"; \
-    echo "   journal:"; \
-    echo "      enabled: true"; \
-    echo "   wiredTiger:"; \
-    echo "      engineConfig:"; \
-    echo "         cacheSizeGB: ${MONGODB_WIREDTIGER_CACHE_SIZE}"; \
-    echo ""; \
-    echo "# How the process runs"; \
-    echo "processManagement:"; \
-    echo "   pidFilePath: /var/run/mongodb/mongod.pid"; \
-    echo ""; \
-    echo "# Network interfaces"; \
-    echo "net:"; \
-    echo "   port: 27017"; \
-    echo "   bindIp: 0.0.0.0"; \
-    echo ""; \
-    echo "# How to replicate"; \
-    echo "replication:"; \
-    echo "   oplogSizeMB: 64";\
-    if [[ $MONGODB_ENABLE_REPLICATION == "true" ]]; \
-    then
-      if [[ ! -z $MONGODB_REPLICA_NAME ]]; \
+  if [[ -z $MONGODB_DEFAULT_FILE && ! -f $MONGODB_DEFAULT_FILE ]]; then
+    { \
+      echo "# How to write logging data."; \
+      echo "systemLog:"; \
+      echo "   quiet: ${MONGODB_QUIET}"; \
+      echo ""; \
+      echo "# Where and how to store data."; \
+      echo "storage:"; \
+      echo "   dbPath: /var/lib/mongodb/data"; \
+      echo "   journal:"; \
+      echo "      enabled: true"; \
+      echo "   wiredTiger:"; \
+      echo "      engineConfig:"; \
+      echo "         cacheSizeGB: ${MONGODB_WIREDTIGER_CACHE_SIZE}"; \
+      echo ""; \
+      echo "# How the process runs"; \
+      echo "processManagement:"; \
+      echo "   pidFilePath: /var/run/mongodb/mongod.pid"; \
+      echo ""; \
+      echo "# Network interfaces"; \
+      echo "net:"; \
+      echo "   port: 27017"; \
+      echo "   bindIp: 0.0.0.0"; \
+      echo ""; \
+      echo "# How to replicate"; \
+      echo "replication:"; \
+      echo "   oplogSizeMB: 64";\
+      if [[ $MONGODB_ENABLE_REPLICATION == "true" ]]; \
       then
-        echo "   replSetName: ${MONGODB_REPLICA_NAME}"; \
+        if [[ ! -z $MONGODB_REPLICA_NAME ]]; \
+        then
+          echo "   replSetName: ${MONGODB_REPLICA_NAME}"; \
+        fi \
       fi \
-    fi \
-  } > /etc/mongodb/mongod.conf
+    } > /etc/mongodb/mongod.conf
+  else
+    cp $MONGODB_DEFAULT_FILE /etc/mongodb/mongod.conf
+  fi
 
   if [[ ! -z $MONGODB_ENABLE_REPLICATION ]]; then
     if [[ $MONGODB_ENABLE_REPLICATION == "true" ]]; then
@@ -349,7 +354,7 @@ export MONGODB_DATADIR=/var/lib/mongodb/data
 function clean_up_vars() {
   unset ARGS_EXTRA
   unset MONGODB_USER MONGODB_PASSWORD MONGODB_ADMIN_PASSWORD MONGODB_DATABASE
-  unset MONGODB_QUIET MONGODB_WIREDTIGER_CACHE_SIZE
+  unset MONGODB_QUIET MONGODB_WIREDTIGER_CACHE_SIZE MONGODB_DEFAULT_FILE
   unset MONGODB_ENABLE_REPLICATION MONGODB_SERVICE_NAME MONGODB_REPLICA_NAME MONGODB_KEYFILE_VALUE
 }
 
