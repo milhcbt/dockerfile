@@ -47,7 +47,7 @@ MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-}
 MYSQL_DATABASE=${MYSQL_DATABASE:-}
 # ------------------------------------------------
 # MySQL extra variable configuration
-MYSQL_SQL_MODE=${MYSQL_SQL_MODE:-STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION}
+MYSQL_SQL_MODE=${MYSQL_SQL_MODE:-REAL_AS_FLOAT,PIPES_AS_CONCAT,ANSI,ANSI_QUOTES,IGNORE_SPACE,IGNORE_BAD_TABLE_OPTIONS,NO_UNSIGNED_SUBTRACTION,NO_DIR_IN_CREATE,NO_KEY_OPTIONS,NO_TABLE_OPTIONS,NO_FIELD_OPTIONS,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION,NO_AUTO_VALUE_ON_ZERO,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,POSTGRESQL,ORACLE,MSSQL,DB2,MAXDB,MYSQL323,MYSQL40,STRICT_TRANS_TABLES,STRICT_ALL_TABLES,TRADITIONAL,HIGH_NOT_PRECEDENCE,PAD_CHAR_TO_FULL_LENGTH}
 MYSQL_FT_MIN_WORD_LEN=${MYSQL_FT_MIN_WORD_LEN:-4}
 MYSQL_FT_MAX_WORD_LEN=${MYSQL_FT_MAX_WORD_LEN:-20}
 MYSQL_TABLE_OPEN_CACHE=${MYSQL_TABLE_OPEN_CACHE:-400}
@@ -106,7 +106,15 @@ if [[ -z $MYSQL_DEFAULTS_FILE && ! -f $MYSQL_DEFAULTS_FILE ]]; then
     echo "general_log=${MYSQL_LOG_QUERIES_ENABLED}"; \
     echo "general_log_file=${MYSQL_DATADIR}/mysql-query.log"; \
     echo ""; \
-    echo "sql_mode='${MYSQL_SQL_MODE}'"; \
+    if [[ ! -z $MYSQL_SQL_MODE ]]; \
+    then
+      if [[ $MYSQL_SQL_MODE == "NULL" ]]; \
+      then
+        echo "sql_mode=''"; \
+      else
+        echo "sql_mode='${MYSQL_SQL_MODE}'"; \
+      fi; \
+    fi; \
     echo ""; \
     echo "max_connections=${MYSQL_MAX_CONNECTIONS}"; \
     echo ""; \
@@ -273,8 +281,8 @@ if [[ $MYSQL_INITIALIZED == "false" ]]; then
 
   echo "Upgrading MySQL Databases ..."
   mysql_upgrade -uroot -p$MYSQL_ROOT_PASSWORD > /dev/null
+  
   mysqladmin -uroot -p$MYSQL_ROOT_PASSWORD shutdown > /dev/null
-
   mysqld_wait 0
 fi
 # ------------------------------------------------
