@@ -36,6 +36,7 @@ fi
 # Prepare MongoDB configuration
 IS_STRING='^[a-zA-Z0-9_]+$'
 IS_PASSWORD='^[a-zA-Z0-9_~!@#$%^&*()-=<>,.?;:|]+$'
+MONGODB_REPAIR_AT_STARTUP=${MONGODB_REPAIR_AT_STARTUP:-false}
 MONGODB_WAIT_MAX_ATTEMPTS=${MONGODB_WAIT_MAX_ATTEMPTS:-60}
 MONGODB_WAIT_SLEEP_TIME=${MONGODB_WAIT_SLEEP_TIME:-1}
 # ------------------------------------------------

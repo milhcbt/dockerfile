@@ -9,7 +9,6 @@ networks:
 
 services:
   restheart:
-    build: .
     image: 'dimaskiddo/alpine:restheart-3.2'
     networks:
       - restnet
