@@ -1,0 +1,33 @@
+#!/bin/bash -xe
+
+# --------------------------------------------------
+# Dockerfile Build Tools
+# Email: dimas.restu@student.upi.edu
+# --------------------------------------------------
+
+
+# [1] Run Some Housekeeping
+# --------------------------------------------------
+mkdir -p /usr/local/cron \
+&& chown -R root:root /var/run \
+&& chown -R root:root /usr/local/cron \
+&& chown -R root:root /usr/local/docker \
+&& chown -R root:root /usr/local/docker/bin \
+&& chmod 775 /var/run \
+&& chmod 775 /usr/local/cron \
+&& chmod 775 /usr/local/docker/bin \
+&& chmod 775 /usr/local/docker/bin/build \
+&& chmod 775 /usr/local/docker/bin/entrypoint \
+&& chmod 775 /usr/local/docker/bin/cron-run \
+&& chmod 775 /usr/local/docker/bin/cron-shell
+# --------------------------------------------------
+
+
+# [2] Configuring Cron-Shell
+# --------------------------------------------------
+ln -sf /usr/local/docker/bin/cron-run /usr/local/bin/cron-run \
+&& ln -sf /usr/local/docker/bin/cron-shell /usr/local/bin/cron-shell
+# --------------------------------------------------
+
+
+exit 0

@@ -1,0 +1,32 @@
+#!/bin/bash
+# --------------------------------------------
+# Cron Daemon (Runner) an Alternative Cron
+# Email: dimas.restu@student.upi.edu
+# --------------------------------------------
+
+
+# Parse Array and Send it to Cron Daemon Shell
+if [[ ! -z $CRON_SCHEDULE_LIST && ! -z $CRON_COMMAND_LIST ]]; then
+  CRON_SCHEDULE_COUNT=$(echo $CRON_SCHEDULE_LIST | grep ";" | wc -l)
+  CRON_COMMAND_COUNT=$(echo $CRON_COMMAND_LIST | grep ";" | wc -l)
+
+  if [[ $CRON_SCHEDULE_COUNT -eq 0 && $CRON_COMMAND_COUNT -eq 0 ]]; then
+    # Run Single Instance of Daemon
+    cron-shell "${CRON_SCHEDULE_LIST}" "${CRON_COMMAND_LIST}" 2>&1 &
+  else
+    # Run Multiple Instance of Daemon
+    IFS=";" read -r -a CRON_SCHEDULE_SPLIT <<< $CRON_SCHEDULE_LIST
+    IFS=";" read -r -a CRON_COMMAND_SPLIT <<< $CRON_COMMAND_LIST
+
+    I=0
+    for VALUE in "${CRON_SCHEDULE_SPLIT[@]}"
+    do
+      cron-shell "${CRON_SCHEDULE_SPLIT[$I]}" "${CRON_COMMAND_SPLIT[$I]}" 2>&1 &
+      I=$(($I + 1))
+    done
+  fi
+fi
+wait
+
+
+exit 0

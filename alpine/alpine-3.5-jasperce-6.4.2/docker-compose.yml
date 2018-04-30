@@ -1,0 +1,44 @@
+version: '2'
+
+volumes:
+  jasperce_data: {}
+  mysql_data: {}
+
+networks:
+  jaspernet:
+    driver: bridge
+
+services:
+  jasperce:
+    image: 'dimaskiddo/alpine:jasperce-6.4.2'
+    networks:
+      - jaspernet
+    ports:
+      - 8080:8080
+    environment:
+      - JS_DB_TYPE=mysql
+      - JS_DB_HOST=mysql
+      - JS_DB_PORT=3306
+      - JS_DB_ROOT_USER=root
+      - JS_DB_ROOT_PASSWORD=root
+      - JS_ENABLE_SAVE_TO_HOST=true
+    volumes:
+      - jasperce_data:/var/www/data
+    depends_on:
+      - mysql
+    restart: always
+  
+  mysql:
+    image: 'dimaskiddo/alpine:mysql-10.2'
+    networks:
+      - jaspernet
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_USER=jasperce
+      - MYSQL_PASSWORD=jasperce
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=jasperce
+    volumes:
+      - mysql_data:/var/lib/mysql/data
+    restart: always

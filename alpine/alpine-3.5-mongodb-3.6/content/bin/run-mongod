@@ -21,6 +21,7 @@ if [[ -z $MONGODB_REPAIR_AT_STARTUP ]]; then
   fi
 fi
 
+
 # Run MongoDB
 if [[ $MONGODB_ENABLE_REPLICATION == "false" ]]; then
   mongod --config /etc/mongodb/mongod.conf --quiet --noauth --bind_ip 127.0.0.1 &
@@ -41,14 +42,12 @@ else
   mongod --config /etc/mongodb/mongod.conf --quiet --keyFile /etc/mongodb/key.pem $ARGS &
   mongod_wait 1
 
-  if [[ $(mongo --eval 'db.isMaster().setName' --quiet) == "${MONGODB_REPLICA_NAME}" ]]; then
-    exit 1
-  fi
-
-  if [ "${MONGODB_MEMBER_ID}" = '0' ]; then
-    initialize_repls "${MONGODB_MEMBER_HOST}"
-  else
-    add_member_repls "${MONGODB_MEMBER_HOST}"
+  if [[ ! $(mongo --eval 'db.isMaster().setName' --quiet) == "${MONGODB_REPLICA_NAME}" ]]; then
+    if [ "${MONGODB_MEMBER_ID}" = '0' ]; then
+      initialize_repls "${MONGODB_MEMBER_HOST}"
+    else
+      add_member_repls "${MONGODB_MEMBER_HOST}"
+    fi
   fi
 
   if [ "${MONGODB_MEMBER_ID}" -eq 0 ]; then

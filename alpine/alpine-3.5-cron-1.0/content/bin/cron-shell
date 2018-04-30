@@ -1,0 +1,187 @@
+#!/bin/bash
+# --------------------------------------------
+# Cron Daemon (Shell) an Alternative Cron
+# Email: dimas.restu@student.upi.edu
+# --------------------------------------------
+
+
+# Cron Daemon Parameter Variable
+CRON_SCHEDULE=${1}
+CRON_COMMAND=${2}
+CRON_PID=$$
+
+
+# Cron Daemon Time Variable
+CRON_TIME_FIRST=""
+CRON_TIME_LOOP=""
+
+
+# Cron Deamon Valid Function
+function cron_valid() {
+  # $1 : First Start Cron Time  
+  # $2 : Current Cron Loop Time
+  # $3 : Cron Schedule Value
+
+  if [[ ! -z $1 && ! -z $2 && ! -z $3 ]]; then
+    local PARAM_01=${1#0}; local PARAM_02=${2#0}; local PARAM_03=${3#0};
+    if [[ $PARAM_03 != "STAR" ]]; then
+      # Every ...
+      if [[ $PARAM_03 =~ ^\*\/[0-9]{1,2}$ ]]; then
+        NUMBER=$(echo "$PARAM_03" | cut -d"/" -f2)
+        if [[ $PARAM_02 -ne $PARAM_01 ]]; then
+          if [[ $((($PARAM_02 - $PARAM_01) % $NUMBER)) -eq 0 ]]; then
+            return 0
+          fi
+        fi
+      # At ...
+      elif [[ $PARAM_03 =~ ^[0-9]{1,2}$ ]]; then
+        NUMBER=$PARAM_03
+
+        if [[ $PARAM_02 -eq $NUMBER ]]; then
+          return 0
+        fi
+      # .. And ...
+      elif [[ $PARAM_03 =~ ^[0-9]{1,2},[0-9]{1,2}$ ]]; then
+        NUMBER_RANGE[0]=$(echo "$PARAM_03" | cut -d"," -f1)
+        NUMBER_RANGE[1]=$(echo "$PARAM_03" | cut -d"," -f2)
+
+        if [[ $PARAM_02 -eq ${NUMBER_RANGE[0]} || $PARAM_02 -eq ${NUMBER_RANGE[1]} ]]; then
+          return 0
+        fi
+      # Between ... And ...
+      elif [[ $PARAM_03 =~ ^[0-9]{1,2}-[0-9]{1,2}$ ]]; then
+        NUMBER_RANGE[0]=$(echo "$PARAM_03" | cut -d"-" -f1)
+        NUMBER_RANGE[1]=$(echo "$PARAM_03" | cut -d"-" -f2)
+
+        if [[ $PARAM_02 -ge ${NUMBER_RANGE[0]} && $PARAM_02 -le ${NUMBER_RANGE[1]} ]]; then
+          return 0
+        fi
+      # Every ... And ...
+      elif [[ $PARAM_03 =~ ^[0-9]{1,2},[0-9]{1,2}\/[0-9]{1,2}$ ]]; then
+        NUMBER=$(echo "$PARAM_03" | cut -d"/" -f2)
+        NUMBER_RANGE[0]=$(echo "$PARAM_03" | cut -d"/" -f1 | cut -d"," -f1)
+        NUMBER_RANGE[1]=$(echo "$PARAM_03" | cut -d"/" -f1 | cut -d"," -f2)
+
+        if [[ $PARAM_02 -eq ${NUMBER_RANGE[0]} && $PARAM_02 -eq ${NUMBER_RANGE[1]} ]]; then
+          if [[ $PARAM_02 -eq ${NUMBER_RANGE[0]} ]]; then
+            return 0
+          elif [[ $(($PARAM_02 % ($NUMBER - ${NUMBER_RANGE[0]}))) -eq 0 ]]; then
+            return 0
+          fi
+        fi
+      # Every ... Between ... And ...
+      elif [[ $PARAM_03 =~ ^[0-9]{1,2}-[0-9]{1,2}\/[0-9]{1,2}$ ]]; then
+        NUMBER=$(echo "$PARAM_03" | cut -d"/" -f2)
+        NUMBER_RANGE[0]=$(echo "$PARAM_03" | cut -d"/" -f1 | cut -d"-" -f1)
+        NUMBER_RANGE[1]=$(echo "$PARAM_03" | cut -d"/" -f1 | cut -d"-" -f2)
+
+        if [[ $PARAM_02 -ge ${NUMBER_RANGE[0]} && $PARAM_02 -le ${NUMBER_RANGE[1]} ]]; then
+          if [[ $PARAM_02 -eq ${NUMBER_RANGE[0]} ]]; then
+            return 0
+          elif [[ $(($PARAM_02 % ($NUMBER - ${NUMBER_RANGE[0]}))) -eq 0 ]]; then
+            return 0
+          fi
+        fi
+      fi
+    else
+      # Every ... (STAR)
+      return 0
+    fi
+  fi
+
+  return 1
+}
+
+
+# Cron Deamon Function
+function cron_daemon() {
+  # Local Temp Variable
+  local CRON_RETVAL=0
+  local CRON_COMBINED_RETVAL=()
+
+  # Set Cron Loop Time
+  CRON_TIME_LOOP=$(date +"%M %H %d %m %u")
+
+  # Split Cron Variable to Array Variable
+  IFS=" " read -r -a CRON_TIME_FIRST_SPLIT <<< $CRON_TIME_FIRST
+  IFS=" " read -r -a CRON_TIME_LOOP_SPLIT <<< $CRON_TIME_LOOP
+  IFS=" " read -r -a CRON_SCHEDULE_SPLIT <<< $CRON_SCHEDULE
+
+  # Validate Cron Schedule
+  if [[ ${#CRON_TIME_FIRST_SPLIT[@]} -eq 5 && ${#CRON_TIME_LOOP_SPLIT[@]} -eq 5 && ${#CRON_SCHEDULE_SPLIT[@]} -eq 5 ]]; then
+    local I=0
+    for CRON_VALUE in "${CRON_SCHEDULE_SPLIT[@]}"
+    do
+      # Since * Has Other Meaning in Bash, So Replace it If The Cron Value is * to STAR 
+      if [[ ${CRON_VALUE} == "*" ]]; then
+        CRON_VALUE="STAR"
+      fi
+
+      # Get The Exit Code of Cron Daemon Valid Function
+      cron_valid ${CRON_TIME_FIRST_SPLIT[$I]} ${CRON_TIME_LOOP_SPLIT[$I]} ${CRON_VALUE}        
+      CRON_COMBINED_RETVAL[$I]=$?
+
+      # Increase Loop I Counter
+      I=$(($I + 1))
+    done
+
+    # Get Final Return Value Using Logic Comparasion to All Combined Return Value
+    for CRON_VALUE in "${CRON_COMBINED_RETVAL[@]}"
+    do
+      if [[ $CRON_RETVAL -eq 0 && $CRON_VALUE -eq 0 ]]; then
+        # Make it Always Optimistic to Execute Cron Commnad
+        CRON_RETVAL=0
+      else
+        # Make it Always 1 If One of Combined Return Value is 1
+        CRON_RETVAL=1
+      fi
+    done
+
+    return $CRON_RETVAL
+  else
+    echo "[$(date)] PID $CRON_PID Cron Daemon Function: Cron Deamon Failed to initialize"
+    echo "[$(date)] PID $CRON_PID Cron Daemon Function: CRON_TIME_FIRST_SPLIT or CRON_TIME_LOOP_SPLIT or CRON_SCHEDULE_SPLIT have a wrong value!"
+  fi
+
+  return 2
+}
+
+
+# Cron Deamon Main Function
+function cron_main() {
+  # Set Cron First Time
+  CRON_TIME_FIRST="$(date +"%M %H %d %m %u")"
+
+  echo "[$(date)] PID $CRON_PID Main: Cron Daemon Started"
+  echo "[$(date)] PID $CRON_PID Main: Cron Daemon Routine Check Set to Every Minute"
+  if [[ ! -z $CRON_SCHEDULE && ! -z $CRON_COMMAND ]]; then
+    while true
+    do
+      sleep 60
+      cron_daemon
+      
+      # Execute Cron Command If Return Value is 0
+      if [[ $? -eq 0 ]]; then
+        echo "[$(date)] PID $CRON_PID Main: Execute Cron Command: $CRON_COMMAND"
+
+        sh -c $CRON_COMMAND > /dev/null
+        if [ $? -eq 0 ]; then
+          echo "[$(date)] PID $CRON_PID Main: Cron Command Terminated Successfully"
+        else
+          echo "[$(date)] PID $CRON_PID Main: Cron Command Terminated Improperly"
+        fi
+      # Break the Loop If Return Value is 2
+      # That's Mean Something Wrong in The Cron Daemon Function
+      elif [[ $? -eq 2 ]]; then
+        break
+      fi
+    done
+  else
+    echo "[$(date)] PID $CRON_PID Main: Failed to Execute Cron Command"
+    echo "[$(date)] PID $CRON_PID Main: CRON_SCHEDULE and CRON_COMMAND paramater required!"
+  fi
+  echo "[$(date)] PID $CRON_PID Main: Cron Daemon Finished"
+}
+
+cron_main
+exit 0
