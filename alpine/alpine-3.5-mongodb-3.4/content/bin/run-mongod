@@ -15,10 +15,8 @@ initialize_cfg
 
 
 # Repair MongoDB database if corruption exist
-if [[ -z $MONGODB_REPAIR_AT_STARTUP ]]; then
-  if [[ $MONGODB_REPAIR_AT_STARTUP == "true" ]]; then
-    mongod --config /etc/mongodb/mongod.conf --repair --nojournal --noauth --bind_ip 127.0.0.1
-  fi
+if [[ $MONGODB_REPAIR_AT_STARTUP == "true" ]]; then
+  mongod --config /etc/mongodb/mongod.conf --repair --nojournal --noauth --bind_ip 127.0.0.1
 fi
 
 
@@ -61,3 +59,6 @@ else
   clean_up_vars
   wait
 fi
+
+
+exit 0
