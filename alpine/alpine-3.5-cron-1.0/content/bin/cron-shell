@@ -8,6 +8,7 @@
 # Cron Daemon Parameter Variable
 CRON_SCHEDULE=${1}
 CRON_COMMAND=${2}
+CRON_DEBUG=${3:-false}
 CRON_PID=$$
 
 
@@ -21,23 +22,43 @@ function cron_valid() {
   # $1 : First Start Cron Time  
   # $2 : Current Cron Loop Time
   # $3 : Cron Schedule Value
+  # $4 : Current Loop Value (Optional)
 
   if [[ ! -z $1 && ! -z $2 && ! -z $3 ]]; then
-    local PARAM_01=${1#0}; local PARAM_02=${2#0}; local PARAM_03=${3#0};
-    if [[ $PARAM_03 != "STAR" ]]; then
+    local PARAM_01=${1#0}
+    local PARAM_02=${2#0}
+    local PARAM_03
+
+    # Convert $3 Back to The Original Value If It Has Special Meaning in Bash
+    if [[ $3 == "STAR" ]]; then
+      PARAM_03="*"
+    elif [[ $3 == "ZERO" ]]; then
+      PARAM_03=0
+    else
+      PARAM_03=${3#0}
+    fi
+
+    # Print Parameter Value in Debug Mode
+    if [[ $CRON_DEBUG == "true" ]]; then
+      echo "$PARAM_01 $PARAM_02 $PARAM_03"
+    fi
+
+    if [[ ! $PARAM_03 =~ ^\*$ ]]; then
       # Every ...
       if [[ $PARAM_03 =~ ^\*\/[0-9]{1,2}$ ]]; then
         NUMBER=$(echo "$PARAM_03" | cut -d"/" -f2)
-        if [[ $PARAM_02 -ne $PARAM_01 ]]; then
-          if [[ $((($PARAM_02 - $PARAM_01) % $NUMBER)) -eq 0 ]]; then
-            return 0
-          fi
+        
+        CALCULATE=$(($PARAM_02 - $PARAM_01))
+        CALCULATE=$((${CALCULATE#-} % $NUMBER))
+
+        if [[ $CALCULATE -eq 0 ]]; then
+          return 0
         fi
       # At ...
       elif [[ $PARAM_03 =~ ^[0-9]{1,2}$ ]]; then
         NUMBER=$PARAM_03
 
-        if [[ $PARAM_02 -eq $NUMBER ]]; then
+        if [[ $NUMBER -eq $PARAM_02 ]]; then
           return 0
         fi
       # .. And ...
@@ -45,7 +66,7 @@ function cron_valid() {
         NUMBER_RANGE[0]=$(echo "$PARAM_03" | cut -d"," -f1)
         NUMBER_RANGE[1]=$(echo "$PARAM_03" | cut -d"," -f2)
 
-        if [[ $PARAM_02 -eq ${NUMBER_RANGE[0]} || $PARAM_02 -eq ${NUMBER_RANGE[1]} ]]; then
+        if [[ ${NUMBER_RANGE[0]} -eq $PARAM_02 || ${NUMBER_RANGE[1]} -eq $PARAM_02 ]]; then
           return 0
         fi
       # Between ... And ...
@@ -53,21 +74,8 @@ function cron_valid() {
         NUMBER_RANGE[0]=$(echo "$PARAM_03" | cut -d"-" -f1)
         NUMBER_RANGE[1]=$(echo "$PARAM_03" | cut -d"-" -f2)
 
-        if [[ $PARAM_02 -ge ${NUMBER_RANGE[0]} && $PARAM_02 -le ${NUMBER_RANGE[1]} ]]; then
+        if [[ ${NUMBER_RANGE[0]} -ge $PARAM_02 && ${NUMBER_RANGE[1]} -le $PARAM_02 ]]; then
           return 0
-        fi
-      # Every ... And ...
-      elif [[ $PARAM_03 =~ ^[0-9]{1,2},[0-9]{1,2}\/[0-9]{1,2}$ ]]; then
-        NUMBER=$(echo "$PARAM_03" | cut -d"/" -f2)
-        NUMBER_RANGE[0]=$(echo "$PARAM_03" | cut -d"/" -f1 | cut -d"," -f1)
-        NUMBER_RANGE[1]=$(echo "$PARAM_03" | cut -d"/" -f1 | cut -d"," -f2)
-
-        if [[ $PARAM_02 -eq ${NUMBER_RANGE[0]} && $PARAM_02 -eq ${NUMBER_RANGE[1]} ]]; then
-          if [[ $PARAM_02 -eq ${NUMBER_RANGE[0]} ]]; then
-            return 0
-          elif [[ $(($PARAM_02 % ($NUMBER - ${NUMBER_RANGE[0]}))) -eq 0 ]]; then
-            return 0
-          fi
         fi
       # Every ... Between ... And ...
       elif [[ $PARAM_03 =~ ^[0-9]{1,2}-[0-9]{1,2}\/[0-9]{1,2}$ ]]; then
@@ -75,10 +83,11 @@ function cron_valid() {
         NUMBER_RANGE[0]=$(echo "$PARAM_03" | cut -d"/" -f1 | cut -d"-" -f1)
         NUMBER_RANGE[1]=$(echo "$PARAM_03" | cut -d"/" -f1 | cut -d"-" -f2)
 
-        if [[ $PARAM_02 -ge ${NUMBER_RANGE[0]} && $PARAM_02 -le ${NUMBER_RANGE[1]} ]]; then
-          if [[ $PARAM_02 -eq ${NUMBER_RANGE[0]} ]]; then
-            return 0
-          elif [[ $(($PARAM_02 % ($NUMBER - ${NUMBER_RANGE[0]}))) -eq 0 ]]; then
+        if [[ ${NUMBER_RANGE[0]} -ge $PARAM_02 && ${NUMBER_RANGE[1]} -le $PARAM_02 ]]; then
+          CALCULATE=$(($PARAM_02 - ${NUMBER_RANGE[0]}))
+          CALCULATE=$((${CALCULATE#-} % $NUMBER))
+
+          if [[ $CALCULATE -eq 0 ]]; then
             return 0
           fi
         fi
@@ -109,12 +118,18 @@ function cron_daemon() {
 
   # Validate Cron Schedule
   if [[ ${#CRON_TIME_FIRST_SPLIT[@]} -eq 5 && ${#CRON_TIME_LOOP_SPLIT[@]} -eq 5 && ${#CRON_SCHEDULE_SPLIT[@]} -eq 5 ]]; then
+    # Send Spitted Value to Validation Function
+    if [[ $CRON_DEBUG == "true" ]]; then
+      echo "[$(date)] PID $CRON_PID Cron Daemon Function: ========== DEBUG: CRON VALID PARAMETER =========="
+    fi
     local I=0
     for CRON_VALUE in "${CRON_SCHEDULE_SPLIT[@]}"
     do
-      # Since * Has Other Meaning in Bash, So Replace it If The Cron Value is * to STAR 
+      # Since * or 0 Has Other Meaning in Bash, So Replace it If The Cron Value is * or 0 to STAR or ZERO 
       if [[ ${CRON_VALUE} == "*" ]]; then
         CRON_VALUE="STAR"
+      elif [[ ${CRON_VALUE} == "0" ]]; then
+        CRON_VALUE="ZERO"
       fi
 
       # Get The Exit Code of Cron Daemon Valid Function
@@ -124,10 +139,20 @@ function cron_daemon() {
       # Increase Loop I Counter
       I=$(($I + 1))
     done
+    if [[ $CRON_DEBUG == "true" ]]; then
+      echo "[$(date)] PID $CRON_PID Cron Daemon Function: ================================================="
+    fi
 
     # Get Final Return Value Using Logic Comparasion to All Combined Return Value
+    if [[ $CRON_DEBUG == "true" ]]; then
+      echo "[$(date)] PID $CRON_PID Cron Daemon Function: =========== DEBUG: CRON RETURN VALUE ============"
+    fi    
     for CRON_VALUE in "${CRON_COMBINED_RETVAL[@]}"
     do
+      if [[ $CRON_DEBUG == "true" ]]; then
+        echo "$CRON_RETVAL AND $CRON_VALUE"
+      fi
+
       if [[ $CRON_RETVAL -eq 0 && $CRON_VALUE -eq 0 ]]; then
         # Make it Always Optimistic to Execute Cron Commnad
         CRON_RETVAL=0
@@ -136,6 +161,9 @@ function cron_daemon() {
         CRON_RETVAL=1
       fi
     done
+    if [[ $CRON_DEBUG == "true" ]]; then
+      echo "[$(date)] PID $CRON_PID Cron Daemon Function: ================================================="
+    fi
 
     return $CRON_RETVAL
   else
@@ -149,15 +177,31 @@ function cron_daemon() {
 
 # Cron Deamon Main Function
 function cron_main() {
+  # Local Temp Variable
+  local CRON_TIME_SLEEP=0
+  local CRON_TIME_DIFF=0
+
   # Set Cron First Time
-  CRON_TIME_FIRST="$(date +"%M %H %d %m %u")"
+  CRON_TIME_FIRST=$(date +"%M %H %d %m %u")
 
   echo "[$(date)] PID $CRON_PID Main: Cron Daemon Started"
-  echo "[$(date)] PID $CRON_PID Main: Cron Daemon Routine Check Set to Every Minute"
+  echo "[$(date)] PID $CRON_PID Main: Cron Daemon Routine Check Set to Every Minute"  
   if [[ ! -z $CRON_SCHEDULE && ! -z $CRON_COMMAND ]]; then
     while true
     do
-      sleep 60
+      CRON_TIME_DIFF=$(date +"%S")
+      CRON_TIME_DIFF=${CRON_TIME_DIFF#0}
+      
+      # Calculating Dynamic Wait Time so It'll be Always in 00 Seconds
+      if [[ $CRON_TIME_DIFF -ne 0 ]]; then
+        echo "[$(date)] PID $CRON_PID Main: Cron Daemon Routine Check Adjusting Wait Time"
+        CRON_TIME_SLEEP=$((60 - $CRON_TIME_DIFF))
+      else
+        CRON_TIME_SLEEP=60
+      fi
+
+      sleep $CRON_TIME_SLEEP
+      echo "[$(date)] PID $CRON_PID Main: Cron Daemon Routine Check Started"
       cron_daemon
       
       # Execute Cron Command If Return Value is 0
