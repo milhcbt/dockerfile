@@ -74,7 +74,7 @@ function cron_valid() {
         NUMBER_RANGE[0]=$(echo "$PARAM_03" | cut -d"-" -f1)
         NUMBER_RANGE[1]=$(echo "$PARAM_03" | cut -d"-" -f2)
 
-        if [[ $PARAM_02 -ge ${NUMBER_RANGE[0]} && $PARAM_02 -le ${NUMBER_RANGE[1]} ]]; then
+        if [[ ${NUMBER_RANGE[0]} -ge $PARAM_02 && $PARAM_02 -le ${NUMBER_RANGE[1]} ]]; then
           return 0
         fi
       # Every ... Between ... And ...
@@ -83,7 +83,7 @@ function cron_valid() {
         NUMBER_RANGE[0]=$(echo "$PARAM_03" | cut -d"/" -f1 | cut -d"-" -f1)
         NUMBER_RANGE[1]=$(echo "$PARAM_03" | cut -d"/" -f1 | cut -d"-" -f2)
         
-        if [[ $PARAM_02 -ge ${NUMBER_RANGE[0]} && $PARAM_02 -le ${NUMBER_RANGE[1]} ]]; then
+        if [[ ${NUMBER_RANGE[0]} -ge $PARAM_02 && $PARAM_02 -le ${NUMBER_RANGE[1]} ]]; then
           CALCULATE=$(($PARAM_02 - ${NUMBER_RANGE[0]}))
           CALCULATE=$((${CALCULATE#-} % $NUMBER))
 
