@@ -206,7 +206,7 @@ function cron_main() {
       if [[ $? -eq 0 ]]; then
         echo "[$(date)] PID $CRON_PID Main: Execute Cron Command: $CRON_COMMAND"
 
-        sh -c $CRON_COMMAND > /dev/null
+        sh -c '$CRON_COMMAND' > /dev/null
         if [ $? -eq 0 ]; then
           echo "[$(date)] PID $CRON_PID Main: Cron Command Terminated Successfully"
         else
