@@ -1,4 +1,4 @@
-Go 1.8.4 Image from Modified Base Image of Alpine
+Go 1.8 Image from Modified Base Image of Alpine
 This Image is ready to serve with custom User ID execution using entrypoint script.
 
 Build with love from Gegerkalong, Bandung, Indonesia.

@@ -1,0 +1,23 @@
+#!/bin/sh -xe
+
+# --------------------------------------------------
+# Dockerfile Build Tools
+# Email: dimas.restu@student.upi.edu
+# --------------------------------------------------
+
+
+# [1] Installing AdminMongo
+# --------------------------------------------------
+cd /usr/src/app \
+&& wget -O adminMongo-${ADMIN_MONGO_VERSION}.zip https://github.com/mrvautin/adminMongo/archive/${ADMIN_MONGO_VERSION}.zip \
+&& unzip adminMongo-${ADMIN_MONGO_VERSION}.zip \
+&& mv adminMongo-${ADMIN_MONGO_VERSION}/* . \
+&& rm -rf adminMongo-${ADMIN_MONGO_VERSION} \
+&& rm -f adminMongo-${ADMIN_MONGO_VERSION}.zip \
+&& npm install -g npm \
+&& npm install --production \
+&& chmod -R 775 /usr/src/app/*
+# --------------------------------------------------
+
+
+exit 0

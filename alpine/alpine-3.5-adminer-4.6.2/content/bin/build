@@ -1,0 +1,26 @@
+#!/bin/sh -xe
+
+# --------------------------------------------------
+# Dockerfile Build Tools
+# Email: dimas.restu@student.upi.edu
+# --------------------------------------------------
+
+
+# [1] Installing PHP MongoDB
+# --------------------------------------------------
+wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://raw.githubusercontent.com/sgerrand/alpine-pkg-php5-mongo/master/sgerrand.rsa.pub \
+&& wget https://github.com/sgerrand/alpine-pkg-php5-mongo/releases/download/${PHP_MONGO_VERSION}/php5-mongo-${PHP_MONGO_VERSION}.apk \
+&& apk --no-cache add php5-mongo-${PHP_MONGO_VERSION}.apk \
+&& rm php5-mongo-${PHP_MONGO_VERSION}.apk
+# --------------------------------------------------
+
+
+# [2] Installing Adminer
+# --------------------------------------------------
+cd /var/www/data/html \
+&& wget -O index.php https://github.com/vrana/adminer/releases/download/v${ADMINER_VERSION}/adminer-${ADMINER_VERSION}-en.php \
+&& wget -O adminer.css https://raw.githubusercontent.com/vrana/adminer/master/designs/lucas-sandery/adminer.css
+# --------------------------------------------------
+
+
+exit 0

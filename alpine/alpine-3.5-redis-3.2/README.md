@@ -12,8 +12,8 @@ Dimas Restu H (<dimas.restu@student.upi.edu>)
 
 **How to run this image:**
 
-> docker run -p 6379:6379 -v <local_data_path>:/data --name redis dimaskiddo/alpine:redis-3.2
+> docker run -p 6379:6379 -v <local_data_path>:/var/lib/redis/data --name redis dimaskiddo/alpine:redis-3.2
 
 **How to get in container after run this image:**
 
-> docker exec -it apache /bin/bash
+> docker exec -it redis /bin/bash

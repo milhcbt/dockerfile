@@ -12,8 +12,8 @@ Dimas Restu H (<dimas.restu@student.upi.edu>)
 
 **How to run this image:**
 
-> docker run -p 80:8080 -v <local_data_path>:/var/www/data --name nginx dimaskiddo/alpine:php-7.1-nginx
+> docker run -p 80:8080 -v <local_data_path>:/var/www/data --name php dimaskiddo/alpine:php-7.1-nginx
 
 **How to get in container after run this image:**
 
-> docker exec -it nginx /bin/bash
+> docker exec -it php /bin/bash

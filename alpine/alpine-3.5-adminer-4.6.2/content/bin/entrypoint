@@ -1,0 +1,171 @@
+#!/bin/sh -e
+
+
+# Add Custom UserID as "User" User
+if [ "$(id -u)" != "0" ]; then
+  sed "s/^user:\(.*\):[0-9]\+:\([0-9]\+\):.*:\(.*:.*\)/user:\1:$(id -u):\2:User:\3/g" < /etc/passwd > /tmp/passwd \
+  && cat /tmp/passwd > /etc/passwd \
+  && rm -f /tmp/passwd
+fi
+
+
+# Prepare etc directory due to volume
+if [ ! -d /var/www/data/etc ]; then
+  mkdir -p /var/www/data/etc \
+  && chown user:root /var/www/data/etc \
+  && chmod 775 /var/www/data/etc \
+  && cp -R /usr/local/docker/etc/* /var/www/data/etc/
+fi
+
+
+# Prepare cgi-bin directory due to volume
+if [ ! -d /var/www/data/cgi-bin ]; then
+  mkdir -p /var/www/data/cgi-bin \
+  && chown user:root /var/www/data/cgi-bin \
+  && chmod 775 /var/www/data/cgi-bin \
+  && cp -R /usr/local/docker/etc/* /var/www/data/cgi-bin/
+fi
+
+
+# Prepare etc/composer directory due to volume
+if [ ! -d /var/www/data/etc/composer ]; then
+  mkdir -p /var/www/data/etc/composer \
+  && chown user:root /var/www/data/etc/composer \
+  && chmod 775 /var/www/data/etc/composer \
+  && cp -R /usr/local/docker/etc/* /var/www/data/etc/composer/
+fi
+
+
+# Prepare etc/supervisor directory due to volume
+if [ ! -d /var/www/data/etc/supervisor ]; then
+  mkdir -p /var/www/data/etc/supervisor \
+  && chown user:root /var/www/data/etc/supervisor \
+  && chmod 775 /var/www/data/etc/supervisor \
+  && cp -R /usr/local/docker/etc/supervisor/* /var/www/data/etc/supervisor/
+fi
+if [ ! -d /var/www/data/etc/supervisor/conf.d ]; then
+  mkdir -p /var/www/data/etc/supervisor/conf.d \
+  && chown user:root /var/www/data/etc/supervisor/conf.d \
+  && chmod 775 /var/www/data/etc/supervisor/conf.d \
+  && cp -R /usr/local/docker/etc/supervisor/conf.d/* /var/www/data/etc/supervisor/conf.d/
+fi
+
+
+# Prepare etc/nginx directory due to volume
+if [ ! -d /var/www/data/etc/nginx ]; then
+  mkdir -p /var/www/data/etc/nginx \
+  && chown user:root /var/www/data/etc/nginx \
+  && chmod 775 /var/www/data/etc/nginx \
+  && cp -R /usr/local/docker/etc/nginx/* /var/www/data/etc/nginx/  
+fi
+if [ ! -f /var/www/data/etc/nginx/nginx.conf ]; then
+  cp /usr/local/docker/etc/nginx/nginx.conf /var/www/data/etc/nginx/nginx.conf
+fi
+if [ ! -d /var/www/data/etc/nginx/conf.d ]; then
+  mkdir -p /var/www/data/etc/nginx/conf.d \
+  && chown user:root /var/www/data/etc/nginx/conf.d \
+  && chmod 775 /var/www/data/etc/nginx/conf.d \
+  && cp -R /usr/local/docker/etc/nginx/conf.d/* /var/www/data/etc/nginx/conf.d  
+fi
+if [ ! -f /var/www/data/etc/nginx/conf.d/default.conf ]; then
+  cp /usr/local/docker/etc/nginx/conf.d/default.conf /var/www/data/etc/nginx/conf.d/default.conf
+fi
+
+
+# Prepare etc/php5 directory due to volume
+if [ ! -d /var/www/data/etc/php5 ]; then
+  mkdir -p /var/www/data/etc/php5 \
+  && chown user:root /var/www/data/etc/php5 \
+  && chmod 775 /var/www/data/etc/php5 \
+  && cp -R /usr/local/docker/etc/php5/* /var/www/data/etc/php5/  
+fi
+if [ ! -f /var/www/data/etc/php5/php-fpm.conf ]; then
+  cp /usr/local/docker/etc/php5/php-fpm.conf /var/www/data/etc/php5/php-fpm.conf
+fi
+if [ ! -f /var/www/data/etc/php5/php.ini ]; then
+  cp /usr/local/docker/etc/php5/php.ini /var/www/data/etc/php5/php.ini
+fi
+
+
+# Prepare lib directory due to volume
+if [ ! -d /var/www/data/lib ]; then
+  mkdir -p /var/www/data/lib \
+  && chown user:root /var/www/data/lib \
+  && chmod 775 /var/www/data/lib
+fi
+
+
+# Prepare lib/php5 directory due to volume
+if [ ! -d /var/www/data/lib/php5 ]; then
+  mkdir -p /var/www/data/lib/php5 \
+  && chown user:root /var/www/data/lib/php5 \
+  && chmod 775 /var/www/data/lib/php5
+fi
+if [ ! -d /var/www/data/lib/php5/sessions ]; then
+  mkdir -p /var/www/data/lib/php5/sessions \
+  && chown user:root /var/www/data/lib/php5/sessions \
+  && chmod 775 /var/www/data/lib/php5/sessions
+fi
+if [ ! -d /var/www/data/lib/php5/uploads ]; then
+  mkdir -p /var/www/data/lib/php5/uploads \
+  && chown user:root /var/www/data/lib/php5/uploads \
+  && chmod 775 /var/www/data/lib/php5/uploads
+fi
+if [ $UID == 0 ]; then
+  chown user:root /var/www/data/lib/php5/sessions
+  chown user:root /var/www/data/lib/php5/uploads
+fi
+
+
+# Prepare logs directory due to volume
+if [ ! -d /var/www/data/logs ]; then
+  mkdir -p /var/www/data/logs \
+  && chown user:root /var/www/data/logs \
+  && chmod 775 /var/www/data/logs
+fi
+
+
+# Prepare logs/supervisor directory due to volume
+if [ ! -d /var/www/data/logs/supervisor ]; then
+  mkdir -p /var/www/data/logs/supervisor \
+  && chown user:root /var/www/data/logs/supervisor \
+  && chmod 775 /var/www/data/logs/supervisor
+fi
+
+
+# Prepare logs/nginx directory due to volume
+if [ ! -d /var/www/data/logs/nginx ]; then
+  mkdir -p /var/www/data/logs/nginx \
+  && chown user:root /var/www/data/logs/nginx \
+  && chmod 757 /var/www/data/logs/nginx
+fi
+
+
+# Prepare logs/php5 directory due to volume
+if [ ! -d /var/www/data/logs/php5 ]; then
+  mkdir -p /var/www/data/logs/php5 \
+  && chown user:root /var/www/data/logs/php5 \
+  && chmod 775 /var/www/data/logs/php5
+fi
+if [ ! -f /var/www/data/logs/php5/php-fpm.log ]; then
+  touch /var/www/data/logs/php5/php-fpm.log \
+  && chmod 664 /var/www/data/logs/php5/php-fpm.log
+fi
+
+
+# Prepare web directory due to volume
+if [ ! -d /var/www/data/html ]; then
+  mkdir -p /var/www/data/html \
+  && chown user:root /var/www/data/html \
+  && chmod 775 /var/www/data/html
+fi
+if [ "$(ls -A /var/www/data/html)" ]; then
+  :
+else
+  cp /usr/local/docker/html/index.php /var/www/data/html/index.php
+  cp /usr/local/docker/html/info.php /var/www/data/html/info.php
+fi
+
+
+# Execute Everything from Entries
+exec "$@"

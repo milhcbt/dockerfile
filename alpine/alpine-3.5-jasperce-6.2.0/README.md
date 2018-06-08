@@ -12,7 +12,7 @@ Dimas Restu H (<dimas.restu@student.upi.edu>)
 
 **How to run this image:**
 
-> docker run -p 8080:8080 --name jasperce dimaskiddo/alpine:jasperce-6.2.0
+> docker run -p 80:8080 --name jasperce dimaskiddo/alpine:jasperce-6.2.0
 
 **How to get in container after run this image:**
 

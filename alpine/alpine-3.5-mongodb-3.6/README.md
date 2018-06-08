@@ -12,7 +12,7 @@ Dimas Restu H (<dimas.restu@student.upi.edu>)
 
 **How to run this image:**
 
-> docker run -p 27017:27017 -v <local_data_path>:/data --name mongodb dimaskiddo/alpine:mongodb-3.6
+> docker run -p 27017:27017 -v <local_data_path>:/var/lib/mongodb/data --name mongodb dimaskiddo/alpine:mongodb-3.6
 
 **How to get in container after run this image:**
 

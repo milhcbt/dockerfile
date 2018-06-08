@@ -12,7 +12,7 @@ Dimas Restu H (<dimas.restu@student.upi.edu>)
 
 **How to run this image:**
 
-> docker run -p 3306:3306 -v <local_data_path>:/data --name mysql dimaskiddo/alpine:mysql-10.2
+> docker run -p 3306:3306 -v <local_data_path>:/var/lib/mysql/data --name mysql dimaskiddo/alpine:mysql-10.2
 
 **How to get in container after run this image:**
 
