@@ -4,3 +4,5 @@ debian/debian-8.9
 ubuntu/ubuntu-xenial
 sample
 cicd
+
+docker-build.sh
