@@ -19,7 +19,7 @@ EXPOSE 3306
 ENTRYPOINT ["/usr/local/docker/bin/entrypoint"]
 
 # Set Executor Script
-CMD ["sh","-c","mysqld --console --innodb-flush-method=fsync $ARGS"]
+CMD ["sh","-c","mysqld --innodb-flush-method=fsync --console $ARGS"]
 
 # Change Working User to "User"
 USER user
