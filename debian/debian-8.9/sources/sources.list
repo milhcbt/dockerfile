@@ -1,4 +1,0 @@
-# Indonesia Local Repository
-deb http://kambing.ui.ac.id/debian/ jessie main contrib non-free
-deb http://kambing.ui.ac.id/debian/ jessie-updates main contrib non-free
-deb http://kambing.ui.ac.id/debian-security/ jessie/updates main contrib non-free
