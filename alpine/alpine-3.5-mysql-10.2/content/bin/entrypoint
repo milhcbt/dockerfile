@@ -47,6 +47,7 @@ MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-}
 MYSQL_DATABASE=${MYSQL_DATABASE:-}
 # ------------------------------------------------
 # MySQL extra variable configuration
+MYSQL_BINLOG_FORMAT=${MYSQL_BINLOG_FORMAT:-statement}
 MYSQL_SQL_MODE=${MYSQL_SQL_MODE:-STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION}
 MYSQL_FT_MIN_WORD_LEN=${MYSQL_FT_MIN_WORD_LEN:-4}
 MYSQL_FT_MAX_WORD_LEN=${MYSQL_FT_MAX_WORD_LEN:-20}
@@ -56,7 +57,7 @@ MYSQL_SORT_BUFFER_SIZE=${MYSQL_SORT_BUFFER_SIZE:-512K}
 MYSQL_READ_BUFFER_SIZE=${MYSQL_READ_BUFFER_SIZE:-8M}
 MYSQL_WRITE_BUFFER_SIZE=${MYSQL_WRITE_BUFFER_SIZE:-8M}
 MYSQL_READ_RND_BUFFER_SIZE=${MYSQL_READ_RND_BUFFER_SIZE:-512k}
-MYSQL_MAX_CONNECTIONS=${MYSQL_MAX_CONNECTIONS:-150}
+MYSQL_MAX_CONNECTIONS=${MYSQL_MAX_CONNECTIONS:-151}
 MYSQL_MAX_ALLOWED_PACKET=${MYSQL_MAX_ALLOWED_PACKET:-200M}
 MYSQL_NET_BUFFER_LENGTH=${MYSQL_NET_BUFFER_LENGTH:-8k}
 MYSQL_MYISAM_SORT_BUFFER_SIZE=${MYSQL_MYISAM_SORT_BUFFER_SIZE:-8M}
@@ -136,19 +137,28 @@ if [[ -z $MYSQL_DEFAULTS_FILE && ! -f $MYSQL_DEFAULTS_FILE ]]; then
     echo "innodb_buffer_pool_size=${MYSQL_INNODB_BUFFER_POOL_SIZE}"; \
     echo "innodb_use_native_aio=${MYSQL_INNODB_USE_NATIVE_AIO}"; \
     echo ""; \
-    echo "# Replication"; \
-    echo "log-bin=mysql-bin"; \
-    echo "binlog_format=mixed"; \
-    echo ""; \
-    if [[ $MYSQL_REPLICATION == "slave" ]]; \
+    if [[ ! -z $MYSQL_REPLICATION ]]; \
     then
-      echo "server-id=${MYSQL_REPLICATION_SERVER_ID}"; \  
-      echo "master-host=${MYSQL_REPLICATION_MASTER_HOST}"; \
-      echo "master-port=${MYSQL_REPLICATION_MASTER_PORT}"; \
-      echo "master-user=${MYSQL_REPLICATION_USER}"; \
-      echo "master-password=${MYSQL_REPLICATION_PASSWORD}"; \
-    else
-      echo "server-id=1"; \
+      echo "# Replication"; \
+      echo "gtid_mode=ON"; \
+      echo "log-slave-updates=ON"; \
+      echo "enforce-gtid-consistency=ON"; \      
+      echo ""; \
+      echo "log-bin=${MYSQL_DATADIR}/mysql-bin.log"; \
+      echo "binlog_do_db=mysql"; \
+      echo "binlog_do_db=${MYSQL_DATABASE}"; \
+      if [[ $MYSQL_REPLICATION == "slave" ]]; \
+      then
+        echo "master-host=${MYSQL_REPLICATION_MASTER_HOST}"; \
+        echo "master-port=${MYSQL_REPLICATION_MASTER_PORT}"; \
+        echo "master-user=${MYSQL_REPLICATION_USER}"; \
+        echo "master-password=${MYSQL_REPLICATION_PASSWORD}"; \
+        echo "relay-log=${MYSQL_DATADIR}/mysql-relay-bin.log"; \
+        echo "server-id=${MYSQL_REPLICATION_SERVER_ID}"; \  
+      else
+        echo "binlog_format=${MYSQL_BINLOG_FORMAT}"; \
+        echo "server-id=1"; \
+      fi; \
     fi; \
     echo ""; \
     echo ""; \
@@ -273,20 +283,20 @@ if [ "$(ls -A $MYSQL_DATADIR)" ]; then
 else
   echo "MySQL not yet initialized, starting initialization"
   MYSQL_INITIALIZED="true"  
-  mysql_install_db > /dev/null
+  mysql_install_db --initialize --datadir=${MYSQL_DATADIR} --ignore-db-dir=lost+found > /dev/null
 fi
 
 mysqld --innodb-flush-method=fsync --bootstrap --verbose=0 < $MYSQL_TEMP_FILE
-rm -f $MYSQL_TEMP_FILE
+rm -f ${MYSQL_TEMP_FILE}
 
 if [[ $MYSQL_INITIALIZED == "false" ]]; then
   mysqld --innodb-flush-method=fsync --console $ARGS &
   mysqld_wait 1
 
   echo "Upgrading MySQL Databases ..."
-  mysql_upgrade -uroot -p$MYSQL_ROOT_PASSWORD > /dev/null
+  mysql_upgrade -uroot -p${MYSQL_ROOT_PASSWORD} > /dev/null
   
-  mysqladmin -uroot -p$MYSQL_ROOT_PASSWORD shutdown > /dev/null
+  mysqladmin -uroot -p${MYSQL_ROOT_PASSWORD} shutdown > /dev/null
   mysqld_wait 0
 fi
 # ------------------------------------------------
