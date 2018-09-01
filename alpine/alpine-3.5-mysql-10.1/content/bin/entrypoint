@@ -283,7 +283,7 @@ if [ "$(ls -A $MYSQL_DATADIR)" ]; then
 else
   echo "MySQL not yet initialized, starting initialization"
   MYSQL_INITIALIZED="true"  
-  mysql_install_db --initialize --datadir=${MYSQL_DATADIR} --ignore-db-dir=lost+found > /dev/null
+  mysql_install_db > /dev/null
 fi
 
 mysqld --innodb-flush-method=fsync --bootstrap --verbose=0 < $MYSQL_TEMP_FILE
