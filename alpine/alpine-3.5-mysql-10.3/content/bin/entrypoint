@@ -1,0 +1,317 @@
+#!/bin/sh -e
+
+
+# Add Custom UserID as "User" User
+if [ "$(id -u)" != "0" ]; then
+  sed "s/^user:\(.*\):[0-9]\+:\([0-9]\+\):.*:\(.*:.*\)/user:\1:$(id -u):\2:User:\3/g" < /etc/passwd > /tmp/passwd \
+  && cat /tmp/passwd > /etc/passwd \
+  && rm -f /tmp/passwd
+fi
+
+
+# Prepare var/lib directory due to volume
+if [ ! -d /var/lib ]; then
+  mkdir -p /var/lib \
+  && chown user:root /var/lib \
+  && chmod 775 /var/lib
+fi
+
+
+# Prepare var/lib/mysql directory due to volume
+if [ ! -d /var/lib/mysql ]; then
+  mkdir -p /var/lib/mysql \
+  && chown user:root /var/lib/mysql \
+  && chmod 775 /var/lib/mysql
+fi
+
+
+# Prepare var/lib/mysql/data directory due to volume
+if [ ! -d /var/lib/mysql/data ]; then
+  mkdir -p /var/lib/mysql/data \
+  && chown user:root /var/lib/mysql/data \
+  && chmod 775 /var/lib/mysql/data
+fi
+
+
+# Prepare MySQL configuration
+IS_STRING='^[a-zA-Z0-9_]+$'
+IS_PASSWORD='^[a-zA-Z0-9_~!@#$%^&*()-=<>,.?;:|]+$'
+MYSQL_INITIALIZED=${MYSQL_INITIALIZED:-false}
+MYSQL_WAIT_MAX_ATTEMPTS=${MYSQL_WAIT_MAX_ATTEMPTS:-60}
+MYSQL_WAIT_SLEEP_TIME=${MYSQL_WAIT_SLEEP_TIME:-1}
+# ------------------------------------------------
+# MySQL credentials variable configuration
+MYSQL_USER=${MYSQL_USER:-}
+MYSQL_PASSWORD=${MYSQL_PASSWORD:-}
+MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-}
+MYSQL_DATABASE=${MYSQL_DATABASE:-}
+# ------------------------------------------------
+# MySQL extra variable configuration
+MYSQL_BINLOG_FORMAT=${MYSQL_BINLOG_FORMAT:-statement}
+MYSQL_SQL_MODE=${MYSQL_SQL_MODE:-STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION}
+MYSQL_FT_MIN_WORD_LEN=${MYSQL_FT_MIN_WORD_LEN:-4}
+MYSQL_FT_MAX_WORD_LEN=${MYSQL_FT_MAX_WORD_LEN:-20}
+MYSQL_TABLE_OPEN_CACHE=${MYSQL_TABLE_OPEN_CACHE:-400}
+MYSQL_KEY_BUFFER_SIZE=${MYSQL_KEY_BUFFER_SIZE:-32M}
+MYSQL_SORT_BUFFER_SIZE=${MYSQL_SORT_BUFFER_SIZE:-512K}
+MYSQL_READ_BUFFER_SIZE=${MYSQL_READ_BUFFER_SIZE:-8M}
+MYSQL_WRITE_BUFFER_SIZE=${MYSQL_WRITE_BUFFER_SIZE:-8M}
+MYSQL_READ_RND_BUFFER_SIZE=${MYSQL_READ_RND_BUFFER_SIZE:-512k}
+MYSQL_MAX_CONNECTIONS=${MYSQL_MAX_CONNECTIONS:-151}
+MYSQL_MAX_ALLOWED_PACKET=${MYSQL_MAX_ALLOWED_PACKET:-200M}
+MYSQL_NET_BUFFER_LENGTH=${MYSQL_NET_BUFFER_LENGTH:-8k}
+MYSQL_MYISAM_SORT_BUFFER_SIZE=${MYSQL_MYISAM_SORT_BUFFER_SIZE:-8M}
+MYSQL_INNODB_LOG_FILE_SIZE=${MYSQL_INNODB_LOG_FILE_SIZE:-8M}
+MYSQL_INNODB_LOG_BUFFER_SIZE=${MYSQL_INNODB_LOG_BUFFER_SIZE:-8M}
+MYSQL_INNODB_BUFFER_POOL_SIZE=${MYSQL_INNODB_BUFFER_POOL_SIZE:-32M}
+MYSQL_INNODB_USE_NATIVE_AIO=${MYSQL_INNODB_USE_NATIVE_AIO:-1}
+MYSQL_LOG_QUERIES_ENABLED=${MYSQL_LOG_QUERIES_ENABLED:-0}
+MYSQL_DEFAULTS_FILE=${MYSQL_DEFAULTS_FILE:-}
+# ------------------------------------------------
+# MySQL replication variable configuration
+MYSQL_REPLICATION=${MYSQL_REPLICATION:-}
+MYSQL_REPLICATION_SERVER_ID_DEFAULT=$(sha256sum <<< $(hostname -i))
+MYSQL_REPLICATION_SERVER_ID_DEFAULT=${MYSQL_REPLICATION_SERVER_ID_DEFAULT:0:14}
+MYSQL_REPLICATION_SERVER_ID_DEFAULT=$((0x${MYSQL_REPLICATION_SERVER_ID_DEFAULT}%4294967295))
+MYSQL_REPLICATION_SERVER_ID=${MYSQL_REPLICATION_SERVER_ID:-MYSQL_REPLICATION_SERVER_ID_DEFAULT}
+MYSQL_REPLICATION_MASTER_HOST=${MYSQL_REPLICATION_MASTER_HOST:-}
+MYSQL_REPLICATION_MASTER_PORT=${MYSQL_REPLICATION_MASTER_PORT:-}
+MYSQL_REPLICATION_USER=${MYSQL_REPLICATION_USER:-}
+MYSQL_REPLICATION_PASSWORD=${MYSQL_REPLICATION_PASSWORD:-}
+# ------------------------------------------------
+# Write MySQL variable to configuration file
+if [[ -z $MYSQL_DEFAULTS_FILE && ! -f $MYSQL_DEFAULTS_FILE ]]; then
+  { \
+    echo "[client]"; \
+    echo "port=3306"; \
+    echo "socket=/run/mysqld/mysqld.sock"; \
+    echo ""; \
+    echo ""; \
+    echo "[mysql]"; \
+    echo "no-auto-rehash"; \
+    echo ""; \
+    echo ""; \
+    echo "[mysqld]"; \
+    echo "port=3306"; \
+    echo "socket=/run/mysqld/mysqld.sock"; \
+    echo ""; \
+    echo "datadir=/var/lib/mysql/data"; \
+    echo "ignore-db-dirs=lost+found"; \
+    echo ""; \
+    echo "skip-external-locking"; \
+    echo "skip_name_resolve"; \
+    echo ""; \
+    echo "lower_case_table_names=0"; \
+    echo "symbolic-links=0"; \
+    echo ""; \
+    echo "general_log=${MYSQL_LOG_QUERIES_ENABLED}"; \
+    echo "general_log_file=${MYSQL_DATADIR}/mysql-query.log"; \
+    echo ""; \
+    if [[ ! -z $MYSQL_SQL_MODE ]]; \
+    then
+      if [[ $MYSQL_SQL_MODE == "NULL" ]]; \
+      then
+        echo "sql_mode=''"; \
+      else
+        echo "sql_mode='${MYSQL_SQL_MODE}'"; \
+      fi; \
+    fi; \
+    echo ""; \
+    echo "max_connections=${MYSQL_MAX_CONNECTIONS}"; \
+    echo ""; \
+    echo "ft_min_word_len=${MYSQL_FT_MIN_WORD_LEN}"; \
+    echo "ft_max_word_len=${MYSQL_FT_MAX_WORD_LEN}"; \
+    echo ""; \
+    echo "table_open_cache=${MYSQL_TABLE_OPEN_CACHE}"; \
+    echo "key_buffer_size=${MYSQL_KEY_BUFFER_SIZE}"; \
+    echo "sort_buffer_size=${MYSQL_SORT_BUFFER_SIZE}"; \
+    echo "read_buffer_size=${MYSQL_READ_BUFFER_SIZE}"; \
+    echo "read_rnd_buffer_size=${MYSQL_READ_RND_BUFFER_SIZE}"; \
+    echo "max_allowed_packet=${MYSQL_MAX_ALLOWED_PACKET}"; \
+    echo "net_buffer_length=${MYSQL_NET_BUFFER_LENGTH}"; \
+    echo ""; \
+    echo "myisam_sort_buffer_size=${MYSQL_MYISAM_SORT_BUFFER_SIZE}"; \
+    echo ""; \
+    echo "innodb_log_file_size=${MYSQL_INNODB_LOG_FILE_SIZE}"; \
+    echo "innodb_log_buffer_size=${MYSQL_INNODB_LOG_BUFFER_SIZE}"; \
+    echo "innodb_buffer_pool_size=${MYSQL_INNODB_BUFFER_POOL_SIZE}"; \
+    echo "innodb_use_native_aio=${MYSQL_INNODB_USE_NATIVE_AIO}"; \
+    echo ""; \
+    if [[ ! -z $MYSQL_REPLICATION ]]; \
+    then
+      echo "# Replication"; \
+      echo "gtid_mode=ON"; \
+      echo "log-slave-updates=ON"; \
+      echo "enforce-gtid-consistency=ON"; \      
+      echo ""; \
+      echo "log-bin=${MYSQL_DATADIR}/mysql-bin.log"; \
+      echo "binlog_do_db=mysql"; \
+      echo "binlog_do_db=${MYSQL_DATABASE}"; \
+      if [[ $MYSQL_REPLICATION == "slave" ]]; \
+      then
+        echo "master-host=${MYSQL_REPLICATION_MASTER_HOST}"; \
+        echo "master-port=${MYSQL_REPLICATION_MASTER_PORT}"; \
+        echo "master-user=${MYSQL_REPLICATION_USER}"; \
+        echo "master-password=${MYSQL_REPLICATION_PASSWORD}"; \
+        echo "relay-log=${MYSQL_DATADIR}/mysql-relay-bin.log"; \
+        echo "server-id=${MYSQL_REPLICATION_SERVER_ID}"; \  
+      else
+        echo "binlog_format=${MYSQL_BINLOG_FORMAT}"; \
+        echo "server-id=1"; \
+      fi; \
+    fi; \
+    echo ""; \
+    echo ""; \
+    echo "[myisamchk]"; \
+    echo "ft_min_word_len=${MYSQL_FT_MIN_WORD_LEN}"; \
+    echo "ft_max_word_len=${MYSQL_FT_MAX_WORD_LEN}"; \
+    echo ""; \
+    echo "key_buffer_size=${MYSQL_KEY_BUFFER_SIZE}"; \
+    echo "sort_buffer_size=${MYSQL_SORT_BUFFER_SIZE}"; \
+    echo "read_buffer=${MYSQL_READ_BUFFER_SIZE}"; \
+    echo "write_buffer=${MYSQL_WRITE_BUFFER_SIZE}"; \
+    echo ""; \
+    echo ""; \
+    echo "[mysqldump]"; \
+    echo "quick"; \
+    echo "max_allowed_packet=${MYSQL_MAX_ALLOWED_PACKET}"; \
+    echo ""; \
+    echo ""; \
+    echo "[mysqlhotcopy]"; \
+    echo "interactive-timeout"; \
+  } > /etc/mysql/my.cnf
+else
+  cp $MYSQL_DEFAULTS_FILE /etc/mysql/my.cnf
+fi
+# ------------------------------------------------
+# Validate MySQL credentials variable configuration
+if [[ ! -z $MYSQL_USER ]]; then
+  if ! [[ $MYSQL_USER =~ $IS_STRING ]]; then
+    echo "Failed to configure MYSQL_USER variable. Fallback to default MYSQL_USER value as admin"
+    MYSQL_USER="admin"
+  else
+    if [[ ${#MYSQL_USER} -gt 32 ]]; then
+      echo "Failed to configure MYSQL_USER variable. Fallback to default MYSQL_USER value as admin"
+      MYSQL_USER="admin"
+    fi
+  fi
+else
+  echo "Failed to configure MYSQL_USER variable. Fallback to default MYSQL_USER value as admin"
+  MYSQL_USER="admin"
+fi
+if [[ ! -z $MYSQL_PASSWORD ]]; then
+  if ! [[ $MYSQL_PASSWORD =~ $IS_PASSWORD ]]; then
+    echo "Failed to configure MYSQL_PASSWORD variable. Fallback to default MYSQL_PASSWORD value as password"
+    MYSQL_PASSWORD="password"
+  fi
+else
+  echo "Failed to configure MYSQL_PASSWORD variable. Fallback to default MYSQL_PASSWORD value as password"
+  MYSQL_PASSWORD="password"
+fi
+if [[ ! -z $MYSQL_ROOT_PASSWORD ]]; then
+  if ! [[ $MYSQL_ROOT_PASSWORD =~ $IS_PASSWORD ]]; then
+    echo "Failed to configure MYSQL_ROOT_PASSWORD variable. Fallback to default MYSQL_ROOT_PASSWORD value as password"
+    MYSQL_ROOT_PASSWORD="password"
+  fi
+else
+  echo "Failed to configure MYSQL_ROOT_PASSWORD variable. Fallback to default MYSQL_ROOT_PASSWORD value as password"
+  MYSQL_ROOT_PASSWORD="password"
+fi
+if [[ ! -z $MYSQL_DATABASE ]]; then
+  if [[ ${#MYSQL_DATABASE} -gt 32 ]]; then
+    echo "Failed to configure MYSQL_DATABASE variable. Fallback to default MYSQL_DATABASE value as db"
+    MYSQL_DATABASE="db"
+  fi
+else
+  echo "Failed to configure MYSQL_DATABASE variable. Fallback to default MYSQL_DATABASE value as db"
+  MYSQL_DATABASE="db"
+fi
+# ------------------------------------------------
+# Creating MySQL credentials file
+MYSQL_TEMP_FILE=`mktemp`
+if [ ! -f "$MYSQL_TEMP_FILE" ]; then
+    return 1
+fi
+cat << EOF > $MYSQL_TEMP_FILE
+USE mysql;
+FLUSH PRIVILEGES;
+
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD' WITH GRANT OPTION;
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'::1' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD' WITH GRANT OPTION;
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'127.0.0.1' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD' WITH GRANT OPTION;
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD' WITH GRANT OPTION;
+
+CREATE DATABASE IF NOT EXISTS $MYSQL_DATABASE CHARACTER SET utf8 COLLATE utf8_general_ci;
+
+GRANT ALL ON $MYSQL_DATABASE.* to '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';
+GRANT ALL ON $MYSQL_DATABASE.* to '$MYSQL_USER'@'::1' IDENTIFIED BY '$MYSQL_PASSWORD';
+GRANT ALL ON $MYSQL_DATABASE.* to '$MYSQL_USER'@'127.0.0.1' IDENTIFIED BY '$MYSQL_PASSWORD';
+GRANT ALL ON $MYSQL_DATABASE.* to '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD';
+
+FLUSH PRIVILEGES;
+EOF
+# ------------------------------------------------
+# MySQL Daemon Wait function
+function mysqld_wait() {
+  local MYSQL_WAIT_LOOP
+  local MYSQL_WAIT_OPERATION=${1:-1}
+  local MYSQL_WAIT_MESSAGE="up"
+
+  if [[ ${MYSQL_WAIT_OPERATION} -eq 0 ]]; then
+    MYSQL_WAIT_MESSAGE="down"
+  fi
+
+  for MYSQL_WAIT_LOOP in $(seq $MYSQL_WAIT_MAX_ATTEMPTS); do
+    echo "Waiting for MySQL Daemon to ${MYSQL_WAIT_MESSAGE} ..."  
+    if ([[ ${MYSQL_WAIT_OPERATION} -eq 1 ]] && mysqladmin ping &>/dev/null) || ([[ ${MYSQL_WAIT_OPERATION} -eq 0 ]] && ! mysqladmin ping &>/dev/null); then
+      return 0
+    fi
+    sleep ${MYSQL_WAIT_SLEEP_TIME}
+  done
+
+  echo "Failed to Wait MySQL Daemon to ${MYSQL_WAIT_MESSAGE}"
+  return 1
+}
+# ------------------------------------------------
+# Configuring MySQL credentials
+MYSQL_DATADIR=/var/lib/mysql/data
+export MYSQL_DATADIR=/var/lib/mysql/data
+
+if [ "$(ls -A $MYSQL_DATADIR)" ]; then
+  echo "MySQL already initialized, skipping initialization"
+  MYSQL_INITIALIZED="false"
+else
+  echo "MySQL not yet initialized, starting initialization"
+  MYSQL_INITIALIZED="true"  
+  mysql_install_db > /dev/null
+fi
+
+mysqld --innodb-flush-method=fsync --bootstrap --verbose=0 < $MYSQL_TEMP_FILE
+rm -f ${MYSQL_TEMP_FILE}
+
+if [[ $MYSQL_INITIALIZED == "false" ]]; then
+  mysqld --innodb-flush-method=fsync --console $ARGS &
+  mysqld_wait 1
+
+  echo "Upgrading MySQL Databases ..."
+  mysql_upgrade -uroot -p${MYSQL_ROOT_PASSWORD} > /dev/null
+  
+  mysqladmin -uroot -p${MYSQL_ROOT_PASSWORD} shutdown > /dev/null
+  mysqld_wait 0
+fi
+# ------------------------------------------------
+# Cleaning-up configuration variable
+unset MYSQL_USER MYSQL_PASSWORD MYSQL_ROOT_PASSWORD MYSQL_DATABASE
+unset MYSQL_SQL_MODE MYSQL_FT_MIN_WORD_LEN MYSQL_FT_MAX_WORD_LEN MYSQL_TABLE_OPEN_CACHE \
+      MYSQL_KEY_BUFFER_SIZE MYSQL_SORT_BUFFER_SIZE MYSQL_READ_BUFFER_SIZE \
+      MYSQL_WRITE_BUFFER_SIZE MYSQL_READ_RND_BUFFER_SIZE MYSQL_MAX_CONNECTIONS MYSQL_MAX_ALLOWED_PACKET \
+      MYSQL_NET_BUFFER_LENGTH MYSQL_MYISAM_SORT_BUFFER_SIZE MYSQL_INNODB_LOG_FILE_SIZE \
+      MYSQL_INNODB_LOG_BUFFER_SIZE MYSQL_INNODB_BUFFER_POOL_SIZE MYSQL_INNODB_USE_NATIVE_AIO \
+      MYSQL_LOG_QUERIES_ENABLED MYSQL_DEFAULTS_FILE
+unset MYSQL_REPLICATION MYSQL_REPLICATION_SERVER_ID_DEFAULT MYSQL_REPLICATION_SERVER_ID \
+      MYSQL_REPLICATION_MASTER_HOST MYSQL_REPLICATION_MASTER_PORT \
+      MYSQL_REPLICATION_USER MYSQL_REPLICATION_PASSWORD
+
+
+# Execute Everything from Entries
+exec "$@"
