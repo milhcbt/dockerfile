@@ -1,0 +1,52 @@
+#!/bin/bash
+
+set -e
+
+echo "--------------------------------------------------"
+echo "Dockerfile Build Tools"
+echo "Email: dimas.restu@student.upi.edu"
+echo "--------------------------------------------------"
+
+echo ""
+echo "[1] Run Some Housekeeping"
+echo "--------------------------------------------------"
+mkdir -p /var/lib \
+  && mkdir -p /var/lib/turn \
+  && chown -R root:root /var/run \
+  && chown -R root:root /var/lib \
+  && chown -R root:root /var/lib/turn \
+  && chown -R root:root /usr/local/docker \
+  && chown -R root:root /usr/local/docker/bin \
+  && chmod 775 /var/run \
+  && chmod 775 /var/lib \
+  && chmod 775 /var/lib/turn \
+  && chmod 775 /usr/local/docker \
+  && chmod 775 /usr/local/docker/bin \
+  && chmod 775 /usr/local/docker/bin/build \
+  && chmod 775 /usr/local/docker/bin/entrypoint
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[2] Installing CoTURN"
+echo "--------------------------------------------------"
+apt-get -y -o Acquire::Check-Valid-Until=false update \
+  && apt-get -y -o Acquire::Check-Valid-Until=false install \
+      dnsutils \
+      coturn \
+  && apt-get -y -o Acquire::Check-Valid-Until=false autoremove \
+  && apt-get -y -o Acquire::Check-Valid-Until=false clean
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[3] Configuring CoTURN"
+echo "--------------------------------------------------"
+rm -f /etc/turnserver.conf \
+  && touch /etc/turnserver.conf \
+  && chown -R root:root /etc/turnserver.conf \
+  && chmod 775 /etc/turnserver.conf
+echo "--------------------------------------------------"
+
+
+exit 0

@@ -1,0 +1,82 @@
+#!/bin/bash
+
+set -e
+
+# Add Custom UserID as "User" User
+if [ "$(id -u)" != "0" ]; then
+  sed "s/^user:\(.*\):[0-9]\+:\([0-9]\+\):.*:\(.*:.*\)/user:\1:$(id -u):\2:User:\3/g" < /etc/passwd > /tmp/passwd \
+  && cat /tmp/passwd > /etc/passwd \
+  && rm -f /tmp/passwd
+fi
+
+
+# Prepare var/lib directory due to volume
+if [ ! -d /var/lib ]; then
+  mkdir -p /var/lib \
+  && chown user:root /var/lib \
+  && chmod 775 /var/lib
+fi
+
+
+# Prepare var/lib/coturn directory due to volume
+if [ ! -d /var/lib/turn ]; then
+  mkdir -p /var/lib/turn \
+  && chown user:root /var/lib/turn \
+  && chmod 775 /var/lib/turn
+fi
+
+
+# Prepare CoTURN configuration
+# ------------------------------------------------
+# CoTURN credentials variable configuration
+COTURN_REALM=${COTURN_REALM:-coturn}
+COTURN_USER=${COTURN_USER:-admin}
+COTURN_PASSWORD=${COTURN_PASSWORD:-admin}
+# ------------------------------------------------
+# CoTURN networks variable configuration
+COTURN_IP_INT="$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')"
+COTURN_IP_EXT="$(dig +short myip.opendns.com @resolver1.opendns.com)"
+COTURN_IP_DOCKER=${COTURN_IP_INT:-}
+COTURN_IP_PUBLIC=${COTURN_IP_EXT:-}
+COTURN_PORT=${COTURN_PORT:-3478}
+COTURN_PORT_TLS=${COTURN_PORT_TLS:-5349}
+# ------------------------------------------------
+# CoTURN certificate variable
+COTURN_CERT=${COTURN_CERT:-}
+COTURN_PKEY=${COTURN_PKEY:-}
+# ------------------------------------------------
+# CoTURN generate certificate
+if [[ ! -z ${COTURN_CERT} ]]; then
+  echo "${COTURN_CERT}" > /etc/ssl/turn_server_cert.pem
+fi
+if [[ ! -z ${COTURN_PKEY} ]]; then
+  echo "${COTURN_PKEY}" > /etc/ssl/turn_server_pkey.pem
+fi
+# ------------------------------------------------
+# CoTURN generate configuration
+( \
+  echo "server-name=${COTURN_REALM}"; \
+  echo "listening-port=${COTURN_PORT}"; \
+  echo "tls-listening-port=${COTURN_PORT_TLS}"; \
+  echo "relay-ip=${COTURN_IP_DOCKER}"; \
+  echo "listening-ip=${COTURN_IP_DOCKER}"; \
+  echo "external-ip=${COTURN_IP_PUBLIC}"; \
+  echo "userdb=/var/lib/turn/turndb"; \
+  echo "cert=/etc/ssl/turn_server_cert.pem"; \
+  echo "pkey=/etc/ssl/turn_server_pkey.pem"; \
+  echo "lt-cred-mech"; \
+  echo "no-stdout-log"; \
+) > /etc/turnserver.conf
+# ------------------------------------------------
+# CoTURN configure credentials
+turnadmin -a -u ${COTURN_USER} -p ${COTURN_PASSWORD} -r ${COTURN_REALM}
+# ------------------------------------------------
+# Cleaning-up configuration variable
+unset COTURN_REALM COTURN_USER COTURN_PASSWORD
+unset COTURN_IP_INT COTURN_IP_EXT COTURN_IP_DOCKER COTURN_IP_PUBLIC \
+      COTURN_PORT COTURN_PORT_TLS
+unset COTURN_CERT COTURN_PKEY
+
+
+# Execute Everything from Entries
+exec "$@"
