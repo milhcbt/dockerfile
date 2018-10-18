@@ -33,34 +33,34 @@ COTURN_USER=${COTURN_USER:-admin}
 COTURN_PASSWORD=${COTURN_PASSWORD:-admin}
 # ------------------------------------------------
 # CoTURN networks variable configuration
-COTURN_IP_INT="$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')"
-COTURN_IP_EXT="$(dig +short myip.opendns.com @resolver1.opendns.com)"
-COTURN_IP_DOCKER=${COTURN_IP_INT:-}
-COTURN_IP_PUBLIC=${COTURN_IP_EXT:-}
-COTURN_PORT=${COTURN_PORT:-3478}
-COTURN_PORT_TLS=${COTURN_PORT_TLS:-5349}
+COTURN_IP_DOCKER="$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')"
+COTURN_IP_HOST="$(dig +short myip.opendns.com @resolver1.opendns.com)"
+COTURN_IP_INTERNAL=${COTURN_IP_DOCKER:-}
+COTURN_IP_EXTERNAL=${COTURN_IP_HOST:-}
+COTURN_PORT_EXTERNAL=${COTURN_PORT:-3478}
+COTURN_PORT_EXTERNAL_TLS=${COTURN_PORT_TLS:-5349}
 # ------------------------------------------------
 # CoTURN certificate variable
-COTURN_CERT=${COTURN_CERT:-}
-COTURN_PKEY=${COTURN_PKEY:-}
+COTURN_CERTIFICATE=${COTURN_CERTIFICATE:-}
+COTURN_PRIVATE_KEY=${COTURN_PRIVATE_KEY:-}
 # ------------------------------------------------
 # CoTURN generate certificate
-if [[ ! -z ${COTURN_CERT} ]]; then
-  echo "${COTURN_CERT}" > /etc/ssl/turnserver.pem
+if [[ ! -z ${COTURN_CERTIFICATE} ]]; then
+  echo "${COTURN_CERTIFICATE}" > /etc/ssl/turnserver.pem
 fi
-if [[ ! -z ${COTURN_PKEY} ]]; then
-  echo "${COTURN_PKEY}" > /etc/ssl/turnserver.key
+if [[ ! -z ${COTURN_PRIVATE_KEY} ]]; then
+  echo "${COTURN_PRIVATE_KEY}" > /etc/ssl/turnserver.key
 fi
 # ------------------------------------------------
 # CoTURN generate configuration
 ( \
   echo "realm=${COTURN_REALM}"; \
   echo "server-name=${COTURN_REALM}"; \
-  echo "listening-port=${COTURN_PORT}"; \
-  echo "tls-listening-port=${COTURN_PORT_TLS}"; \
-  echo "relay-ip=${COTURN_IP_DOCKER}"; \
-  echo "listening-ip=${COTURN_IP_DOCKER}"; \
-  echo "external-ip=${COTURN_IP_PUBLIC}"; \
+  echo "listening-port=${COTURN_PORT_EXTERNAL}"; \
+  echo "tls-listening-port=${COTURN_PORT_EXTERNAL_TLS}"; \
+  echo "relay-ip=${COTURN_IP_INTERNAL}"; \
+  echo "listening-ip=${COTURN_IP_INTERNAL}"; \
+  echo "external-ip=${COTURN_IP_EXTERNAL}"; \
   echo "userdb=/var/lib/coturn/turndb"; \
   echo "cert=/etc/coturn/turnserver.pem"; \
   echo "pkey=/etc/coturn/turnserver.key"; \
@@ -75,7 +75,7 @@ turnadmin -a -u ${COTURN_USER} -p ${COTURN_PASSWORD} -r ${COTURN_REALM}
 unset COTURN_REALM COTURN_USER COTURN_PASSWORD
 unset COTURN_IP_INT COTURN_IP_EXT COTURN_IP_DOCKER COTURN_IP_PUBLIC \
       COTURN_PORT COTURN_PORT_TLS
-unset COTURN_CERT COTURN_PKEY
+unset COTURN_CERTIFICATE COTURN_PRIVATE_KEY
 
 
 # Execute Everything from Entries
