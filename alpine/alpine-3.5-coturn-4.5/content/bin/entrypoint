@@ -1,6 +1,5 @@
-#!/bin/bash
+#!/bin/sh -e
 
-set -e
 
 # Add Custom UserID as "User" User
 if [ "$(id -u)" != "0" ]; then
@@ -19,10 +18,10 @@ fi
 
 
 # Prepare var/lib/coturn directory due to volume
-if [ ! -d /var/lib/turn ]; then
-  mkdir -p /var/lib/turn \
-  && chown user:root /var/lib/turn \
-  && chmod 775 /var/lib/turn
+if [ ! -d /var/lib/coturn ]; then
+  mkdir -p /var/lib/coturn \
+  && chown user:root /var/lib/coturn \
+  && chmod 775 /var/lib/coturn
 fi
 
 
@@ -47,28 +46,29 @@ COTURN_PKEY=${COTURN_PKEY:-}
 # ------------------------------------------------
 # CoTURN generate certificate
 if [[ ! -z ${COTURN_CERT} ]]; then
-  echo "${COTURN_CERT}" > /etc/ssl/turn_server_cert.pem
+  echo "${COTURN_CERT}" > /etc/ssl/turnserver.pem
 fi
 if [[ ! -z ${COTURN_PKEY} ]]; then
-  echo "${COTURN_PKEY}" > /etc/ssl/turn_server_pkey.pem
+  echo "${COTURN_PKEY}" > /etc/ssl/turnserver.key
 fi
 # ------------------------------------------------
 # CoTURN generate configuration
 ( \
+  echo "realm=${COTURN_REALM}"; \
   echo "server-name=${COTURN_REALM}"; \
   echo "listening-port=${COTURN_PORT}"; \
   echo "tls-listening-port=${COTURN_PORT_TLS}"; \
   echo "relay-ip=${COTURN_IP_DOCKER}"; \
   echo "listening-ip=${COTURN_IP_DOCKER}"; \
   echo "external-ip=${COTURN_IP_PUBLIC}"; \
-  echo "userdb=/var/lib/turn/turndb"; \
-  echo "cert=/etc/ssl/turn_server_cert.pem"; \
-  echo "pkey=/etc/ssl/turn_server_pkey.pem"; \
+  echo "userdb=/var/lib/coturn/turndb"; \
+  echo "cert=/etc/coturn/turnserver.pem"; \
+  echo "pkey=/etc/coturn/turnserver.key"; \
   echo "lt-cred-mech"; \
   echo "no-stdout-log"; \
-) > /etc/turnserver.conf
+) > /etc/coturn/turnserver.conf
 # ------------------------------------------------
-# CoTURN configure credentials
+# CoTURN generate credentials
 turnadmin -a -u ${COTURN_USER} -p ${COTURN_PASSWORD} -r ${COTURN_REALM}
 # ------------------------------------------------
 # Cleaning-up configuration variable

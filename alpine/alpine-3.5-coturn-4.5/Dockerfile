@@ -1,4 +1,4 @@
-FROM dimaskiddo/ubuntu:base
+FROM dimaskiddo/alpine:base
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
 # Copying Prequisites Configuration
@@ -23,11 +23,11 @@ USER user
 
 # Set Labels Used in OpenShift to Describe the Builder Images
 LABEL release=1 \
-      vendor="Ubuntu" \
+      vendor="Alpine" \
       summary="Virtual Machine (VM) like container platform with CoTURN 4.5" \
       maintainer="Dimas Restu Hidayanto <dimas.restu@student.upi.edu>" \
-      io.k8s.description="Ubuntu Xenial (16.04) with CoTURN 4.5" \
-      io.k8s.display-name="Ubuntu Xenial (16.04) with CoTURN 4.5" \
-      io.openshift.tags="builder,ubuntu,coturn" \
+      io.k8s.description="Alpine (3.x) with CoTURN 4.5" \
+      io.k8s.display-name="Alpine (3.x) with CoTURN 4.5" \
+      io.openshift.tags="builder,alpine,coturn" \
       io.openshift.expose-services="3478:coturn;5349:coturn-tls" \
       io.openshift.non-scalable="false"
