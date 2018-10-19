@@ -37,19 +37,23 @@ COTURN_IP_DOCKER="$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -E
 COTURN_IP_HOST="$(curl http://icanhazip.com 2>/dev/null)"
 COTURN_IP_INTERNAL=${COTURN_IP_DOCKER:-}
 COTURN_IP_EXTERNAL=${COTURN_IP_HOST:-}
-COTURN_PORT_EXTERNAL=${COTURN_PORT:-3478}
-COTURN_PORT_EXTERNAL_TLS=${COTURN_PORT_TLS:-5349}
+COTURN_PORT_EXTERNAL=${COTURN_PORT_EXTERNAL:-3478}
+COTURN_PORT_EXTERNAL_TLS=${COTURN_PORT_EXTERNAL_TLS:-5349}
 # ------------------------------------------------
 # CoTURN certificate variable
-COTURN_CERTIFICATE=${COTURN_CERTIFICATE:-}
 COTURN_PRIVATE_KEY=${COTURN_PRIVATE_KEY:-}
+COTURN_CERTIFICATE=${COTURN_CERTIFICATE:-}
+COTURN_CA_CERTIFICATE=${COTURN_CA_CERTIFICATE:-}
 # ------------------------------------------------
 # CoTURN generate certificate
-if [[ ! -z ${COTURN_CERTIFICATE} ]]; then
-  echo "${COTURN_CERTIFICATE}" > /etc/ssl/turnserver.pem
-fi
 if [[ ! -z ${COTURN_PRIVATE_KEY} ]]; then
   echo "${COTURN_PRIVATE_KEY}" > /etc/ssl/turnserver.key
+fi
+if [[ ! -z ${COTURN_CERTIFICATE} ]]; then
+  echo "${COTURN_CERTIFICATE}" > /etc/ssl/turnserver.crt
+fi
+if [[ ! -z ${COTURN_CA_CERTIFICATE} ]]; then
+  echo "${COTURN_CA_CERTIFICATE}" > /etc/ssl/turnserver-ca.crt
 fi
 # ------------------------------------------------
 # CoTURN generate configuration
@@ -62,10 +66,20 @@ fi
   echo "listening-ip=${COTURN_IP_INTERNAL}"; \
   echo "external-ip=${COTURN_IP_EXTERNAL}"; \
   echo "userdb=/var/lib/coturn/turndb"; \
-  echo "cert=/etc/coturn/turnserver.pem"; \
-  echo "pkey=/etc/coturn/turnserver.key"; \
+  if [[ ! -z ${COTURN_PRIVATE_KEY} ]]; \
+  then
+    echo "pkey=/etc/coturn/turnserver.key"; \
+  fi; \
+  if [[ ! -z ${COTURN_CERTIFICATE} ]]; \
+  then
+    echo "cert=/etc/coturn/turnserver.crt"; \
+  fi; \
+  if [[ ! -z ${COTURN_CA_CERTIFICATE} ]]; \
+  then
+    echo "CA-file=/etc/coturn/turnserver-ca.crt"; \
+  fi; \
+  echo "log-file=stdout"; \
   echo "lt-cred-mech"; \
-  echo "no-stdout-log"; \
 ) > /etc/coturn/turnserver.conf
 # ------------------------------------------------
 # CoTURN generate credentials
