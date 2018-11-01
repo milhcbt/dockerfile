@@ -29,10 +29,10 @@ USER user
 # Set Labels Used in OpenShift to Describe the Builder Images
 LABEL release=1 \
       vendor="Alpine" \
-      summary="Virtual Machine (VM) like container platform with Tomcat 8.5 & Jasper Reports Server 6.4.2" \
+      summary="Virtual Machine (VM) like container platform with Tomcat 8.5 & Jasper Reports Server 6.4.3" \
       maintainer="Dimas Restu Hidayanto <dimas.restu@student.upi.edu>" \
-      io.k8s.description="Alpine (3.x) OpenJRE 8.0 with Apache Tomcat 8.5 & Jasper Reports Server 6.4.2" \
-      io.k8s.display-name="Alpine (3.x) OpenJRE 8.0 with Apache Tomcat 8.5 & Jasper Reports Server 6.4.2" \
+      io.k8s.description="Alpine (3.x) OpenJRE 8.0 with Apache Tomcat 8.5 & Jasper Reports Server 6.4.3" \
+      io.k8s.display-name="Alpine (3.x) OpenJRE 8.0 with Apache Tomcat 8.5 & Jasper Reports Server 6.4.3" \
       io.openshift.tags="builder,alpine,openjre,tomcat,jasperce" \
       io.openshift.expose-services="8080:http,8443:https" \
       io.openshift.non-scalable="false"
