@@ -2,7 +2,7 @@ FROM dimaskiddo/alpine:openjre-8.0
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
 # Set Environment Variables
-ENV JMETER_VERSION=4.0 \
+ENV JMETER_VERSION=5.0 \
     JMETER_NODE_TYPE=master \
     JMETER_REMOTE_HOSTS=127.0.0.1 \
     JMETER_HOME=/opt/jmeter \    
@@ -35,10 +35,10 @@ USER user
 # Set Labels Used in OpenShift to Describe the Builder Images
 LABEL release=1 \
       vendor="Alpine" \
-      summary="Virtual Machine (VM) like container platform with JMeter 4.0" \
+      summary="Virtual Machine (VM) like container platform with JMeter 5.0" \
       maintainer="Dimas Restu Hidayanto <dimas.restu@student.upi.edu>" \
-      io.k8s.description="Alpine (3.x) OpenJRE 8.0 with Apache JMeter 4.0" \
-      io.k8s.display-name="Alpine (3.x) OpenJRE 8.0 with Apache JMeter 4.0" \
+      io.k8s.description="Alpine (3.x) OpenJRE 8.0 with Apache JMeter 5.0" \
+      io.k8s.display-name="Alpine (3.x) OpenJRE 8.0 with Apache JMeter 5.0" \
       io.openshift.tags="builder,alpine,openjre,jmeter" \
       io.openshift.expose-services="1099:jmeter,32001:jmeter-slave" \
       io.openshift.non-scalable="false"

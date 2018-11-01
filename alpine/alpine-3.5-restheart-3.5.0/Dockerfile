@@ -2,7 +2,7 @@ FROM dimaskiddo/alpine:openjre-8.0
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
 # Setting-up Environment
-ENV RESTHEART_VERSION 3.2.2
+ENV RESTHEART_VERSION 3.5.0
 
 # Copying Prequisites Configuration
 COPY ./content/ /usr/local/docker/

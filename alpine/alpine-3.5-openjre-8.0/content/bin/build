@@ -33,4 +33,13 @@ mv /etc/apk/repositories /etc/apk/repositories.original \
 # --------------------------------------------------
 
 
+# [3] Installing JCE Policy
+# --------------------------------------------------
+curl --silent --location --retry 3 --header "Cookie: oraclelicense=accept-securebackup-cookie;" http://download.oracle.com/otn-pub/java/jce/8/jce_policy-8.zip -o /tmp/jce_policy-8.zip \
+&& unzip /tmp/jce_policy-8.zip -d /tmp \
+&& cp -R /tmp/UnlimitedJCEPolicyJDK8/*.jar ${JAVA_HOME}/lib/security/ \
+&& rm -rf /tmp/*
+# --------------------------------------------------
+
+
 exit

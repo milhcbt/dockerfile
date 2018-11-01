@@ -10,25 +10,31 @@
 # --------------------------------------------------
 mkdir -p /var/www/data \
 && mkdir -p /var/www/data/etc \
+&& mkdir -p /var/www/data/lib \
 && mkdir -p /var/www/data/web \
 && mkdir -p /var/www/data/logs \
 && mkdir -p /var/www/data/logs/tomcat \
 && mkdir -p /usr/local/docker/etc \
 && mkdir -p /usr/local/docker/etc/tomcat \
+&& mkdir -p /usr/local/docker/lib \
+&& mkdir -p /usr/local/docker/lib/tomcat \
 && mkdir -p /usr/local/docker/web \
 && chown -R root:root /var/run \
 && chown -R root:root /var/www/data \
 && chown -R root:root /var/www/data/etc \
+&& chown -R root:root /var/www/data/lib \
 && chown -R root:root /var/www/data/web \
 && chown -R root:root /var/www/data/logs \
 && chown -R root:root /var/www/data/logs/tomcat \
 && chown -R root:root /usr/local/docker \
 && chown -R root:root /usr/local/docker/bin \
 && chown -R root:root /usr/local/docker/etc \
+&& chown -R root:root /usr/local/docker/lib \
 && chown -R root:root /usr/local/docker/web \
 && chmod 775 /var/run \
 && chmod 775 /var/www/data \
 && chmod 775 /var/www/data/etc \
+&& chmod 775 /var/www/data/lib \
 && chmod 775 /var/www/data/web \
 && chmod 775 /var/www/data/logs \
 && chmod 775 /var/www/data/logs/tomcat \
@@ -38,6 +44,8 @@ mkdir -p /var/www/data \
 && chmod 775 /usr/local/docker/bin/entrypoint \
 && chmod 775 /usr/local/docker/etc \
 && chmod 775 /usr/local/docker/etc/tomcat \
+&& chmod 775 /usr/local/docker/lib \
+&& chmod 775 /usr/local/docker/lib/tomcat \
 && chmod 775 /usr/local/docker/web
 # --------------------------------------------------
 
@@ -52,17 +60,22 @@ mkdir -p $CATALINA_HOME \
 && tar xvfz tomcat.tar.gz --strip-components=1 \
 && rm -f tomcat.tar.gz* \
 && cp -R $CATALINA_HOME/conf/* /usr/local/docker/etc/tomcat \
+&& cp -R $CATALINA_HOME/lib/* /usr/local/docker/lib/tomcat \
 && cp -R $CATALINA_HOME/webapps/* /usr/local/docker/web/ \
 && rm -rf $CATALINA_HOME/conf \
+&& rm -rf $CATALINA_HOME/lib \
 && rm -rf $CATALINA_HOME/logs \
 && rm -rf $CATALINA_HOME/webapps \
 && chown -R root:root $CATALINA_HOME \
 && chown -R root:root /usr/local/docker/etc/tomcat/* \
+&& chown -R root:root /usr/local/docker/lib/tomcat/* \
 && chown -R root:root /usr/local/docker/web/* \
 && chmod -R 775 $CATALINA_HOME \
 && chmod -R 775 /usr/local/docker/etc/tomcat/* \
+&& chmod -R 775 /usr/local/docker/lib/tomcat/* \
 && chmod -R 775 /usr/local/docker/web/* \
 && ln -sf /var/www/data/etc/tomcat $CATALINA_HOME/conf \
+&& ln -sf /var/www/data/lib/tomcat $CATALINA_HOME/lib \
 && ln -sf /var/www/data/logs/tomcat $CATALINA_HOME/logs \
 && ln -sf /var/www/data/web $CATALINA_HOME/webapps
 # --------------------------------------------------

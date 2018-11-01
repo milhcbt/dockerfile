@@ -24,7 +24,7 @@ chown -R root:root /var/run \
 # --------------------------------------------------
 mkdir -p $JMETER_HOME \
 && cd $JMETER_HOME \
-&& wget -O jmeter.tar.gz http://www-eu.apache.org/dist/jmeter/binaries/apache-jmeter-$JMETER_VERSION.tgz \
+&& wget -O jmeter.tar.gz https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-$JMETER_VERSION.tgz \
 && tar xvfz jmeter.tar.gz --strip-components=1 \
 && rm -f jmeter.tar.gz* \
 && chown -R root:root $JMETER_HOME \

@@ -27,6 +27,15 @@ if [ ! -d /var/www/data/etc/tomcat ]; then
 fi
 
 
+# Prepare lib/tomcat directory due to volume
+if [ ! -d /var/www/data/lib/tomcat ]; then
+  mkdir -p /var/www/data/lib/tomcat \
+  && chown user:root /var/www/data/lib/tomcat \
+  && chmod 775 /var/www/data/lib/tomcat \
+  && cp -R /usr/local/docker/lib/tomcat/* /var/www/data/lib/tomcat/
+fi
+
+
 # Prepare logs directory due to volume
 if [ ! -d /var/www/data/logs ]; then
   mkdir -p /var/www/data/logs \

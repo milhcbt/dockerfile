@@ -2,10 +2,10 @@ FROM dimaskiddo/alpine:tomcat-8.5-openjre-novol
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
 # Setting-up Environment
-ENV JS_VERSION=6.4.2 \
+ENV JS_VERSION=6.4.3 \
     JS_HOME=/opt/jasper-ce \
     JS_BUILD=/opt/jasper-ce/buildomatic \
-    JS_XMX=1024m \
+    JS_XMX=2G \
     JS_MAXPERMSIZE=256m \
     JS_CATALINA_OPTS="-XX:+UseBiasedLocking -XX:BiasedLockingStartupDelay=0 -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC -XX:+CMSIncrementalMode -XX:+CMSIncrementalPacing -XX:+CMSParallelRemarkEnabled -XX:+UseCompressedOops -XX:+UseCMSInitiatingOccupancyOnly"
 
