@@ -9,19 +9,7 @@ networks:
     driver: bridge
 
 services:
-  odoo:
-    image: 'dimaskiddo/ubuntu:odoo-10.0'
-    networks:
-      - odoonet
-    ports:
-      - 8069:8069
-    volumes:
-      - odoo_data:/var/lib/odoo
-    depends_on:
-      - db
-    restart: always
-
-  db:
+  postgresql:
     image: 'dimaskiddo/alpine:postgresql-9.6'
     networks:
       - odoonet
@@ -34,4 +22,21 @@ services:
       - POSTGRESQL_DATABASE=odoo
     volumes:
       - pgsql_data:/var/lib/pgsql/data
+    restart: always
+
+  odoo:
+    image: 'dimaskiddo/ubuntu:odoo-10.0'
+    networks:
+      - odoonet
+    ports:
+      - 8069:8069
+    environment:
+      - ODOO_DB_HOST=postgresql
+      - ODOO_DB_PORT=5432
+      - ODOO_DB_USER=odoo
+      - ODOO_DB_PASSWORD=odoo
+    volumes:
+      - odoo_data:/var/lib/odoo
+    depends_on:
+      - postgresql
     restart: always

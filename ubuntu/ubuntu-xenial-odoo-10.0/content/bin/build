@@ -55,7 +55,7 @@ echo "[4] Installing WKHTMLTOX"
 echo "--------------------------------------------------"
 wget -O wkhtmltox.deb http://nightly.odoo.com/extra/wkhtmltox-0.12.1.2_linux-jessie-amd64.deb \
   && dpkg --force-depends -i wkhtmltox.deb \
-  && apt-get -f -y -o Acquire::Check-Valid-Until=false --no-install-recommends install \
+  && apt-get -y -o Acquire::Check-Valid-Until=false -f --no-install-recommends install \
   && apt-get -y -o Acquire::Check-Valid-Until=false -o APT::AutoRemove::RecommendsImportant=false -o APT::AutoRemove::SuggestsImportant=false --auto-remove purge npm \
   && apt-get -y -o Acquire::Check-Valid-Until=false autoremove \
   && apt-get -y -o Acquire::Check-Valid-Until=false clean \
@@ -68,8 +68,7 @@ echo "[5] Installing Odoo"
 echo "--------------------------------------------------"
 wget -O odoo.deb http://nightly.odoo.com/${ODOO_VERSION}/nightly/deb/odoo_${ODOO_VERSION}.${ODOO_RELEASE}_all.deb \
   && dpkg --force-depends -i odoo.deb \
-  && apt-get -y -o Acquire::Check-Valid-Until=false update \
-  && apt-get -f -y -o Acquire::Check-Valid-Until=false --no-install-recommends install \
+  && apt-get -y -o Acquire::Check-Valid-Until=false -f --no-install-recommends install \
   && apt-get -y -o Acquire::Check-Valid-Until=false autoremove \
   && apt-get -y -o Acquire::Check-Valid-Until=false clean \
   && rm -rf odoo.deb
@@ -79,7 +78,9 @@ echo "--------------------------------------------------"
 echo ""
 echo "[6] Configuring Odoo"
 echo "--------------------------------------------------"
-chown -R root:root /etc \
+mv /usr/local/docker/etc/odoo/odoo.conf /etc/odoo/odoo.conf \
+  && rm -rf /usr/local/docker/etc \
+  && chown -R root:root /etc \
   && chown -R root:root /etc/odoo \
   && chown -R root:root /var/lib \
   && chown -R root:root /var/lib/odoo \
