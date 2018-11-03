@@ -10,7 +10,7 @@ networks:
 
 services:
   jasperce:
-    image: 'dimaskiddo/alpine:jasperce-6.4.2'
+    image: 'dimaskiddo/alpine:jasperce-6.4.3'
     networks:
       - jaspernet
     ports:

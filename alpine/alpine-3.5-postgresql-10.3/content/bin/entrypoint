@@ -129,6 +129,15 @@ if [[ -z $POSTGRESQL_ENABLE_REPLICATION ]]; then
   fi
 fi
 # ------------------------------------------------
+# PostgreSQL Fix Postgres Execution User function
+function su_exec_postgres() {
+  if [ "$(id -u)" != "0" ]; then
+    "$@"
+  else
+    su-exec postgres "$@"
+  fi
+}
+# ------------------------------------------------
 # PostgreSQL Fix Permissions function
 function fix_permissions() {
   chown -R postgres:root $1
@@ -213,12 +222,12 @@ function initialize_cfg() {
 function initialize_creds() {
   if [[ $POSTGRESQL_INITIALIZED == "true" ]]; then
     if [[ ! -z $POSTGRESQL_USER && ! -z $POSTGRESQL_DATABASE ]]; then
-      createuser "$POSTGRESQL_USER"
-      createdb --owner="$POSTGRESQL_USER" "$POSTGRESQL_DATABASE"
+      su_exec_postgres createuser "$POSTGRESQL_USER"
+      su_exec_postgres createdb --owner="$POSTGRESQL_USER" "$POSTGRESQL_DATABASE"
     fi
 
     if [[ ! -z $POSTGRESQL_MASTER_USER && ! -z $POSTGRESQL_MASTER_PASSWORD ]]; then
-      createuser "$POSTGRESQL_MASTER_USER"
+      su_exec_postgres createuser "$POSTGRESQL_MASTER_USER"
     fi
   fi
 }
@@ -226,16 +235,16 @@ function initialize_creds() {
 # PostgreSQL Upgrade Credentials function
 function upgrade_creds() {
   if [[ ! -z $POSTGRESQL_USER && ! -z $POSTGRESQL_DATABASE ]]; then
-    psql --command "ALTER USER \"${POSTGRESQL_USER}\" WITH ENCRYPTED PASSWORD '${POSTGRESQL_PASSWORD}';"
+    su_exec_postgres psql --command "ALTER USER \"${POSTGRESQL_USER}\" WITH ENCRYPTED PASSWORD '${POSTGRESQL_PASSWORD}';"
   fi
 
   if [[ ! -z $POSTGRESQL_ADMIN_PASSWORD ]]; then
-    psql --command "ALTER USER \"postgres\" WITH ENCRYPTED PASSWORD '${POSTGRESQL_ADMIN_PASSWORD}';"
+    su_exec_postgres psql --command "ALTER USER \"postgres\" WITH ENCRYPTED PASSWORD '${POSTGRESQL_ADMIN_PASSWORD}';"
   fi
 
   if [[ ! -z $POSTGRESQL_MASTER_USER && ! -z $POSTGRESQL_MASTER_PASSWORD ]]; then
-    psql --command "ALTER USER \"${POSTGRESQL_MASTER_USER}\" WITH REPLICATION;"
-    psql --command "ALTER USER \"${POSTGRESQL_MASTER_USER}\" WITH ENCRYPTED PASSWORD '${POSTGRESQL_MASTER_PASSWORD}';"
+    su_exec_postgres psql --command "ALTER USER \"${POSTGRESQL_MASTER_USER}\" WITH REPLICATION;"
+    su_exec_postgres psql --command "ALTER USER \"${POSTGRESQL_MASTER_USER}\" WITH ENCRYPTED PASSWORD '${POSTGRESQL_MASTER_PASSWORD}';"
   fi
 }
 # ------------------------------------------------
@@ -248,7 +257,7 @@ function initialize_dbs() {
   fi
 
   fix_permissions $PGDATA
-  initdb
+  su_exec_postgres initdb
 }
 # ------------------------------------------------
 # PostgreSQL Migrate DBs function
@@ -261,7 +270,7 @@ function migrate_dbs() {
         fi
         
         PGPASSWORD="$POSTGRESQL_MIGRATION_ADMIN_PASSWORD" \
-          pg_dumpall -h "$POSTGRESQL_MIGRATION_REMOTE_HOST" \
+          su_exec_postgres pg_dumpall -h "$POSTGRESQL_MIGRATION_REMOTE_HOST" \
           | grep -v '^CREATE ROLE postgres;'
       ) | psql
     fi
@@ -324,7 +333,7 @@ function postgresql_master_wait() {
 # PostgreSQL Slave Initialize function
 function postgresql_slave_init() {  
   rm -rf $PGDATA
-  PGPASSWORD="${POSTGRESQL_MASTER_PASSWORD}" pg_basebackup -X fetch --no-password --pgdata ${PGDATA} --host=${POSTGRESQL_MASTER_ADDR} --port=5432 -U "${POSTGRESQL_MASTER_USER}"
+  PGPASSWORD="${POSTGRESQL_MASTER_PASSWORD}" su_exec_postgres pg_basebackup -X fetch --no-password --pgdata ${PGDATA} --host=${POSTGRESQL_MASTER_ADDR} --port=5432 -U "${POSTGRESQL_MASTER_USER}"
 
   { \
     echo "# NOTE: This file is rewritten every time the container is started!"; \
@@ -369,13 +378,13 @@ if [[ $POSTGRESQL_ENABLE_REPLICATION == "false" ]]; then
   fix_permissions $PGDATA  
   initialize_cfg
 
-  pg_ctl -D $PGDATA -w start -o "-c listen_addresses=''"
+  su_exec_postgres pg_ctl -D $PGDATA -w start -o "-c listen_addresses=''"
   if [[ $POSTGRESQL_INITIALIZED == "true" ]] ; then
     migrate_dbs
     initialize_creds
   fi
   upgrade_creds
-  pg_ctl -D $PGDATA -w stop -m fast
+  su_exec_postgres pg_ctl -D $PGDATA -w stop -m fast
 else
   POSTGRESQL_MASTER_ADDR=$(postgresql_master_addr)
   export POSTGRESQL_MASTER_ADDR=$(postgresql_master_addr)
@@ -394,4 +403,8 @@ unset POSTGRESQL_UPGRADE_INITDB_OPTIONS POSTGRESQL_UPGRADE_PGUPGRADE_OPTIONS
 
 
 # Execute Everything from Entries
-exec "$@"
+if [ "$(id -u)" != "0" ]; then
+  exec "$@"
+else
+  su-exec postgres "$@"
+fi

@@ -24,8 +24,8 @@ ENTRYPOINT ["/usr/local/docker/bin/entrypoint"]
 # Set Executor Script
 CMD ["sh","-c","postgres $ARGS"]
 
-# Change Working User to "Postgres"
-USER postgres
+# Change Working Directory to "Postgres" Home Directory
+WORKDIR /var/lib/pgsql
 
 # Set Labels Used in OpenShift to Describe the Builder Images
 LABEL release=1 \
