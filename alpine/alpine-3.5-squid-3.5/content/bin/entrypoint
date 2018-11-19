@@ -88,7 +88,12 @@ export ARGS=$ARGS
   echo "http_access deny all"; \
   echo ""; \
   echo "# Squid normally listens to port 3128"; \
-  echo "http_port 3128"; \
+  if [[ ${SQUID_SUPPORT_VHOST} == "true" ]]; \
+  then
+    echo "http_port 3128 vhost"; \
+  else
+    echo "http_port 3128"; \
+  fi; \
   echo ""; \
   echo "# Uncomment and adjust the following to add a disk cache directory."; \
   echo "cache_dir ufs ${SQUID_CACHE_DIR} ${SQUID_CACHE_SIZE} ${SQUID_CACHE_L1} ${SQUID_CACHE_L2}"; \

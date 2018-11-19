@@ -2,7 +2,8 @@ FROM dimaskiddo/alpine:base
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
 # Setting-up Environment
-ENV SQUID_USER=user\
+ENV SQUID_USER=user \
+    SQUID_SUPPORT_VHOST=true \
     SQUID_LOG_DIR=/var/log/squid \
     SQUID_CACHE_DIR=/var/cache/squid \
     SQUID_CACHE_SIZE=100 \
