@@ -1,15 +1,6 @@
 FROM dimaskiddo/alpine:base
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
-# Setting-up Environment
-ENV SQUID_USER=user \
-    SQUID_SUPPORT_VHOST=true \
-    SQUID_LOG_DIR=/var/log/squid \
-    SQUID_CACHE_DIR=/var/cache/squid \
-    SQUID_CACHE_SIZE=100 \
-    SQUID_CACHE_L1=16 \
-    SQUID_CACHE_L2=256
-
 # Copying Prequisites Configuration
 COPY ./content/ /usr/local/docker/
 
@@ -19,7 +10,7 @@ RUN chmod 775 /usr/local/docker/bin/build \
   && rm -f /usr/local/docker/bin/build
 
 # Set Volumes Directory
-VOLUME ["/var/cache/squid", "/var/log/squid"]
+VOLUME /var/cache/squid
 
 # Expose Ports
 EXPOSE 3128
