@@ -1,0 +1,116 @@
+#!/bin/sh -e
+
+
+# Add Custom UserID as "User" User
+if [ "$(id -u)" != "0" ]; then
+  sed "s/^user:\(.*\):[0-9]\+:\([0-9]\+\):.*:\(.*:.*\)/user:\1:$(id -u):\2:User:\3/g" < /etc/passwd > /tmp/passwd \
+  && cat /tmp/passwd > /etc/passwd \
+  && rm -f /tmp/passwd
+fi
+
+
+# Prepare var/cache directory due to volume
+if [ ! -d /var/cache ]; then
+  mkdir -p /var/cache \
+  && chown user:root /var/cache \
+  && chmod 775 /var/cache
+fi
+
+
+# Prepare var/cache/squid directory due to volume
+if [ ! -d /var/cache/squid ]; then
+  mkdir -p /var/cache/squid \
+  && chown user:root /var/cache/squid \
+  && chmod 775 /var/cache/squid
+fi
+
+
+# Prepare var/log directory due to volume
+if [ ! -d /var/log ]; then
+  mkdir -p /var/log \
+  && chown user:root /var/log \
+  && chmod 775 /var/log
+fi
+
+
+# Prepare var/log/squid directory due to volume
+if [ ! -d /var/log/squid ]; then
+  mkdir -p /var/log/squid \
+  && chown user:root /var/log/squid \
+  && chmod 775 /var/log/squid
+fi
+
+
+# Squid Arguments variable configuration
+ARGS=${ARGS:-}
+export ARGS=$ARGS
+# ------------------------------------------------
+# Squid Creating configuration file
+{
+  echo "#"; \
+  echo "# Recommended minimum configuration:"; \
+  echo "#"; \
+  echo ""; \
+  echo "# Example rule allowing access from your local networks."; \
+  echo "# Adapt to list your (internal) IP networks from where browsing"; \
+  echo "# should be allowed"; \
+  echo "acl localnet src fc00::/7       # RFC 4193 local private network range"; \
+  echo "acl localnet src fe80::/10      # RFC 4291 link-local (directly plugged) machines"; \
+  echo ""; \
+  echo "acl CONNECT method CONNECT"; \
+  echo ""; \
+  echo ""; \
+  echo "#"; \
+  echo "# Recommended minimum Access Permission configuration:"; \
+  echo "#"; \
+  echo "# Only allow cachemgr access from localhost"; \
+  echo "http_access allow localhost manager"; \
+  echo "http_access deny manager"; \
+  echo "";\
+  echo "# We strongly recommend the following be uncommented to protect innocent"; \
+  echo "# web applications running on the proxy server who think the only"; \
+  echo "# one who can access services on \"localhost\" is a local user"; \
+  echo "http_access deny to_localhost"; \
+  echo ""; \
+  echo ""; \
+  echo "#"; \
+  echo "# INSERT YOUR OWN RULE(S) HERE TO ALLOW ACCESS FROM YOUR CLIENTS"; \
+  echo "#"; \
+  echo ""; \
+  echo "# Example rule allowing access from your local networks."; \
+  echo "# Adapt localnet in the ACL section to list your (internal) IP networks"; \
+  echo "# from where browsing should be allowed"; \
+  echo "http_access allow localhost"; \
+  echo "http_access allow localnet"; \
+  echo "http_access allow all"; \
+  echo ""; \
+  echo "# And finally deny all other access to this proxy"; \
+  echo "http_access deny all"; \
+  echo ""; \
+  echo "# Squid normally listens to port 3128"; \
+  echo "http_port 3128"; \
+  echo ""; \
+  echo "# Uncomment and adjust the following to add a disk cache directory."; \
+  echo "cache_dir ufs ${SQUID_CACHE_DIR} ${SQUID_CACHE_SIZE} ${SQUID_CACHE_L1} ${SQUID_CACHE_L2}"; \
+  echo ""; \
+  echo "# Leave coredumps in the first cache dir"; \
+  echo "coredump_dir ${SQUID_CACHE_DIR}"; \
+  echo ""; \
+  echo ""; \
+  echo "#"; \
+  echo "# Add any of your own refresh_pattern entries above these."; \
+  echo "#"; \
+  echo "refresh_pattern ^ftp:		          1440	20%	10080"; \
+  echo "refresh_pattern ^gopher:	        1440	0%	1440"; \
+  echo "refresh_pattern -i (/cgi-bin/|\?) 0	    0%	0"; \
+  echo "refresh_pattern .		              0	    20%	4320"; \
+} > /etc/squid/squid.conf
+# ------------------------------------------------
+# Squid Initialize Cache directory
+if [[ ! -d ${SQUID_CACHE_DIR}/00 ]]; then
+  squid -f /etc/squid/squid.conf -N -z
+fi
+
+
+# Execute Everything from Entries
+exec "$@"

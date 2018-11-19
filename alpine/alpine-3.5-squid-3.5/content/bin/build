@@ -1,0 +1,57 @@
+#!/bin/sh -xe
+
+# --------------------------------------------------
+# Dockerfile Build Tools
+# Email: dimas.restu@student.upi.edu
+# --------------------------------------------------
+
+
+# [1] Run Some Housekeeping
+# --------------------------------------------------
+mkdir -p /etc/squid \
+&& mkdir -p /var/cache \
+&& mkdir -p /var/cache/squid \
+&& mkdir -p /var/log \
+&& mkdir -p /var/log/squid \
+&& chown -R root:root /etc/squid \
+&& chown -R root:root /var/run \
+&& chown -R root:root /var/cache \
+&& chown -R root:root /var/cache/squid \
+&& chown -R root:root /var/log \
+&& chown -R root:root /var/log/squid \
+&& chown -R root:root /usr/local/docker \
+&& chown -R root:root /usr/local/docker/bin \
+&& chmod 775 /etc/squid \
+&& chmod 775 /var/run \
+&& chmod 775 /var/cache \
+&& chmod 775 /var/cache/squid \
+&& chmod 775 /var/log \
+&& chmod 775 /var/log/squid \
+&& chmod 775 /usr/local/docker \
+&& chmod 775 /usr/local/docker/bin \
+&& chmod 775 /usr/local/docker/bin/build \
+&& chmod 775 /usr/local/docker/bin/entrypoint
+# --------------------------------------------------
+
+
+# [2] Installing Squid
+# --------------------------------------------------
+cp /etc/apk/repositories /etc/apk/repositories.original \
+&& echo 'http://dl-cdn.alpinelinux.org/alpine/v3.6/main' >> /etc/apk/repositories \
+&& echo 'http://dl-cdn.alpinelinux.org/alpine/v3.6/community' >> /etc/apk/repositories \
+&& apk update \
+&& apk add \
+    squid \
+&& rm -rf /var/cache/apk/* \
+&& rm -f /etc/apk/repositories \
+&& mv /etc/apk/repositories.original /etc/apk/repositories
+# --------------------------------------------------
+
+
+# [3] Configuring Squid
+# --------------------------------------------------
+rm -f /etc/squid/squid.conf
+# --------------------------------------------------
+
+
+exit 0
