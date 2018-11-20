@@ -51,6 +51,12 @@ SQUID_CACHE_L2_SIZE=${SQUID_CACHE_L2_SIZE:-256}
 SQUID_CACHE_MEMORY_SIZE=${SQUID_CACHE_MEMORY_SIZE:-128}
 SQUID_CACHE_SWAP_LOW=${SQUID_CACHE_SWAP_LOW:-80}
 SQUID_CACHE_SWAP_HIGH=${SQUID_CACHE_SWAP_HIGH:-95}
+SQUID_IPCACHE_SIZE=${SQUID_IPCACHE_SIZE:-4096}
+SQUID_IPCACHE_LOW=${SQUID_IPCACHE_LOW:-80}
+SQUID_IPCACHE_HIGH=${SQUID_IPCACHE_HIGH:-95}
+SQUID_MEMORY_POOLS_LIMIT=${SQUID_MEMORY_POOLS_LIMIT:-$SQUID_CACHE_MEMORY_SIZE}
+SQUID_MAX_OBJECT_SIZE=${SQUID_MAX_OBJECT_SIZE:-$SQUID_CACHE_MEMORY_SIZE}
+SQUID_MAX_OBJECT_SIZE_MEMORY=${SQUID_MAX_OBJECT_SIZE_MEMORY:-$(($SQUID_CACHE_MEMORY_SIZE / 2))}
 # ------------------------------------------------
 # Squid arguments variable
 ARGS=${ARGS:-}
@@ -60,30 +66,46 @@ export ARGS=$ARGS
 {
   echo "# Squid Configuration"
   echo ""; \
+  echo "pipeline_prefetch on"; \
+  echo "half_closed_clients off"; \
+  echo "forwarded_for delete"; \
+  echo ""; \
   echo "acl localnet src all"; \
   echo "acl CONNECT method CONNECT"; \
   echo ""; \
   echo "http_access allow localhost manager"; \
   echo "http_access deny manager"; \
-  echo "";\
+  echo ""; \
   echo "http_access allow localhost"; \
   echo "http_access allow localnet"; \
-  echo "http_access allow all"; \
   echo ""; \
   echo "http_access deny all"; \
   echo ""; \
-  echo "http_port 127.0.0.1:3127"; \
+  echo "http_port 3127"; \
   echo "http_port 3128 ${SQUID_MODE}"; \
   echo ""; \
-  echo "cache_mgr ${SQUID_CACHE_MANAGER}"
-  echo "cache_dir ufs ${SQUID_CACHE_DIR} ${SQUID_CACHE_SIZE} ${SQUID_CACHE_L1_SIZE} ${SQUID_CACHE_L2_SIZE}"; \
+  echo "cache_mgr ${SQUID_CACHE_MANAGER}"; \
+  echo "cache_dir aufs ${SQUID_CACHE_DIR} ${SQUID_CACHE_SIZE} ${SQUID_CACHE_L1_SIZE} ${SQUID_CACHE_L2_SIZE}"; \
   echo ""; \
   echo "cache_mem ${SQUID_CACHE_MEMORY_SIZE} MB"; \
   echo "cache_swap_low ${SQUID_CACHE_SWAP_LOW}"; \
   echo "cache_swap_high ${SQUID_CACHE_SWAP_HIGH}"; \
   echo ""; \
+  echo "ipcache_size ${SQUID_IPCACHE_SIZE}"; \
+  echo "ipcache_low ${SQUID_IPCACHE_LOW}"; \
+  echo "ipcache_high ${SQUID_IPCACHE_HIGH}"; \
+  echo ""; \
+  echo "read_ahead_gap 512 KB"; \
+  echo "quick_abort_min 1024 KB"; \
+  echo ""; \
   echo "cache_replacement_policy lru"; \
   echo "memory_replacement_policy lru"; \
+  echo ""; \
+  echo "memory_pools on"; \
+  echo "memory_pools_limit ${SQUID_MEMORY_POOLS_LIMIT} MB"; \
+  echo "" ; \
+  echo "maximum_object_size ${SQUID_MAX_OBJECT_SIZE} KB"; \
+  echo "maximum_object_size_in_memory ${SQUID_MAX_OBJECT_SIZE_MEMORY} KB"; \
   echo ""; \
   echo "coredump_dir ${SQUID_CACHE_DIR}"; \
   echo ""; \
