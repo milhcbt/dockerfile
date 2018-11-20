@@ -32,5 +32,5 @@ LABEL release=1 \
       io.k8s.description="Alpine (3.x) with Squid 3.5" \
       io.k8s.display-name="Alpine (3.x) with Squid 3.5" \
       io.openshift.tags="builder,alpine,squid" \
-      io.openshift.expose-services="3128:squid" \
+      io.openshift.expose-services="3128:squid-proxy" \
       io.openshift.non-scalable="false"

@@ -48,7 +48,7 @@ SQUID_CACHE_DIR=${SQUID_CACHE_DIR:-/var/cache/squid}
 SQUID_CACHE_SIZE=${SQUID_CACHE_SIZE:-100}
 SQUID_CACHE_L1_SIZE=${SQUID_CACHE_L1_SIZE:-16}
 SQUID_CACHE_L2_SIZE=${SQUID_CACHE_L2_SIZE:-256}
-SQUID_CACHE_MEMORY_SIZE=${SQUID_CACHE_MEMORY_SIZE:-16}
+SQUID_CACHE_MEMORY_SIZE=${SQUID_CACHE_MEMORY_SIZE:-128}
 SQUID_CACHE_SWAP_LOW=${SQUID_CACHE_SWAP_LOW:-80}
 SQUID_CACHE_SWAP_HIGH=${SQUID_CACHE_SWAP_HIGH:-95}
 # ------------------------------------------------
@@ -58,12 +58,9 @@ export ARGS=$ARGS
 # ------------------------------------------------
 # Squid configuration file
 {
-  echo "acl all src all"; \
-  echo "acl manager proto cache_object"; \
+  echo "# Squid Configuration"
   echo ""; \
-  echo "acl localnet src fc00::/7"; \
-  echo "acl localnet src fe80::/10"; \
-  echo ""; \
+  echo "acl localnet src all"; \
   echo "acl CONNECT method CONNECT"; \
   echo ""; \
   echo "http_access allow localhost manager"; \
@@ -73,8 +70,9 @@ export ARGS=$ARGS
   echo "http_access allow localnet"; \
   echo "http_access allow all"; \
   echo ""; \
-  echo "http_acess deny all"; \
+  echo "http_access deny all"; \
   echo ""; \
+  echo "http_port 127.0.0.1:3127"; \
   echo "http_port 3128 ${SQUID_MODE}"; \
   echo ""; \
   echo "cache_mgr ${SQUID_CACHE_MANAGER}"
