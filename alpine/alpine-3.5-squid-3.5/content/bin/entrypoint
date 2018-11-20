@@ -55,9 +55,9 @@ SQUID_FQDNCACHE_SIZE=${SQUID_FQDNCACHE_SIZE:-4096}
 SQUID_IPCACHE_SIZE=${SQUID_IPCACHE_SIZE:-4096}
 SQUID_IPCACHE_LOW=${SQUID_IPCACHE_LOW:-80}
 SQUID_IPCACHE_HIGH=${SQUID_IPCACHE_HIGH:-95}
-SQUID_MEMORY_POOLS_LIMIT=${SQUID_MEMORY_POOLS_LIMIT:-$SQUID_CACHE_MEMORY_SIZE}
-SQUID_MAX_OBJECT_SIZE=${SQUID_MAX_OBJECT_SIZE:-$SQUID_CACHE_MEMORY_SIZE}
-SQUID_MAX_OBJECT_SIZE_MEMORY=${SQUID_MAX_OBJECT_SIZE_MEMORY:-$(($SQUID_CACHE_MEMORY_SIZE / 2))}
+SQUID_MEMORY_POOLS_LIMIT=${SQUID_MEMORY_POOLS_LIMIT:-2048}
+SQUID_MAX_OBJECT_SIZE=${SQUID_MAX_OBJECT_SIZE:-12288}
+SQUID_MAX_OBJECT_SIZE_MEMORY=${SQUID_MAX_OBJECT_SIZE_MEMORY:-1024}
 # ------------------------------------------------
 # Squid arguments variable
 ARGS=${ARGS:-}
@@ -67,74 +67,70 @@ export ARGS=$ARGS
 {
   echo "# Squid Configuration"
   echo ""; \
-  echo "dns_v4_first on"; \
+  echo "dns_v4_first                      on"; \
   echo ""; \
-  echo "refresh_all_ims on"; \
-  echo "reload_into_ims on"; \
+  echo "memory_pools                      on"; \
+  echo "pipeline_prefetch                 on"; \
+  echo "strip_query_terms                 off"; \
+  echo "half_closed_clients               off"; \
   echo ""; \
-  echo "memory_pools on"; \
-  echo "pipeline_prefetch on"; \
-  echo "strip_query_terms off"; \
-  echo "half_closed_clients off"; \
+  echo "log_mime_hdrs                     off"; \
+  echo "forwarded_for                     off"; \
+  echo "via                               off"; \
   echo ""; \
-  echo "log_mime_hdrs off"; \
-  echo "forwarded_for off"; \
-  echo "via off"; \
+  echo "cache_replacement_policy          heap               LFUDA"; \
+  echo "memory_replacement_policy         heap               GDSF"; \
   echo ""; \
-  echo "acl localnet src all"; \
-  echo "acl CONNECT method CONNECT"; \
+  echo "acl localnet                      src                all"; \
+  echo "acl CONNECT                       method             CONNECT"; \
   echo ""; \
-  echo "request_header_access X-Forwarded-For deny all"; \
-  echo "reply_header_access X-Forwarded-For deny all"; \
+  echo "request_header_access             X-Forwarded-For    deny all"; \
+  echo "request_header_access             Via                deny all"; \
   echo ""; \
-  echo "request_header_access Via deny all"; \
-  echo "reply_header_access Via deny all"; \
+  echo "reply_header_access               X-Forwarded-For    deny all"; \
+  echo "reply_header_access               Via                deny all"; \
+  echo "reply_header_access               Alternate-Protocol deny all"; \
+  echo "reply_header_access               Alt-Svc            deny all"; \
   echo ""; \
-  echo "reply_header_access Alternate-Protocol deny all"; \
-  echo "reply_header_access Alt-Svc deny all"; \
-  echo ""; \
-  echo "http_access allow localhost manager"; \
-  echo "http_access deny manager"; \
-  echo ""; \
-  echo "http_access allow localhost"; \
-  echo "http_access allow localnet"; \
-  echo ""; \
-  echo "http_access deny all"; \
+  echo "http_access                       allow              localhost manager"; \
+  echo "http_access                       deny               manager"; \
+  echo "http_access                       allow              localhost"; \
+  echo "http_access                       allow              localnet"; \
+  echo "http_access                       deny               all"; \
   echo ""; \
   echo "http_port 3127"; \
   echo "http_port 3128 ${SQUID_MODE}"; \
   echo ""; \
-  echo "max_filedescriptors 65536"; \
+  echo "cache_mgr                         ${SQUID_CACHE_MANAGER}"; \
+  echo "cache_dir                         aufs ${SQUID_CACHE_DIR} ${SQUID_CACHE_SIZE} ${SQUID_CACHE_L1_SIZE} ${SQUID_CACHE_L2_SIZE}"; \
   echo ""; \
-  echo "cache_mgr ${SQUID_CACHE_MANAGER}"; \
-  echo "cache_dir aufs ${SQUID_CACHE_DIR} ${SQUID_CACHE_SIZE} ${SQUID_CACHE_L1_SIZE} ${SQUID_CACHE_L2_SIZE}"; \
+  echo "cache_mem                         ${SQUID_CACHE_MEMORY_SIZE} MB"; \
+  echo "cache_swap_low                    ${SQUID_CACHE_SWAP_LOW}"; \
+  echo "cache_swap_high                   ${SQUID_CACHE_SWAP_HIGH}"; \
   echo ""; \
-  echo "cache_mem ${SQUID_CACHE_MEMORY_SIZE} MB"; \
-  echo "cache_swap_low ${SQUID_CACHE_SWAP_LOW}"; \
-  echo "cache_swap_high ${SQUID_CACHE_SWAP_HIGH}"; \
+  echo "memory_pools_limit                ${SQUID_MEMORY_POOLS_LIMIT} MB"; \
+  echo "maximum_object_size               ${SQUID_MAX_OBJECT_SIZE} KB"; \
+  echo "maximum_object_size_in_memory     ${SQUID_MAX_OBJECT_SIZE_MEMORY} KB"; \
   echo ""; \
-  echo "fqdncache_size ${SQUID_FQDNCACHE_SIZE}"
-  echo "ipcache_size ${SQUID_IPCACHE_SIZE}"; \
-  echo "ipcache_low ${SQUID_IPCACHE_LOW}"; \
-  echo "ipcache_high ${SQUID_IPCACHE_HIGH}"; \
+  echo "ipcache_size                      ${SQUID_IPCACHE_SIZE}"; \
+  echo "ipcache_low                       ${SQUID_IPCACHE_LOW}"; \
+  echo "ipcache_high                      ${SQUID_IPCACHE_HIGH}"; \
   echo ""; \
-  echo "read_ahead_gap 512 KB"; \
+  echo "fqdncache_size                    ${SQUID_FQDNCACHE_SIZE}"; \
   echo ""; \
-  echo "quick_abort_min 1 KB"; \
-  echo "quick_abort_max 1 KB"; \
-  echo "quick_abort_pct 95"; \
+  echo "read_ahead_gap                    512 KB"; \
   echo ""; \
-  echo "cache_replacement_policy heap LFUDA"; \
-  echo "memory_replacement_policy heap GDSF"; \
+  echo "quick_abort_min                   1024 KB"; \
+  echo "quick_abort_max                   2048 KB"; \
+  echo "quick_abort_pct                   75"; \
   echo ""; \
-  echo "memory_pools_limit ${SQUID_MEMORY_POOLS_LIMIT} MB"; \
-  echo "" ; \
-  echo "maximum_object_size ${SQUID_MAX_OBJECT_SIZE} KB"; \
-  echo "maximum_object_size_in_memory ${SQUID_MAX_OBJECT_SIZE_MEMORY} KB"; \
+  echo "coredump_dir                      ${SQUID_CACHE_DIR}"; \
   echo ""; \
-  echo "coredump_dir ${SQUID_CACHE_DIR}"; \
+  echo "refresh_pattern ^ftp:             1440  20% 10080"; \
+  echo "refresh_pattern ^gopher:          1440   0% 1440"; \
+  echo "refresh_pattern -i (/cgi-bin/|\?) 0      0% 0"; \
+  echo "refresh_pattern -i .              0     75% 4320"; \
   echo ""; \
-  echo "refresh_pattern -i . 0 90% 43200 override-expire override-lastmod reload-into-ims refresh-ims ignore-no-store ignore-must-revalidate ignore-private ignore-auth store-stale"; \
   echo "max_stale 1 day"; \
   echo ""; \
 } > /etc/squid/squid.conf
