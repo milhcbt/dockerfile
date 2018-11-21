@@ -43,6 +43,8 @@ fi
 
 # Squid configuration variable
 SQUID_MODE=${SQUID_MODE:-}
+SQUID_HTTPS_ENABLED=${SQUID_HTTPS_ENABLED:-false}
+SQUID_HTTPS_CERTIFICATE=${SQUID_HTTPS_CERTIFICATE:-}
 SQUID_CACHE_MANAGER=${SQUID_CACHE_MANAGER:-root}
 SQUID_CACHE_DIR=${SQUID_CACHE_DIR:-/var/cache/squid}
 SQUID_CACHE_SIZE=${SQUID_CACHE_SIZE:-100}
@@ -51,21 +53,29 @@ SQUID_CACHE_L2_SIZE=${SQUID_CACHE_L2_SIZE:-256}
 SQUID_CACHE_MEMORY_SIZE=${SQUID_CACHE_MEMORY_SIZE:-128}
 SQUID_CACHE_SWAP_LOW=${SQUID_CACHE_SWAP_LOW:-80}
 SQUID_CACHE_SWAP_HIGH=${SQUID_CACHE_SWAP_HIGH:-95}
-SQUID_FQDNCACHE_SIZE=${SQUID_FQDNCACHE_SIZE:-4096}
 SQUID_IPCACHE_SIZE=${SQUID_IPCACHE_SIZE:-4096}
 SQUID_IPCACHE_LOW=${SQUID_IPCACHE_LOW:-80}
 SQUID_IPCACHE_HIGH=${SQUID_IPCACHE_HIGH:-95}
+SQUID_FQDNCACHE_SIZE=${SQUID_FQDNCACHE_SIZE:-4096}
 SQUID_MEMORY_POOLS_LIMIT=${SQUID_MEMORY_POOLS_LIMIT:-2048}
 SQUID_MAX_OBJECT_SIZE=${SQUID_MAX_OBJECT_SIZE:-12288}
 SQUID_MAX_OBJECT_SIZE_MEMORY=${SQUID_MAX_OBJECT_SIZE_MEMORY:-1024}
 # ------------------------------------------------
-# Squid arguments variable
-ARGS=${ARGS:-}
-export ARGS=$ARGS
+# Squid certificate autorithy file
+if [[ ${SQUID_HTTPS_ENABLED} == "true" ]]; then
+  echo ${SQUID_HTTPS_CERTIFICATE} > /etc/squid/cert.crt
+fi
 # ------------------------------------------------
 # Squid configuration file
 {
   echo "# Squid Configuration"
+  echo ""; \
+  echo "http_port  127.0.0.1:3127"; \
+  echo "http_port  3128                   ${SQUID_MODE}"; \
+  if [[ ${SQUID_HTTPS_ENABLED} == "true" ]]; \
+  then \
+  echo "https_port 3129                   ${SQUID_MODE} ssl-bump generate-host-certificates=on dynamic_cert_mem_cache_size=4MB cert=/etc/squid/cert.crt"; \
+  fi; \
   echo ""; \
   echo "dns_v4_first                      on"; \
   echo ""; \
@@ -74,15 +84,35 @@ export ARGS=$ARGS
   echo "strip_query_terms                 off"; \
   echo "half_closed_clients               off"; \
   echo ""; \
+  if [[ ${SQUID_HTTPS_ENABLED} == "true" ]]; \
+  then \
+  echo "ssl_unclean_shutdown              on"; \
+  echo ""; \
+  fi; \
   echo "log_mime_hdrs                     off"; \
   echo "forwarded_for                     off"; \
   echo "via                               off"; \
   echo ""; \
-  echo "cache_replacement_policy          heap               LFUDA"; \
-  echo "memory_replacement_policy         heap               GDSF"; \
-  echo ""; \
   echo "acl localnet                      src                all"; \
   echo "acl CONNECT                       method             CONNECT"; \
+  echo ""; \
+  if [[ ${SQUID_HTTPS_ENABLED} == "true" ]]; \
+  then \
+  echo "acl ssl_peek                      at_step           SslBump1"; \
+  echo "acl ssl_bump                      at_step           SslBump2"; \
+  echo "acl ssl_splice                    at_step           SslBump3"; \
+  echo ""; \
+  echo "ssl_bump peek                     ssl_peek          all"; \
+  echo "ssl_bump bump                     ssl_bump          all"; \
+  echo "ssl_bump splice                   ssl_splice        all"; \
+  echo "ssl_bump splice                   localhost"; \
+  echo ""; \
+  echo "sslproxy_flags                    DONT_VERIFY_PEER"; \
+  echo "sslproxy_flags                    NO_SESSION_REUSE"; \
+  echo ""; \
+  echo "sslproxy_options                  NO_SSLv2,NO_SSLv3"; \
+  echo "sslproxy_cipher                   EECDH+ECDSA+AESGCM:EECDH+aRSA+AESGCM:EECDH+ECDSA+SHA384:EECDH+ECDSA+SHA256:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH+aRSA+RC4:EECDH:EDH+aRSA:HIGH:!RC4:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS"; \
+  fi; \
   echo ""; \
   echo "request_header_access             X-Forwarded-For    deny all"; \
   echo "request_header_access             Via                deny all"; \
@@ -98,18 +128,18 @@ export ARGS=$ARGS
   echo "http_access                       allow              localnet"; \
   echo "http_access                       deny               all"; \
   echo ""; \
-  echo "http_port 3127"; \
-  echo "http_port 3128 ${SQUID_MODE}"; \
+  echo "cache_replacement_policy          heap               LFUDA"; \
+  echo "memory_replacement_policy         heap               GDSF"; \
   echo ""; \
   echo "cache_mgr                         ${SQUID_CACHE_MANAGER}"; \
   echo "cache_dir                         aufs ${SQUID_CACHE_DIR} ${SQUID_CACHE_SIZE} ${SQUID_CACHE_L1_SIZE} ${SQUID_CACHE_L2_SIZE}"; \
   echo ""; \
-  echo "cache_mem                         ${SQUID_CACHE_MEMORY_SIZE} MB"; \
+  echo "cache_mem                         ${SQUID_CACHE_MEMORY_SIZE}      MB"; \
   echo "cache_swap_low                    ${SQUID_CACHE_SWAP_LOW}"; \
   echo "cache_swap_high                   ${SQUID_CACHE_SWAP_HIGH}"; \
   echo ""; \
-  echo "memory_pools_limit                ${SQUID_MEMORY_POOLS_LIMIT} MB"; \
-  echo "maximum_object_size               ${SQUID_MAX_OBJECT_SIZE} KB"; \
+  echo "memory_pools_limit                ${SQUID_MEMORY_POOLS_LIMIT}     MB"; \
+  echo "maximum_object_size               ${SQUID_MAX_OBJECT_SIZE}        KB"; \
   echo "maximum_object_size_in_memory     ${SQUID_MAX_OBJECT_SIZE_MEMORY} KB"; \
   echo ""; \
   echo "ipcache_size                      ${SQUID_IPCACHE_SIZE}"; \
@@ -118,20 +148,19 @@ export ARGS=$ARGS
   echo ""; \
   echo "fqdncache_size                    ${SQUID_FQDNCACHE_SIZE}"; \
   echo ""; \
-  echo "read_ahead_gap                    512 KB"; \
-  echo ""; \
-  echo "quick_abort_min                   1024 KB"; \
-  echo "quick_abort_max                   2048 KB"; \
-  echo "quick_abort_pct                   75"; \
+  echo "read_ahead_gap                    512                             KB"; \
+  echo "quick_abort_min                   1024                            KB"; \
+  echo "quick_abort_max                   2048                            KB"; \
+  echo "quick_abort_pct                   90"; \
   echo ""; \
   echo "coredump_dir                      ${SQUID_CACHE_DIR}"; \
   echo ""; \
   echo "refresh_pattern ^ftp:             1440  20% 10080"; \
   echo "refresh_pattern ^gopher:          1440   0% 1440"; \
   echo "refresh_pattern -i (/cgi-bin/|\?) 0      0% 0"; \
-  echo "refresh_pattern -i .              0     75% 4320"; \
+  echo "refresh_pattern -i .              0     90% 4320"; \
   echo ""; \
-  echo "max_stale 1 day"; \
+  echo "max_stale                         1 day"; \
   echo ""; \
 } > /etc/squid/squid.conf
 # ------------------------------------------------
@@ -140,13 +169,17 @@ if [[ ! -d ${SQUID_CACHE_DIR}/00 ]]; then
   squid -f /etc/squid/squid.conf -N -z
 fi
 # ------------------------------------------------
+# Squid arguments variable
+ARGS=${ARGS:-}
+export ARGS=$ARGS
+# ------------------------------------------------
 # Cleaning-up configuration variable
 unset SQUID_MODE
+unset SQUID_HTTPS_ENABLED SQUID_HTTPS_CERTIFICATE
 unset SQUID_CACHE_MANAGER SQUID_CACHE_DIR \
       SQUID_CACHE_SIZE SQUID_CACHE_L1_SIZE SQUID_CACHE_L2_SIZE
 unset SQUID_CACHE_MEMORY_SIZE SQUID_CACHE_SWAP_LOW SQUID_CACHE_SWAP_HIGH
-unset SQUID_FQDNCACHE_SIZE
-unset SQUID_IPCACHE_SIZE SQUID_IPCACHE_LOW SQUID_IPCACHE_HIGH
+unset SQUID_IPCACHE_SIZE SQUID_IPCACHE_LOW SQUID_IPCACHE_HIGH SQUID_FQDNCACHE_SIZE
 unset SQUID_MEMORY_POOLS_LIMIT SQUID_MAX_OBJECT_SIZE SQUID_MAX_OBJECT_SIZE_MEMORY
 
 

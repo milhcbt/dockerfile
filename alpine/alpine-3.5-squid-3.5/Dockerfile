@@ -13,7 +13,7 @@ RUN chmod 775 /usr/local/docker/bin/build \
 VOLUME /var/cache/squid
 
 # Expose Ports
-EXPOSE 3128
+EXPOSE 3128 3129
 
 # Set Entrypoint Script
 ENTRYPOINT ["/usr/local/docker/bin/entrypoint"]
@@ -32,5 +32,5 @@ LABEL release=1 \
       io.k8s.description="Alpine (3.x) with Squid 3.5" \
       io.k8s.display-name="Alpine (3.x) with Squid 3.5" \
       io.openshift.tags="builder,alpine,squid" \
-      io.openshift.expose-services="3128:squid-proxy" \
+      io.openshift.expose-services="3128:squid-http;3129:squid-https" \
       io.openshift.non-scalable="false"
