@@ -2,15 +2,18 @@
 
 
 # Configure Kafka Variable
-KAFKA_PORT=${KAFKA_PORT:-9092}
 KAFKA_BROKER_ID=${KAFKA_BROKER_ID:-$(cat /dev/urandom | LC_CTYPE=C tr -dc '0-9' | fold -w 256 | head -n 1 |sed -e 's/^0*//' | head -c 3)}
-KAFKA_LOG_DIRS=${KAFKA_LOG_DIRS:-"/tmp/kafka/logs/${HOSTNAME}"}
+KAFKA_ADVERTISED_HOST_NAME=${KAFKA_ADVERTISED_HOST_NAME:-$(ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p')}
+KAFKA_ADVERTISED_PORT=${KAFKA_ADVERTISED_PORT:-9092}
+KAFKA_ADVERTISED_LISTENERS=${KAFKA_ADVERTISED_LISTENERS:-"PLAINTEXT://$KAFKA_ADVERTISE_HOST_NAME:$KAFKA_ADVERTISE_PORT"}
+KAFKA_LISTENERS=${KAFKA_LISTENERS:-"PLAINTEXT://0.0.0.0:$KAFKA_ADVERTISE_PORT"}
+KAFKA_LOG_DIRS=${KAFKA_LOG_DIRS:-"/tmp/kafka/logs/$KAFKA_ADVERTISE_HOST_NAME"}
 
 export KAFKA_BROKER_ID=${KAFKA_BROKER_ID}
-export KAFKA_ADVERTISED_HOST_NAME=${HOSTNAME}
-export KAFKA_ADVERTISED_PORT=${KAFKA_PORT}
-export KAFKA_ADVERTISED_LISTENERS="PLAINTEXT://${HOSTNAME}:${KAFKA_PORT}"
-export KAFKA_LISTENERS="PLAINTEXT://0.0.0.0:${KAFKA_PORT}"
+export KAFKA_ADVERTISED_HOST_NAME=${KAFKA_ADVERTISED_HOST_NAME}
+export KAFKA_ADVERTISED_PORT=${KAFKA_ADVERTISED_PORT}
+export KAFKA_ADVERTISED_LISTENERS=${KAFKA_ADVERTISED_LISTENERS}
+export KAFKA_LISTENERS=${KAFKA_LISTENERS}
 export KAFKA_LOG_DIRS=${KAFKA_LOG_DIRS}
 
 if [[ -z "$KAFKA_ZOOKEEPER_CONNECT" ]]; then
@@ -23,7 +26,7 @@ if [[ -z "$KAFKA_ZOOKEEPER_CONNECT" ]]; then
   echo "Connecting to Zookeeper Server"
   while ! nc -z 127.0.0.1 2181
   do
-    echo "$(date) - Trying to Connect to Zookeeper Server at 127.0.0.1:2181..."
+    echo "Trying to Connect to Zookeeper Server at 127.0.0.1:2181..."
     sleep 1
   done
   echo "Zookeeper Server Connected Successfully"
@@ -36,15 +39,15 @@ else
   echo "Connecting to Zookeeper Server"
   while ! nc -z ${KAFKA_ZOOKEEPER_HOST} ${KAFKA_ZOOKEEPER_PORT}
   do
-    echo "$(date) - Trying to Connect to Zookeeper Server at ${KAFKA_ZOOKEEPER_HOST}:${KAFKA_ZOOKEEPER_PORT}..."
+    echo "Trying to Connect to Zookeeper Server at ${KAFKA_ZOOKEEPER_HOST}:${KAFKA_ZOOKEEPER_PORT}..."
     sleep 1
   done
   echo "Zookeeper Server Connected Successfully"
 fi
 
 
-# Parsing Environment Variable
-echo "Configuring Dynamic Configuration"
+# Parse Kafka Environment Variable to Kafka Configuration
+echo "Parsing Kafka Environment Variable to Kafka Configuration:"
 for TEMP_ENV_KAFKA in `env`
 do
   if [[ $TEMP_ENV_KAFKA =~ ^KAFKA_ && ! $TEMP_ENV_KAFKA =~ ^KAFKA_HOME ]]; then
@@ -64,7 +67,7 @@ done
 
 # Configure Topics
 if [[ -n "$KAFKA_CREATE_TOPICS" ]]; then
-  /usr/local/docker/bin/configure-topics &
+  /usr/local/docker/bin/configure-kafka-topics &
 fi
 
 

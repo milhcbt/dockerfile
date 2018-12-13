@@ -18,6 +18,7 @@ if [[ "$1" == "" ]]; then
 	echo "- kafka-console-producer.sh"
 	echo "- kafka-console-consumer.sh"
 	echo "- kafka-run-class.sh"
+  echo ""
 fi
 
 
