@@ -3,24 +3,24 @@
 
 # Auto Craete Kafka Topics
 TOPICS_WAIT_COUNT=${TOPICS_WAIT_COUNT:-0}
-TOPICS_WAIT_SLEEP=${TOPICS_WAIT_SLEEP:-1}
+TOPICS_WAIT_SLEEP=${TOPICS_WAIT_SLEEP:-5}
 TOPICS_WAIT_TIMEOUT=${TOPICS_WAIT_TIMEOUT:-600}
-TOPICS_TIMEOUT=false
+TOPICS_TIMEOUT=0
 
 echo "Connecting to Kafka Server"
 while ! nc -z 127.0.0.1 ${KAFKA_ADVERTISED_PORT}
 do
   echo "Trying to Connect to Kafka Server at 127.0.0.1:${KAFKA_ADVERTISED_PORT}..."
-  sleep ${TOPICS_WAIT_SLEEP}
+  sleep $TOPICS_WAIT_SLEEP
 
-  TOPICS_WAIT_COUNT=$((${TOPICS_WAIT_COUNT}+${TOPICS_WAIT_SLEEP}))
-  if [ $TOPICS_WAIT_COUNT -gt $TOPICS_WAIT_TIMEOUT ]; then
-    TOPICS_TIMEOUT=true
+  TOPICS_WAIT_COUNT=$(($TOPICS_WAIT_COUNT+$TOPICS_WAIT_SLEEP))
+  if [[ $TOPICS_WAIT_COUNT -gt $TOPICS_WAIT_TIMEOUT ]]; then
+    TOPICS_TIMEOUT=1
     break
   fi
 done
 
-if [[ $TOPICS_TIMEOUT ]]; then
+if [[ $TOPICS_TIMEOUT == 1 ]]; then
   echo "Connection Timeout to Kafka Server"
   echo "Can't Automate Kafka Topics Creation!"
 
@@ -30,7 +30,7 @@ else
   echo "Creating Kafka Topics"
   if [[ -n $KAFKA_TOPICS ]]; then
     IFS=','; for KAFKA_TOPICS_DATA in $KAFKA_TOPICS; do
-      echo "- Creating Topic: $KAFKA_TOPICS_DATA"
+      echo "- Creating Topic: ${KAFKA_TOPICS_DATA}"
       
       IFS=':' read -a KAFKA_TOPICS_CONFIG <<< "$KAFKA_TOPICS_DATA"
       JMX_PORT='' kafka-topics.sh --create --zookeeper ${KAFKA_ZOOKEEPER_CONNECT} --topic "${KAFKA_TOPICS_CONFIG[0]}" --partitions ${KAFKA_TOPICS_CONFIG[1]} --replication-factor ${KAFKA_TOPICS_CONFIG[2]}

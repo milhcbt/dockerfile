@@ -23,7 +23,7 @@ fi
 
 
 # If The First Paramenter Contain Kafka or Zookeeper
-# The Try to Configure Kafka or Zookeeper Configuration Based on Second Paramater
+# Then Try to Configure Kafka or Zookeeper Configuration Based on Second Paramater
 if [[ "$1" == *kafka* || "$1" == *zookeeper* ]]; then
   if [[ "$1" == *kafka-server-start.sh && "$2" == *server.properties ]]; then
     echo "Configuring Kafka Server"
