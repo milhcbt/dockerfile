@@ -1,0 +1,79 @@
+#!/bin/bash -xe
+
+# --------------------------------------------------
+# Dockerfile Build Tools
+# Email: dimas.restu@student.upi.edu
+# --------------------------------------------------
+
+
+# [1] Run Some Housekeeping
+# --------------------------------------------------
+mkdir -p /opt \
+&& chown -R root:root /opt \
+&& chown -R root:root /var/run \
+&& chown -R root:root /usr/local/docker \
+&& chown -R root:root /usr/local/docker/bin \
+&& chown -R root:root /usr/local/docker/etc \
+&& chown -R root:root /usr/local/docker/etc/kafka \
+&& chmod 775 /opt \
+&& chmod 775 /var/run \
+&& chmod 775 /usr/local/docker \
+&& chmod 775 /usr/local/docker/bin \
+&& chmod 775 /usr/local/docker/bin/build \
+&& chmod 775 /usr/local/docker/bin/entrypoint
+# --------------------------------------------------
+
+
+# [2] Installing GNUPG
+# --------------------------------------------------
+cp /etc/apk/repositories /etc/apk/repositories.original \
+&& echo 'http://dl-cdn.alpinelinux.org/alpine/v3.6/main' >> /etc/apk/repositories \
+&& echo 'http://dl-cdn.alpinelinux.org/alpine/v3.6/community' >> /etc/apk/repositories \
+&& apk update \
+&& apk add \
+    gnupg \
+&& rm -rf /var/cache/apk/* \
+&& rm -f /etc/apk/repositories \
+&& mv /etc/apk/repositories.original /etc/apk/repositories
+# --------------------------------------------------
+
+
+# [3] Installing ElasticSearch
+# --------------------------------------------------
+mkdir -p $ES_HOME \
+&& chown -R root:root $ES_HOME \
+&& chmod -R 664 $ES_HOME \
+&& cd $ES_HOME \
+&& wget -O elasticsearch.tar.gz.asc https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-oss-${VERSION}.tar.gz.asc \
+&& wget -O elasticsearch.tar.gz https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-oss-${VERSION}.tar.gz \
+&& export GNUPGHOME="$(mktemp -d)" \
+&& (gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$ES_GPG_KEY" 
+    || gpg --keyserver pgp.mit.edu --recv-keys "$ES_GPG_KEY" \
+    || gpg --keyserver keyserver.pgp.com --recv-keys "$ES_GPG_KEY") \
+&& gpg --batch --verify elasticsearch.tar.gz.asc elasticsearch.tar.gz \
+&& tar xvfz elasticsearch.tar.gz --strip-components=1 \
+&& rm -f elasticsearch.tar.gz* \
+&& mkdir -p $ES_HOME/data \
+&& mkdir -p $ES_HOME/logs \
+&& mkdir -p $ES_HOME/config \
+&& mkdir -p $ES_HOME/config/scripts \
+&& mkdir -p $ES_HOME/tmp \
+&& mkdir -p $ES_HOME/plugins \
+&& chown -R root:root $ES_HOME/data \
+&& chown -R root:root $ES_HOME/logs \
+&& chown -R root:root $ES_HOME/config \
+&& chown -R root:root $ES_HOME/config/scripts \
+&& chown -R root:root $ES_HOME/tmp \
+&& chown -R root:root $ES_HOME/plugins \
+&& chown -R root:root $ES_HOME \
+&& chmod -R 775 $ES_HOME/data \
+&& chmod -R 775 $ES_HOME/logs \
+&& chmod -R 775 $ES_HOME/config \
+&& chmod -R 775 $ES_HOME/config/scripts \
+&& chmod -R 775 $ES_HOME/tmp \
+&& chmod -R 775 $ES_HOME/plugins \
+&& chmod -R 775 $ES_HOME
+# --------------------------------------------------
+
+
+exit 0

@@ -1,5 +1,8 @@
 version: '2'
 
+volumes:
+  kafka_data: {}
+
 networks:
   kafkanet:
     driver: bridge
@@ -25,6 +28,8 @@ services:
     environment:
       - KAFKA_CONF_ZOOKEEPER_CONNECT=zookeeper:2181
       - KAFKA_TOPICS=topic:1:1
+    volumes:
+      - kafka_data:/kafka/logs
     depends_on:
       - zookeeper
     restart: always
