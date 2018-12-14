@@ -9,19 +9,21 @@
 # [1] Run Some Housekeeping
 # --------------------------------------------------
 mkdir -p /opt \
+&& chown -R root:root /opt \
 && chown -R root:root /var/run \
 && chown -R root:root /usr/local/docker \
 && chown -R root:root /usr/local/docker/bin \
 && chown -R root:root /usr/local/docker/etc \
 && chown -R root:root /usr/local/docker/etc/kafka \
+&& chmod 775 /opt \
 && chmod 775 /var/run \
 && chmod 775 /usr/local/docker \
 && chmod 775 /usr/local/docker/bin \
 && chmod 775 /usr/local/docker/bin/build \
 && chmod 775 /usr/local/docker/bin/entrypoint \
 && chmod 775 /usr/local/docker/bin/configure-kafka \
+&& chmod 775 /usr/local/docker/bin/configure-kafka-topics \
 && chmod 775 /usr/local/docker/bin/configure-zookeeper \
-&& chmod 775 /usr/local/docker/bin/configure-topics \
 && chmod 775 /usr/local/docker/etc \
 && chmod 775 /usr/local/docker/etc/kafka \
 && chmod 664 /usr/local/docker/etc/kafka/*
@@ -36,7 +38,10 @@ mkdir -p $KAFKA_HOME \
 && cd $KAFKA_HOME \
 && wget -O kafka.tgz http://www-eu.apache.org/dist/kafka/${KAFKA_VERSION}/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz \
 && tar xvfz kafka.tgz --strip-components=1 \
-&& rm -f kafka.tar.gz* \
+&& rm -f kafka.tgz* \
+&& mkdir -p $KAFKA_HOME/logs \
+&& chown -R root:root $KAFKA_HOME/logs \
+&& chmod -R 775 $KAFKA_HOME/logs \
 && chown -R root:root $KAFKA_HOME \
 && chmod -R 775 $KAFKA_HOME \
 && mv -f /usr/local/docker/etc/kafka/* /opt/kafka/config/ \
