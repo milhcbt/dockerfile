@@ -1,6 +1,7 @@
 version: '2'
 
 volumes:
+  zookeeper_data: {}
   kafka_data: {}
 
 networks:
@@ -16,7 +17,9 @@ services:
       - 2181:2181
     command:
       - zookeeper-server-start.sh
-      - /opt/kafka/config/zookeeper.properties    
+      - /opt/kafka/config/zookeeper.properties
+    volumes:
+      - zookeeper_data:/kafka
     restart: always
 
   kafka:
@@ -29,7 +32,7 @@ services:
       - KAFKA_CONF_ZOOKEEPER_CONNECT=zookeeper:2181
       - KAFKA_TOPICS=topic:1:1
     volumes:
-      - kafka_data:/kafka/logs
+      - kafka_data:/kafka
     depends_on:
       - zookeeper
     restart: always

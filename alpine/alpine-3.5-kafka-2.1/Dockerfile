@@ -16,7 +16,7 @@ RUN chmod 775 /usr/local/docker/bin/build \
   && rm -f /usr/local/docker/bin/build
 
 # Set Volumes Directory
-VOLUME /kafka/logs
+VOLUME /kafka
 
 # Expose Ports
 EXPOSE 9092 2181
