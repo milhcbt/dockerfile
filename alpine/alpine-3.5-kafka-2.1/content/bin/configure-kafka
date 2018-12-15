@@ -2,13 +2,13 @@
 
 
 # Configure Kafka Broker ID
-if [[ -f /kafka/logs/broker_id ]]; then
-  KAFKA_CONF_BROKER_ID=`cat /kafka/logs/broker_id`
+if [[ -f /data/kafka/broker_id ]]; then
+  KAFKA_CONF_BROKER_ID=`cat /data/kafka/broker_id`
 else
   KAFKA_CONF_BROKER_ID=${KAFKA_CONF_BROKER_ID:-$(cat /dev/urandom | LC_CTYPE=C tr -dc '0-9' | fold -w 256 | head -n 1 |sed -e 's/^0*//' | head -c 3)}
   
-  mkdir -p /kafka/logs
-  echo ${KAFKA_CONF_BROKER_ID} > /kafka/logs/broker_id
+  mkdir -p /data/kafka
+  echo ${KAFKA_CONF_BROKER_ID} > /data/kafka/broker_id
 fi
 export KAFKA_CONF_BROKER_ID=${KAFKA_CONF_BROKER_ID}
 
@@ -21,8 +21,8 @@ KAFKA_CONF_ADVERTISED_PORT=${KAFKA_CONF_ADVERTISED_PORT:-$KAFKA_CONF_PORT}
 KAFKA_CONF_ADVERTISED_LISTENERS=${KAFKA_CONF_ADVERTISED_LISTENERS:-"PLAINTEXT://${KAFKA_CONF_ADVERTISED_HOST_NAME}:${KAFKA_CONF_ADVERTISED_PORT}"}
 KAFKA_CONF_LISTENERS=${KAFKA_CONF_LISTENERS:-"PLAINTEXT://0.0.0.0:${KAFKA_CONF_ADVERTISED_PORT}"}
 KAFKA_CONF_NUM_PARTITIONS=${KAFKA_CONF_NUM_PARTITIONS:-"1"}
-KAFKA_CONF_LOG_DIRS=${KAFKA_CONF_LOG_DIRS:-"/kafka/logs/${KAFKA_CONF_BROKER_ID}"}
 KAFKA_CONF_LOG_RETENTION_HOURS=${KAFKA_CONF_LOG_RETENTION_HOURS:-"168"}
+KAFKA_CONF_LOG_DIRS="/data/kafka/logs"
 
 mkdir -p ${KAFKA_CONF_LOG_DIRS}
 

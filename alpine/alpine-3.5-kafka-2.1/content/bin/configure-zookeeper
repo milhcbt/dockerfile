@@ -3,7 +3,7 @@
 
 # Configure Zookeeper Variable
 ZOOKEEPER_CONF_PORT=${ZOOKEEPER_CONF_PORT:-2181}
-ZOOKEEPER_CONF_DATA_DIRS=${ZOOKEEPER_CONF_DATA_DIRS:-"/kafka/zookeeper"}
+ZOOKEEPER_CONF_DATA_DIRS="/data/zookeeper"
 
 mkdir -p ${ZOOKEEPER_CONF_DATA_DIRS}
 

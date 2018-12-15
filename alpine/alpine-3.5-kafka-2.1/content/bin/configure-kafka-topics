@@ -32,8 +32,8 @@ else
     IFS=','; for KAFKA_TOPICS_DATA in $KAFKA_TOPICS; do
       echo "- Creating Topic: ${KAFKA_TOPICS_DATA}"
       
-      IFS=':' read -a KAFKA_TOPICS_CONFIG <<< "$KAFKA_TOPICS_DATA"
-      JMX_PORT='' kafka-topics.sh --create --zookeeper ${KAFKA_ZOOKEEPER_CONNECT} --topic "${KAFKA_TOPICS_CONFIG[0]}" --partitions ${KAFKA_TOPICS_CONFIG[1]} --replication-factor ${KAFKA_TOPICS_CONFIG[2]}
+      IFS=':' read -a KAFKA_TOPICS_CONFIG <<< "${KAFKA_TOPICS_DATA}"
+      JMX_PORT='' kafka-topics.sh --create --zookeeper ${KAFKA_CONF_ZOOKEEPER_CONNECT} --replication-factor ${KAFKA_TOPICS_CONFIG[2]} --partitions ${KAFKA_TOPICS_CONFIG[1]} --topic "${KAFKA_TOPICS_CONFIG[0]}"
     done
   fi
 fi

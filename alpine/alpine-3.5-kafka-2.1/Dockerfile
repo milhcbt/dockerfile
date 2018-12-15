@@ -16,7 +16,7 @@ RUN chmod 775 /usr/local/docker/bin/build \
   && rm -f /usr/local/docker/bin/build
 
 # Set Volumes Directory
-VOLUME /kafka
+VOLUME /data
 
 # Expose Ports
 EXPOSE 9092 2181
@@ -38,5 +38,5 @@ LABEL release=1 \
       io.k8s.description="Alpine (3.x) OpenJRE 8.0 with Apache Kafka 2.1" \
       io.k8s.display-name="Alpine (3.x) OpenJRE 8.0 with Apache Kafka 2.1" \
       io.openshift.tags="builder,alpine,openjre,kafka" \
-      io.openshift.expose-services="9092:kafka,2181:zookeper" \
+      io.openshift.expose-services="9092:kafka,2181:zookeeper" \
       io.openshift.non-scalable="false"

@@ -9,27 +9,12 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 
-# Check First Parameter Input
-if [[ "$1" == "" ]]; then
-	echo "Availabale Scripts:"
-	echo "- zookeeper-server-start.sh"
-	echo "- kafka-server-start.sh"
-	echo "- kafka-topics.sh"
-	echo "- kafka-console-producer.sh"
-	echo "- kafka-console-consumer.sh"
-	echo "- kafka-run-class.sh"
-  echo ""
-fi
-
-
 # If The First Paramenter Contain Kafka or Zookeeper
 # Then Try to Configure Kafka or Zookeeper Configuration Based on Second Paramater
 if [[ "$1" == *kafka* || "$1" == *zookeeper* ]]; then
   if [[ "$1" == *kafka-server-start.sh && "$2" == *server.properties ]]; then
-    echo "Configuring Kafka Server"
     /usr/local/docker/bin/configure-kafka
   elif [[ "$1" == *zookeeper-server-start.sh && "$2" == *zookeeper.properties ]]; then
-    echo "Configuring Zookeeper Server"
     /usr/local/docker/bin/configure-zookeeper
   fi
 fi

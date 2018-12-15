@@ -12,7 +12,7 @@ Dimas Restu H (<dimas.restu@student.upi.edu>)
 
 **How to run this image:**
 
-> docker run -p 9092:9092 -p 2181:2181 --name kafka dimaskiddo/alpine:kafka-2.1
+> docker run -p 9092:9092 -p 2181:2181 -v <local_data_path>:/data --name kafka dimaskiddo/alpine:kafka-2.1
 
 **How to get in container after run this image:**
 
