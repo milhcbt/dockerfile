@@ -16,6 +16,7 @@ services:
     ports:
       - 2181:2181
     command:
+      - /usr/local/docker/bin/entrypoint
       - zookeeper-server-start.sh
       - /opt/kafka/config/zookeeper.properties
     volumes:

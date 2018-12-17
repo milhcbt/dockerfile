@@ -19,7 +19,7 @@ RUN chmod 775 /usr/local/docker/bin/build \
 VOLUME /data
 
 # Expose Ports
-EXPOSE 9092 2181
+EXPOSE 9092 2181 2888 3888
 
 # Set Entrypoint Script
 ENTRYPOINT ["/usr/local/docker/bin/entrypoint"]
@@ -38,5 +38,5 @@ LABEL release=1 \
       io.k8s.description="Alpine (3.x) OpenJRE 8.0 with Apache Kafka 2.1" \
       io.k8s.display-name="Alpine (3.x) OpenJRE 8.0 with Apache Kafka 2.1" \
       io.openshift.tags="builder,alpine,openjre,kafka" \
-      io.openshift.expose-services="9092:kafka,2181:zookeeper" \
+      io.openshift.expose-services="9092:kafka,2181:zookeeper-client,2888:zookeeper-server,3888:zookeeper-election" \
       io.openshift.non-scalable="false"
