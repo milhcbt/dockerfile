@@ -12,7 +12,7 @@ Dimas Restu H (<dimas.restu@student.upi.edu>)
 
 **How to run this image:**
 
-> docker run -p 9200:9200 -p 9300:9300 --name elastic dimaskiddo/alpine:elasticsearch-6.5
+> docker run -p 9200:9200 -p 9300:9300 --name elasticsearch dimaskiddo/alpine:elasticsearch-6.5
 
 **How to get in container after run this image:**
 

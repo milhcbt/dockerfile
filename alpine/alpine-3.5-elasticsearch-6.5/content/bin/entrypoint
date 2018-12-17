@@ -9,8 +9,99 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 
-# WIP
+# Export ElasticSearch Command
+if [ "${1:0:1}" = '-' ]; then
+	set -- elasticsearch "$@"
+fi
+
+
+# Configure ElasticSearch Variable
+ES_CONF_CLUSTER_NODE_COUNT=${ES_CONF_CLUSTER_NODE_COUNT:-1}
+ES_CONF_DISCOVERY_ZEN_MINIMUM_MASTER=${ES_CONF_DISCOVERY_ZEN_MINIMUM_MASTER:-1}
+ES_CONF_NETWORK_HOST=${ES_CONF_NETWORK_HOST:-"0.0.0.0"}
+ES_CONF_HTTP_ENABLED=${ES_CONF_HTTP_ENABLED:-"true"}
+
+if [ $ES_CONF_CLUSTER_NODE_COUNT -gt 1 ]; then
+  if [[ "${node.master}" == "true" ]]; then
+    ES_CONF_DOMAIN=`hostname -d`
+
+    if [[ `hostname -s` =~ (.*)-([0-9]+)$ ]]; then
+      ES_CONF_SERVER_ID=${BASH_REMATCH[2]}
+      ES_CONF_HOST_NAME=${BASH_REMATCH[1]}
+
+      if [[ -f /opt/elasticsearch/hosts ]]; then
+        rm -f /opt/elasticsearch/hosts
+      else
+        for (( ES_CONF_CLUSTER_NODE_LOOP=1; ES_CONF_CLUSTER_NODE_LOOP<=$ES_CONF_CLUSTER_NODE_COUNT; ES_CONF_CLUSTER_NODE_LOOP++ ))
+        do
+          echo "${ZOOKEEPER_CONF_HOST_NAME}-$(($ES_CONF_CLUSTER_NODE_LOOP-1)).${ES_CONF_DOMAIN}" >> /opt/elasticsearch/hosts
+        done
+      fi
+    elif [[ `hostname -s` =~ (.*)_([0-9]+)$ ]]; then
+      ES_CONF_SERVER_ID=${BASH_REMATCH[2]}
+      ES_CONF_HOST_NAME=${BASH_REMATCH[1]}
+
+      if [[ -f /opt/elasticsearch/hosts ]]; then
+        rm -f /opt/elasticsearch/hosts
+      else
+        for (( ES_CONF_CLUSTER_NODE_LOOP=1; ES_CONF_CLUSTER_NODE_LOOP<=$ES_CONF_CLUSTER_NODE_COUNT; ES_CONF_CLUSTER_NODE_LOOP++ ))
+        do
+          echo "${ZOOKEEPER_CONF_HOST_NAME}_$(($ES_CONF_CLUSTER_NODE_LOOP-1)).${ES_CONF_DOMAIN}" >> /opt/elasticsearch/hosts
+        done
+      fi
+    fi
+
+    ES_CONF_DISCOVERY_ZEN_HOSTS_PROVIDER="/opt/elasticsearch/hosts"
+  fi
+fi
+export ES_JAVA_OPTS="-Des.cgroups.hierarchy.override=/ ${ES_JAVA_OPTS}"
+
+
+# Parse ElasticSearch Environment Variable
+declare -a ES_ENV_OPTS
+while IFS='=' read -r ES_ENV_KEY ES_ENV_VALUE
+do
+  if [[ "$ES_ENV_KEY" =~ ^[a-z0-9_]+\.[a-z0-9_]+ ]]; then
+    # Parse Variables
+    if [[ ! -z $ES_ENV_VALUE ]]; then
+      ES_ENV_OPTS_TEMP="-E${ES_ENV_KEY}=${ES_ENV_VALUE}"
+      ES_ENV_OPTS+=("${ES_ENV_OPTS_TEMP}")
+    fi
+
+    # Cleaning-up Variables
+    unset $ES_ENV_KEY
+  fi
+done < <(env)
+
+
+# Parse ElasticSearch Zen Hosts Provider
+if [[ -n ES_CONF_DISCOVERY_ZEN_HOSTS_PROVIDER ]]; then
+  ES_ENV_OPTS_TEMP="-Ediscovery.zen.hosts_provider=${ES_CONF_DISCOVERY_ZEN_HOSTS_PROVIDER}"
+  ES_ENV_OPTS+=("${ES_ENV_OPTS_TEMP}")
+fi
+
+
+# Parse ElasticSearch Other Variable
+ES_ENV_OPTS_TEMP="-Ediscovery.zen.minimum_master_node=${ES_CONF_DISCOVERY_ZEN_MINIMUM_MASTER}"
+ES_ENV_OPTS+=("${ES_ENV_OPTS_TEMP}")
+ES_ENV_OPTS_TEMP="-Enetwork.host=${ES_CONF_NETWORK_HOST}"
+ES_ENV_OPTS+=("${ES_ENV_OPTS_TEMP}")
+ES_ENV_OPTS_TEMP="-Ehttp.enabled=${ES_CONF_HTTP_ENABLED}"
+ES_ENV_OPTS+=("${ES_ENV_OPTS_TEMP}")
+
+
+# Determine ElasticSearch X-Pack
+if elasticsearch-plugin list -s | grep -q x-pack; then
+  if [[ -n "$ES_PASSWORD" ]]; then
+    [[ -f ${ES_HOME}/config/elasticsearch.keystore ]] || elasticsearch-keystore create
+    echo "$ES_PASSWORD" | elasticsearch-keystore add -x 'bootstrap.password'
+  fi
+fi
 
 
 # Execute Everything from Entries
-exec "$@"
+if [ "$(id -u)" != "0" ]; then
+  exec "$@" "${ES_ENV_OPTS[@]}"
+else
+  su-exec user "$@" "${ES_ENV_OPTS[@]}"
+fi

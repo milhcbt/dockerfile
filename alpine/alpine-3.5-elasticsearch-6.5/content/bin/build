@@ -24,13 +24,14 @@ mkdir -p /opt \
 # --------------------------------------------------
 
 
-# [2] Installing GNUPG
+# [2] Installing SU-EXEC and GNUPG
 # --------------------------------------------------
 cp /etc/apk/repositories /etc/apk/repositories.original \
 && echo 'http://dl-cdn.alpinelinux.org/alpine/v3.6/main' >> /etc/apk/repositories \
 && echo 'http://dl-cdn.alpinelinux.org/alpine/v3.6/community' >> /etc/apk/repositories \
 && apk update \
 && apk add \
+    su-exec \
     gnupg \
 && rm -rf /var/cache/apk/* \
 && rm -f /etc/apk/repositories \
@@ -44,12 +45,10 @@ mkdir -p $ES_HOME \
 && chown -R root:root $ES_HOME \
 && chmod -R 664 $ES_HOME \
 && cd $ES_HOME \
-&& wget -O elasticsearch.tar.gz.asc https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-oss-${VERSION}.tar.gz.asc \
-&& wget -O elasticsearch.tar.gz https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-oss-${VERSION}.tar.gz \
+&& wget -O elasticsearch.tar.gz.asc https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-oss-${ES_VERSION}.tar.gz.asc \
+&& wget -O elasticsearch.tar.gz https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-oss-${ES_VERSION}.tar.gz \
 && export GNUPGHOME="$(mktemp -d)" \
-&& (gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$ES_GPG_KEY" 
-    || gpg --keyserver pgp.mit.edu --recv-keys "$ES_GPG_KEY" \
-    || gpg --keyserver keyserver.pgp.com --recv-keys "$ES_GPG_KEY") \
+&& gpg --keyserver keyserver.ubuntu.com --recv-keys "$ES_GPG_KEY" \
 && gpg --batch --verify elasticsearch.tar.gz.asc elasticsearch.tar.gz \
 && tar xvfz elasticsearch.tar.gz --strip-components=1 \
 && rm -f elasticsearch.tar.gz* \

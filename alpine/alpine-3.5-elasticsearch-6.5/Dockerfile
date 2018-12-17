@@ -1,10 +1,11 @@
-FROM dimaskiddo/alpine:base
+FROM dimaskiddo/alpine:openjre-8.0
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
 # Set Environment Variables
 ENV ES_VERSION=6.5.2 \
     ES_GPG_KEY=46095ACC8548582C1A2699A9D27D666CD88E42B4 \
     ES_HOME=/opt/elasticsearch \
+    ES_PATH_CONF=/opt/elasticsearch/config \
     ES_TMPDIR=/opt/elasticsearch/tmp \
     PATH=$PATH:/opt/elasticsearch/bin
 

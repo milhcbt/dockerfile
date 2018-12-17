@@ -5,7 +5,7 @@
 if [[ -f /data/kafka/broker_id ]]; then
   KAFKA_CONF_BROKER_ID=`cat /data/kafka/broker_id`
 else
-  KAFKA_CONF_BROKER_ID=${KAFKA_CONF_BROKER_ID:-$(cat /dev/urandom | LC_CTYPE=C tr -dc '0-9' | fold -w 256 | head -n 1 |sed -e 's/^0*//' | head -c 3)}
+  KAFKA_CONF_BROKER_ID=${KAFKA_CONF_BROKER_ID:-`cat /dev/urandom | LC_CTYPE=C tr -dc '0-9' | fold -w 256 | head -n 1 |sed -e 's/^0*//' | head -c 3`}
   
   mkdir -p /data/kafka
   echo ${KAFKA_CONF_BROKER_ID} > /data/kafka/broker_id
@@ -21,10 +21,16 @@ fi
 
 
 # Configure Kafka Variable
+KAFKA_DOMAIN=`hostname -d`
+KAFKA_HOST_NAME=`hostname -s`
 KAFKA_CONF_PORT=${KAFKA_CONF_PORT:-9092}
 KAFKA_CONF_LOG_DIRS="/data/kafka/logs"
 KAFKA_CONF_LOG_RETENTION_HOURS=${KAFKA_CONF_LOG_RETENTION_HOURS:-"168"}
-KAFKA_CONF_ADVERTISED_HOST_NAME=${KAFKA_CONF_ADVERTISED_HOST_NAME:-$(ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p')}
+if [[ -n $KAFKA_DOMAIN ]]; then
+  KAFKA_CONF_ADVERTISED_HOST_NAME=${KAFKA_CONF_ADVERTISED_HOST_NAME:-"${KAFKA_HOST_NAME}.${KAFKA_DOMAIN}"}
+else
+  KAFKA_CONF_ADVERTISED_HOST_NAME=${KAFKA_CONF_ADVERTISED_HOST_NAME:-"${KAFKA_HOST_NAME}"}
+fi
 KAFKA_CONF_ADVERTISED_PORT=${KAFKA_CONF_ADVERTISED_PORT:-$KAFKA_CONF_PORT}
 KAFKA_CONF_ADVERTISED_LISTENERS=${KAFKA_CONF_ADVERTISED_LISTENERS:-"PLAINTEXT://${KAFKA_CONF_ADVERTISED_HOST_NAME}:${KAFKA_CONF_ADVERTISED_PORT}"}
 KAFKA_CONF_LISTENERS=${KAFKA_CONF_LISTENERS:-"PLAINTEXT://0.0.0.0:${KAFKA_CONF_ADVERTISED_PORT}"}
