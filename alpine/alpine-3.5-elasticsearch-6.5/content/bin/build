@@ -13,8 +13,6 @@ mkdir -p /opt \
 && chown -R root:root /var/run \
 && chown -R root:root /usr/local/docker \
 && chown -R root:root /usr/local/docker/bin \
-&& chown -R root:root /usr/local/docker/etc \
-&& chown -R root:root /usr/local/docker/etc/kafka \
 && chmod 775 /opt \
 && chmod 775 /var/run \
 && chmod 775 /usr/local/docker \
