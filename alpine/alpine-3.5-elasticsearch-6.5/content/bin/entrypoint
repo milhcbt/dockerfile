@@ -16,78 +16,34 @@ fi
 
 
 # Configure ElasticSearch Variable
-ES_CONF_CLUSTER_NODE_COUNT=${ES_CONF_CLUSTER_NODE_COUNT:-1}
-ES_CONF_DISCOVERY_ZEN_MINIMUM_MASTER=${ES_CONF_DISCOVERY_ZEN_MINIMUM_MASTER:-1}
-ES_CONF_NETWORK_HOST=${ES_CONF_NETWORK_HOST:-"0.0.0.0"}
-ES_CONF_HTTP_ENABLED=${ES_CONF_HTTP_ENABLED:-"true"}
+ES_DOMAIN=`hostname -d`
+ES_HOST_NAME=`hostname -s`
+if [[ -n $ES_DOMAIN ]]; then
+  ES_NODE_NAME=${ES_NODE_NAME:-"${ES_HOST_NAME}.${ES_DOMAIN}"}
+else
+  ES_NODE_NAME=${ES_NODE_NAME:-"${ES_HOST_NAME}"}
+fi
+ES_MASTER_COUNT=${ES_MASTER_COUNT:-1}
+ES_MASTER_AUTO_QUORUM=${ES_MASTER_AUTO_QUORUM:-"true"}
 
-if [ $ES_CONF_CLUSTER_NODE_COUNT -gt 1 ]; then
-  if [[ "${node.master}" == "true" ]]; then
-    ES_CONF_DOMAIN=`hostname -d`
+if [ $ES_MASTER_COUNT -gt 1 ]; then
+  if [[ $ES_MASTER_AUTO_QUORUM == "true" ]]; then
+    if [ $ES_MASTER_COUNT -gt 2 ]; then
+      ES_MASTER_HALF=$(($ES_MASTER_COUNT/2))
+      ES_MASTER_QUORUM=$((($ES_MASTER_COUNT/$ES_MASTER_HALF)+1))
+    else
+      ES_MASTER_QUORUM=${ES_MASTER_COUNT}
+    if
+    ES_ARGS="-Ediscovery.zen.minimum_master_nodes=${ES_MASTER_QUORUM} "
+  fi
 
-    if [[ `hostname -s` =~ (.*)-([0-9]+)$ ]]; then
-      ES_CONF_SERVER_ID=${BASH_REMATCH[2]}
-      ES_CONF_HOST_NAME=${BASH_REMATCH[1]}
+  if [ `echo ${ES_ARGS} | grep node.master | wc -l` -eq 1 ]; then
 
-      if [[ -f /opt/elasticsearch/hosts ]]; then
-        rm -f /opt/elasticsearch/hosts
-      else
-        for (( ES_CONF_CLUSTER_NODE_LOOP=1; ES_CONF_CLUSTER_NODE_LOOP<=$ES_CONF_CLUSTER_NODE_COUNT; ES_CONF_CLUSTER_NODE_LOOP++ ))
-        do
-          echo "${ZOOKEEPER_CONF_HOST_NAME}-$(($ES_CONF_CLUSTER_NODE_LOOP-1)).${ES_CONF_DOMAIN}" >> /opt/elasticsearch/hosts
-        done
-      fi
-    elif [[ `hostname -s` =~ (.*)_([0-9]+)$ ]]; then
-      ES_CONF_SERVER_ID=${BASH_REMATCH[2]}
-      ES_CONF_HOST_NAME=${BASH_REMATCH[1]}
-
-      if [[ -f /opt/elasticsearch/hosts ]]; then
-        rm -f /opt/elasticsearch/hosts
-      else
-        for (( ES_CONF_CLUSTER_NODE_LOOP=1; ES_CONF_CLUSTER_NODE_LOOP<=$ES_CONF_CLUSTER_NODE_COUNT; ES_CONF_CLUSTER_NODE_LOOP++ ))
-        do
-          echo "${ZOOKEEPER_CONF_HOST_NAME}_$(($ES_CONF_CLUSTER_NODE_LOOP-1)).${ES_CONF_DOMAIN}" >> /opt/elasticsearch/hosts
-        done
-      fi
-    fi
-
-    ES_CONF_DISCOVERY_ZEN_HOSTS_PROVIDER="/opt/elasticsearch/hosts"
   fi
 fi
+
+ES_ARGS="-Enode.name=${ES_NODE_NAME} -Ebootstrap.memory_lock=false -Ehttp.enabled=true -Enetwork.host=0.0.0.0 ${ES_ARGS}"
 export ES_JAVA_OPTS="-Des.cgroups.hierarchy.override=/ ${ES_JAVA_OPTS}"
-
-
-# Parse ElasticSearch Environment Variable
-declare -a ES_ENV_OPTS
-while IFS='=' read -r ES_ENV_KEY ES_ENV_VALUE
-do
-  if [[ "$ES_ENV_KEY" =~ ^[a-z0-9_]+\.[a-z0-9_]+ ]]; then
-    # Parse Variables
-    if [[ ! -z $ES_ENV_VALUE ]]; then
-      ES_ENV_OPTS_TEMP="-E${ES_ENV_KEY}=${ES_ENV_VALUE}"
-      ES_ENV_OPTS+=("${ES_ENV_OPTS_TEMP}")
-    fi
-
-    # Cleaning-up Variables
-    unset $ES_ENV_KEY
-  fi
-done < <(env)
-
-
-# Parse ElasticSearch Zen Hosts Provider
-if [[ -n ES_CONF_DISCOVERY_ZEN_HOSTS_PROVIDER ]]; then
-  ES_ENV_OPTS_TEMP="-Ediscovery.zen.hosts_provider=${ES_CONF_DISCOVERY_ZEN_HOSTS_PROVIDER}"
-  ES_ENV_OPTS+=("${ES_ENV_OPTS_TEMP}")
-fi
-
-
-# Parse ElasticSearch Other Variable
-ES_ENV_OPTS_TEMP="-Ediscovery.zen.minimum_master_node=${ES_CONF_DISCOVERY_ZEN_MINIMUM_MASTER}"
-ES_ENV_OPTS+=("${ES_ENV_OPTS_TEMP}")
-ES_ENV_OPTS_TEMP="-Enetwork.host=${ES_CONF_NETWORK_HOST}"
-ES_ENV_OPTS+=("${ES_ENV_OPTS_TEMP}")
-ES_ENV_OPTS_TEMP="-Ehttp.enabled=${ES_CONF_HTTP_ENABLED}"
-ES_ENV_OPTS+=("${ES_ENV_OPTS_TEMP}")
 
 
 # Determine ElasticSearch X-Pack
@@ -101,7 +57,7 @@ fi
 
 # Execute Everything from Entries
 if [ "$(id -u)" != "0" ]; then
-  exec "$@" "${ES_ENV_OPTS[@]}"
+  exec "$@" "${ES_ARGS[@]}"
 else
-  su-exec user "$@" "${ES_ENV_OPTS[@]}"
+  su-exec user "$@" "${ES_ARGS[@]}"
 fi
