@@ -40,5 +40,5 @@ LABEL release=1 \
       io.k8s.description="Alpine (3.x) with ElasticSearch 6.5" \
       io.k8s.display-name="Alpine (3.x) with ElasticSearch 6.5" \
       io.openshift.tags="builder,alpine,elasticsearch" \
-      io.openshift.expose-services="9200:elasticsearch-http,9300:elasticsearch-tcp" \
+      io.openshift.expose-services="9200:elasticsearch-http,9300:elasticsearch-transport" \
       io.openshift.non-scalable="false"

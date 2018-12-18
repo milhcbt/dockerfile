@@ -16,8 +16,6 @@ fi
 
 
 # Configure ElasticSearch Variable
-declare -a ES_ARGS_OPTS
-
 ES_DOMAIN=`hostname -d`
 ES_HOST_NAME=`hostname -s`
 ES_HTTP_PORT=${ES_HTTP_PORT:-"9200"}
@@ -27,33 +25,38 @@ if [[ -n $ES_DOMAIN ]]; then
 else
   ES_NODE_NAME=${ES_NODE_NAME:-"${ES_HOST_NAME}"}
 fi
-ES_MASTER_COUNT=${ES_MASTER_COUNT:-1}
-ES_MASTER_AUTO_QUORUM=${ES_MASTER_AUTO_QUORUM:-"true"}
 
-if [ $ES_MASTER_COUNT -gt 1 ]; then
-  if [[ $ES_MASTER_AUTO_QUORUM == "true" ]]; then
-    ES_MASTER_HALF=$(($ES_MASTER_COUNT/2))
-    ES_MASTER_QUORUM=$((($ES_MASTER_COUNT/$ES_MASTER_HALF)+1))
+# ES_MASTER_COUNT=${ES_MASTER_COUNT:-1}
+# ES_MASTER_AUTO_QUORUM=${ES_MASTER_AUTO_QUORUM:-"true"}
 
-    ES_ARGS_OPTS+=("-Ediscovery.zen.minimum_master_nodes=${ES_MASTER_QUORUM}")
-  fi
+# declare -a ES_ARGS_OPTS
 
-  if [ `echo ${ES_ARGS} | grep node.master | wc -l` -eq 1 ]; then
-    if [[ $ES_HOST_NAME =~ (.*)-([0-9]+)$ ]]; then
-      for (( ES_MASTER_LOOP=0; ES_MASTER_LOOP<$ES_MASTER_COUNT; ES_MASTER_LOOP++ ))
-      do
-        echo "${ES_HOST_NAME}-${ES_MASTER_LOOP}.${ES_DOMAIN}:${ES_TCP_PORT}" >> ${ES_PATH_CONF}/unicast_hosts.txt
-      done
-    elif [[ $ES_HOST_NAME =~ (.*)_([0-9]+)$ ]]; then
-      for (( ES_MASTER_LOOP=0; ES_MASTER_LOOP<$ES_MASTER_COUNT; ES_MASTER_LOOP++ ))
-      do
-        echo "${ES_HOST_NAME}_${ES_MASTER_LOOP}.${ES_DOMAIN}:${ES_TCP_PORT}" >> ${ES_PATH_CONF}/unicast_hosts.txt
-      done
-    fi
-
-    ES_ARGS_OPTS+=("${ES_ARGS_OPTS} -Ediscovery.zen.hosts_provider=file")
-  fi
-fi
+# if [ $ES_MASTER_COUNT -gt 1 ]; then
+#   # Automate Master Quorum Calculation
+#   if [[ $ES_MASTER_AUTO_QUORUM == "true" ]]; then
+#     ES_MASTER_HALF=$(($ES_MASTER_COUNT/2))
+#     ES_MASTER_QUORUM=$((($ES_MASTER_COUNT/$ES_MASTER_HALF)+1))
+#
+#     ES_ARGS_OPTS+=("-Ediscovery.zen.minimum_master_nodes=${ES_MASTER_QUORUM}")
+#   fi
+#
+#   # Automate Master Host File Provider Creation
+#   if [ `echo ${ES_ARGS} | grep node.master | wc -l` -eq 1 ]; then
+#     if [[ $ES_HOST_NAME =~ (.*)-([0-9]+)$ ]]; then
+#       for (( ES_MASTER_LOOP=0; ES_MASTER_LOOP<$ES_MASTER_COUNT; ES_MASTER_LOOP++ ))
+#       do
+#         echo "${ES_HOST_NAME}-${ES_MASTER_LOOP}.${ES_DOMAIN}:${ES_TCP_PORT}" >> ${ES_PATH_CONF}/unicast_hosts.txt
+#       done
+#     elif [[ $ES_HOST_NAME =~ (.*)_([0-9]+)$ ]]; then
+#       for (( ES_MASTER_LOOP=0; ES_MASTER_LOOP<$ES_MASTER_COUNT; ES_MASTER_LOOP++ ))
+#       do
+#         echo "${ES_HOST_NAME}_${ES_MASTER_LOOP}.${ES_DOMAIN}:${ES_TCP_PORT}" >> ${ES_PATH_CONF}/unicast_hosts.txt
+#       done
+#     fi
+#  
+#     ES_ARGS_OPTS+=("${ES_ARGS_OPTS} -Ediscovery.zen.hosts_provider=file")
+#   fi
+# fi
 
 # Determine ElasticSearch X-Pack
 if elasticsearch-plugin list -s | grep -q x-pack; then
@@ -74,16 +77,17 @@ if [[ -n $ES_ARGS ]]; then
 fi
 
 declare -a ES_ARGS
-ES_ARGS+=("-Enetwork.host=0.0.0.0" "-Enetwork.publish_host=${ES_NODE_NAME}" "-Ehttp.enabled=true" "-Ehttp.port=${ES_HTTP_PORT}" "-Etransport.tcp.port=${ES_TCP_PORT}" "-Enode.name=${ES_NODE_NAME}" "-Ebootstrap.memory_lock=false")
+ES_ARGS+=("-Enetwork.host=0.0.0.0" "-Ehttp.enabled=true" "-Ehttp.port=${ES_HTTP_PORT}" "-Etransport.tcp.port=${ES_TCP_PORT}" "-Enode.name=${ES_NODE_NAME}" "-Ebootstrap.memory_lock=false")
 
 if [[ -n $ES_ARGS_ENV ]]; then
   ES_ARGS+=("${ES_ARGS_ENV}")
   unset ES_ARGS_ENV
 fi
-if [[ -n $ES_ARGS_OPTS ]]; then
-  ES_ARGS+=("${ES_ARGS_OPTS}")
-  unset ES_ARGS_OPTS
-fi
+
+# if [[ -n $ES_ARGS_OPTS ]]; then
+#   ES_ARGS+=("${ES_ARGS_OPTS}")
+#   unset ES_ARGS_OPTS
+# fi
 
 export ES_JAVA_OPTS="-Des.cgroups.hierarchy.override=/ ${ES_JAVA_OPTS}"
 
