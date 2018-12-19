@@ -32,15 +32,13 @@ ES_MEMORY_LOCK=${ES_MEMORY_LOCK:-"false"}
 # ES_MASTER_COUNT=${ES_MASTER_COUNT:-1}
 # ES_MASTER_AUTO_QUORUM=${ES_MASTER_AUTO_QUORUM:-"true"}
 #
-# declare -a ES_ARGS_CLUSTER
-#
 # if [ $ES_MASTER_COUNT -gt 1 ]; then
 #   # Automate Master Quorum Calculation
 #   if [[ $ES_MASTER_AUTO_QUORUM == "true" ]]; then
 #     ES_MASTER_HALF=$(($ES_MASTER_COUNT/2))
 #     ES_MASTER_QUORUM=$((($ES_MASTER_COUNT/$ES_MASTER_HALF)+1))
 #
-#     ES_ARGS_CLUSTER+=("-Ediscovery.zen.minimum_master_nodes=${ES_MASTER_QUORUM}")
+#     ES_ARGS_CLUSTER="${ES_ARGS_CLUSTER} -Ediscovery.zen.minimum_master_nodes=${ES_MASTER_QUORUM} "
 #   fi
 #
 #   # Automate Master Host File Provider Creation
@@ -57,7 +55,7 @@ ES_MEMORY_LOCK=${ES_MEMORY_LOCK:-"false"}
 #       done
 #     fi
 #  
-#     ES_ARGS_CLUSTER+=("${ES_ARGS_CLUSTER} -Ediscovery.zen.hosts_provider=file")
+#     ES_ARGS_CLUSTER="${ES_ARGS_CLUSTER} -Ediscovery.zen.hosts_provider=file"
 #   fi
 # fi
 
@@ -72,24 +70,22 @@ fi
 
 
 # Configure ElasticSearch Arguments
-if [[ -n $ES_ARGS ]]; then
-  declare -a ES_ARGS_ENV
-  IFS=' '; for ES_ARGS_DATA in $ES_ARGS; do
-    ES_ARGS_ENV+=("${ES_ARGS_DATA}")
-  done
-  unset ES_ARGS
-fi
-
 declare -a ES_ARGS
 ES_ARGS+=("-Ebootstrap.memory_lock=${ES_MEMORY_LOCK}" "-Ehttp.enabled=true" "-Ehttp.port=${ES_HTTP_PORT}" "-Etransport.tcp.port=${ES_TCP_PORT}" "-Enetwork.host=0.0.0.0" "-Enode.name=${ES_NODE_NAME}")
 
-if [[ -n $ES_ARGS_ENV ]]; then
-  ES_ARGS+=("${ES_ARGS_ENV}")
-  unset ES_ARGS_ENV
+if [[ -n $ES_ARGS_OPTS ]]; then
+  for ES_ARGS_OPTS_DATA in `echo $ES_ARGS_OPTS`
+  do
+    ES_ARGS+=("${ES_ARGS_OPTS_DATA}")
+  done
+  unset ES_ARGS_OPTS
 fi
 
-# if [[ -n $ES_ARGS_CLUSTER ]]; then
-#   ES_ARGS+=("${ES_ARGS_CLUSTER}")
+# if [[ -n $ES_ARGS_CLUTSER ]]; then
+#   for ES_ARGS_CLUTSER_DATA in `echo $ES_ARGS_CLUSTER`
+#   do
+#     ES_ARGS+=("${ES_ARGS_CLUTSER_DATA}")
+#   done
 #   unset ES_ARGS_CLUSTER
 # fi
 

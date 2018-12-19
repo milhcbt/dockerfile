@@ -1,0 +1,45 @@
+version: '2'
+
+volumes:
+  elasticsearch_data: {}
+
+networks:
+  elasticsearchnet:
+    driver: bridge
+
+services:
+  elasticsearch-master:
+    image: 'dimaskiddo/alpine:elasticsearch-6.5'
+    networks:
+      - elasticsearchnet
+    environment:
+      - ES_JAVA_OPTS=-Xms512M -Xmx512M
+      - ES_ARGS_OPTS=-Ecluster.name=elasticsearch-cluster -Ediscovery.type=zen -Ediscovery.zen.minimum_master_nodes=1 -Ediscovery.zen.ping.unicast.hosts=elasticsearch-master -Enode.master=true -Enode.ingest=false -Enode.data=false
+    restart: always
+
+  elasticsearch-ingest:
+    image: 'dimaskiddo/alpine:elasticsearch-6.5'
+    networks:
+      - elasticsearchnet
+    ports:
+      - 9200:9200
+    environment:
+      - ES_JAVA_OPTS=-Xms512M -Xmx512M
+      - ES_ARGS_OPTS=-Ecluster.name=elasticsearch-cluster -Ediscovery.type=zen -Ediscovery.zen.minimum_master_nodes=1 -Ediscovery.zen.ping.unicast.hosts=elasticsearch-master -Enode.master=false -Enode.ingest=true -Enode.data=false
+    depends_on:
+      - elasticsearch-master
+      - elasticsearch-data
+    restart: always
+
+  elasticsearch-data:
+    image: 'dimaskiddo/alpine:elasticsearch-6.5'
+    networks:
+      - elasticsearchnet
+    environment:
+      - ES_JAVA_OPTS=-Xms512M -Xmx512M
+      - ES_ARGS_OPTS=-Ecluster.name=elasticsearch-cluster -Ediscovery.type=zen -Ediscovery.zen.minimum_master_nodes=1 -Ediscovery.zen.ping.unicast.hosts=elasticsearch-master -Enode.master=false -Enode.ingest=false -Enode.data=true
+    volumes:
+      - elasticsearch_data:/opt/elasticsearch/data
+    depends_on:
+      - elasticsearch-master
+    restart: always
