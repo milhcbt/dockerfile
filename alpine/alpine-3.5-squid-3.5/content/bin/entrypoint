@@ -46,19 +46,20 @@ SQUID_MODE=${SQUID_MODE:-}
 SQUID_HTTPS_ENABLED=${SQUID_HTTPS_ENABLED:-false}
 SQUID_HTTPS_CERTIFICATE=${SQUID_HTTPS_CERTIFICATE:-}
 SQUID_CACHE_MANAGER=${SQUID_CACHE_MANAGER:-root}
+SQUID_CACHE_MEMORY_SIZE=${SQUID_CACHE_MEMORY_SIZE:-128}
 SQUID_CACHE_STORE_MODE=${SQUID_CACHE_STORE_MODE:-ufs}
 SQUID_CACHE_DIR=${SQUID_CACHE_DIR:-/var/cache/squid}
 SQUID_CACHE_SIZE=${SQUID_CACHE_SIZE:-100}
 SQUID_CACHE_L1_SIZE=${SQUID_CACHE_L1_SIZE:-16}
 SQUID_CACHE_L2_SIZE=${SQUID_CACHE_L2_SIZE:-256}
-SQUID_CACHE_MEMORY_SIZE=${SQUID_CACHE_MEMORY_SIZE:-128}
+SQUID_CACHE_OPTIONS=${SQUID_CACHE_OPTIONS:-}
 SQUID_CACHE_SWAP_LOW=${SQUID_CACHE_SWAP_LOW:-80}
 SQUID_CACHE_SWAP_HIGH=${SQUID_CACHE_SWAP_HIGH:-95}
 SQUID_IPCACHE_SIZE=${SQUID_IPCACHE_SIZE:-4096}
 SQUID_IPCACHE_LOW=${SQUID_IPCACHE_LOW:-80}
 SQUID_IPCACHE_HIGH=${SQUID_IPCACHE_HIGH:-95}
 SQUID_FQDNCACHE_SIZE=${SQUID_FQDNCACHE_SIZE:-4096}
-SQUID_MEMORY_POOLS_LIMIT=${SQUID_MEMORY_POOLS_LIMIT:-1024}
+SQUID_MEMORY_POOLS_LIMIT=${SQUID_MEMORY_POOLS_LIMIT:-100}
 SQUID_MAX_OBJECT_SIZE=${SQUID_MAX_OBJECT_SIZE:-8192}
 SQUID_MAX_OBJECT_SIZE_MEMORY=${SQUID_MAX_OBJECT_SIZE_MEMORY:-1024}
 # ------------------------------------------------
@@ -71,11 +72,11 @@ fi
 {
   echo "# Squid Configuration"
   echo ""; \
-  echo "http_port  127.0.0.1:3127"; \
-  echo "http_port  3128                   ${SQUID_MODE}"; \
+  echo "http_port  3127"; \
+  echo "http_port  3128  ${SQUID_MODE}"; \
   if [[ ${SQUID_HTTPS_ENABLED} == "true" ]]; \
   then \
-    echo "https_port 3129                   ${SQUID_MODE} ssl-bump generate-host-certificates=on dynamic_cert_mem_cache_size=4MB cert=/etc/squid/cert.crt"; \
+    echo "https_port 3129 ${SQUID_MODE} ssl-bump generate-host-certificates=on dynamic_cert_mem_cache_size=4MB cert=/etc/squid/cert.crt"; \
   fi; \
   echo ""; \
   echo "dns_v4_first                      on"; \
@@ -84,11 +85,6 @@ fi
   echo "strip_query_terms                 off"; \
   echo "half_closed_clients               off"; \
   echo ""; \
-  if [[ ${SQUID_HTTPS_ENABLED} == "true" ]]; \
-  then \
-    echo "ssl_unclean_shutdown              off"; \
-    echo ""; \
-  fi; \
   echo "log_mime_hdrs                     off"; \
   echo "forwarded_for                     off"; \
   echo "via                               off"; \
@@ -134,14 +130,20 @@ fi
   echo "coredump_dir                      ${SQUID_CACHE_DIR}"; \
   echo ""; \
   echo "cache_mgr                         ${SQUID_CACHE_MANAGER}"; \
-  echo "cache_mem                         ${SQUID_CACHE_MEMORY_SIZE}      MB"; \
-  echo "cache_dir                         ${SQUID_CACHE_STORE_MODE} ${SQUID_CACHE_DIR} ${SQUID_CACHE_SIZE} ${SQUID_CACHE_L1_SIZE} ${SQUID_CACHE_L2_SIZE}"; \
+  echo "cache_mem                         ${SQUID_CACHE_MEMORY_SIZE} MB"; \
+  if [[ ${SQUID_CACHE_STORE_MODE} == "ufs" || ${SQUID_CACHE_STORE_MODE} == "aufs" || ${SQUID_CACHE_STORE_MODE} == "diskd" ]]; \
+  then \
+    echo "cache_dir                         ${SQUID_CACHE_STORE_MODE} ${SQUID_CACHE_DIR} ${SQUID_CACHE_SIZE} ${SQUID_CACHE_L1_SIZE} ${SQUID_CACHE_L2_SIZE} ${SQUID_CACHE_OPTIONS}"; \
+  elif [[ ${SQUID_CACHE_STORE_MODE} == "rock" ]]; \
+  then \
+    echo "cache_dir                         ${SQUID_CACHE_STORE_MODE} ${SQUID_CACHE_DIR} ${SQUID_CACHE_SIZE} ${SQUID_CACHE_OPTIONS}"; \
+  fi; \
   echo ""; \
   echo "cache_swap_low                    ${SQUID_CACHE_SWAP_LOW}"; \
   echo "cache_swap_high                   ${SQUID_CACHE_SWAP_HIGH}"; \
   echo ""; \
-  echo "memory_pools_limit                ${SQUID_MEMORY_POOLS_LIMIT}     MB"; \
-  echo "maximum_object_size               ${SQUID_MAX_OBJECT_SIZE}        KB"; \
+  echo "memory_pools_limit                ${SQUID_MEMORY_POOLS_LIMIT} MB"; \
+  echo "maximum_object_size               ${SQUID_MAX_OBJECT_SIZE} KB"; \
   echo "maximum_object_size_in_memory     ${SQUID_MAX_OBJECT_SIZE_MEMORY} KB"; \
   echo ""; \
   echo "ipcache_size                      ${SQUID_IPCACHE_SIZE}"; \
@@ -150,10 +152,9 @@ fi
   echo ""; \
   echo "fqdncache_size                    ${SQUID_FQDNCACHE_SIZE}"; \
   echo ""; \
-  echo "read_ahead_gap                    512                             KB"; \
-  echo "quick_abort_min                   1024                            KB"; \
-  echo "quick_abort_max                   2048                            KB"; \
-  echo "quick_abort_pct                   90"; \
+  echo "read_ahead_gap                    512 KB"; \
+  echo "quick_abort_min                   1024 KB"; \
+  echo "quick_abort_max                   2048 KB"; \
   echo ""; \
 } > /etc/squid/squid.conf
 # ------------------------------------------------
