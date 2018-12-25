@@ -46,6 +46,7 @@ SQUID_MODE=${SQUID_MODE:-}
 SQUID_HTTPS_ENABLED=${SQUID_HTTPS_ENABLED:-false}
 SQUID_HTTPS_CERTIFICATE=${SQUID_HTTPS_CERTIFICATE:-}
 SQUID_CACHE_MANAGER=${SQUID_CACHE_MANAGER:-root}
+SQUID_CACHE_STORE_MODE=${SQUID_CACHE_STORE_MODE:-ufs}
 SQUID_CACHE_DIR=${SQUID_CACHE_DIR:-/var/cache/squid}
 SQUID_CACHE_SIZE=${SQUID_CACHE_SIZE:-100}
 SQUID_CACHE_L1_SIZE=${SQUID_CACHE_L1_SIZE:-16}
@@ -134,7 +135,7 @@ fi
   echo "memory_replacement_policy         heap               GDSF"; \
   echo ""; \
   echo "cache_mgr                         ${SQUID_CACHE_MANAGER}"; \
-  echo "cache_dir                         aufs ${SQUID_CACHE_DIR} ${SQUID_CACHE_SIZE} ${SQUID_CACHE_L1_SIZE} ${SQUID_CACHE_L2_SIZE}"; \
+  echo "cache_dir                         ${SQUID_CACHE_STORE_MODE} ${SQUID_CACHE_DIR} ${SQUID_CACHE_SIZE} ${SQUID_CACHE_L1_SIZE} ${SQUID_CACHE_L2_SIZE}"; \
   echo ""; \
   echo "cache_mem                         ${SQUID_CACHE_MEMORY_SIZE}      MB"; \
   echo "cache_swap_low                    ${SQUID_CACHE_SWAP_LOW}"; \
@@ -157,13 +158,13 @@ fi
   echo ""; \
   echo "coredump_dir                      ${SQUID_CACHE_DIR}"; \
   echo ""; \
-  echo "refresh_pattern ^ftp:             1440  20% 10080"; \
-  echo "refresh_pattern ^gopher:          1440   0% 1440"; \
-  echo "refresh_pattern -i (/cgi-bin/|\?) 0      0% 0"; \
-  echo "refresh_pattern -i .              0     90% 4320"; \
-  echo ""; \
-  echo "max_stale                         1 day"; \
-  echo ""; \
+  # echo "refresh_pattern ^ftp:             1440  20% 10080"; \
+  # echo "refresh_pattern ^gopher:          1440   0% 1440"; \
+  # echo "refresh_pattern -i (/cgi-bin/|\?) 0      0% 0"; \
+  # echo "refresh_pattern -i .              0     90% 4320"; \
+  # echo ""; \
+  # echo "max_stale                         1 day"; \
+  # echo ""; \
 } > /etc/squid/squid.conf
 # ------------------------------------------------
 # Squid initialize cache directory
