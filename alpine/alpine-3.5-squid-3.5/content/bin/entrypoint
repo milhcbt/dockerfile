@@ -58,8 +58,8 @@ SQUID_IPCACHE_SIZE=${SQUID_IPCACHE_SIZE:-4096}
 SQUID_IPCACHE_LOW=${SQUID_IPCACHE_LOW:-80}
 SQUID_IPCACHE_HIGH=${SQUID_IPCACHE_HIGH:-95}
 SQUID_FQDNCACHE_SIZE=${SQUID_FQDNCACHE_SIZE:-4096}
-SQUID_MEMORY_POOLS_LIMIT=${SQUID_MEMORY_POOLS_LIMIT:-2048}
-SQUID_MAX_OBJECT_SIZE=${SQUID_MAX_OBJECT_SIZE:-12288}
+SQUID_MEMORY_POOLS_LIMIT=${SQUID_MEMORY_POOLS_LIMIT:-1024}
+SQUID_MAX_OBJECT_SIZE=${SQUID_MAX_OBJECT_SIZE:-8192}
 SQUID_MAX_OBJECT_SIZE_MEMORY=${SQUID_MAX_OBJECT_SIZE_MEMORY:-1024}
 # ------------------------------------------------
 # Squid certificate autorithy file
@@ -75,20 +75,19 @@ fi
   echo "http_port  3128                   ${SQUID_MODE}"; \
   if [[ ${SQUID_HTTPS_ENABLED} == "true" ]]; \
   then \
-  echo "https_port 3129                   ${SQUID_MODE} ssl-bump generate-host-certificates=on dynamic_cert_mem_cache_size=4MB cert=/etc/squid/cert.crt"; \
+    echo "https_port 3129                   ${SQUID_MODE} ssl-bump generate-host-certificates=on dynamic_cert_mem_cache_size=4MB cert=/etc/squid/cert.crt"; \
   fi; \
   echo ""; \
   echo "dns_v4_first                      on"; \
   echo ""; \
   echo "memory_pools                      on"; \
-  echo "pipeline_prefetch                 on"; \
   echo "strip_query_terms                 off"; \
   echo "half_closed_clients               off"; \
   echo ""; \
   if [[ ${SQUID_HTTPS_ENABLED} == "true" ]]; \
   then \
-  echo "ssl_unclean_shutdown              on"; \
-  echo ""; \
+    echo "ssl_unclean_shutdown              off"; \
+    echo ""; \
   fi; \
   echo "log_mime_hdrs                     off"; \
   echo "forwarded_for                     off"; \
@@ -99,29 +98,30 @@ fi
   echo ""; \
   if [[ ${SQUID_HTTPS_ENABLED} == "true" ]]; \
   then \
-  echo "acl ssl_peek                      at_step           SslBump1"; \
-  echo "acl ssl_bump                      at_step           SslBump2"; \
-  echo "acl ssl_splice                    at_step           SslBump3"; \
-  echo ""; \
-  echo "ssl_bump peek                     ssl_peek          all"; \
-  echo "ssl_bump bump                     ssl_bump          all"; \
-  echo "ssl_bump splice                   ssl_splice        all"; \
-  echo "ssl_bump splice                   localhost"; \
-  echo ""; \
-  echo "sslproxy_flags                    DONT_VERIFY_PEER"; \
-  echo "sslproxy_flags                    NO_SESSION_REUSE"; \
-  echo ""; \
-  echo "sslproxy_options                  NO_SSLv2,NO_SSLv3"; \
-  echo "sslproxy_cipher                   EECDH+ECDSA+AESGCM:EECDH+aRSA+AESGCM:EECDH+ECDSA+SHA384:EECDH+ECDSA+SHA256:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH+aRSA+RC4:EECDH:EDH+aRSA:HIGH:!RC4:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS"; \
-  echo ""; \
-  echo "sslproxy_cert_error               allow              all"; \
-  echo ""; \
+    echo "acl ssl_peek                      at_step           SslBump1"; \
+    echo "acl ssl_bump                      at_step           SslBump2"; \
+    echo "acl ssl_splice                    at_step           SslBump3"; \
+    echo ""; \
+    echo "ssl_bump peek                     ssl_peek          all"; \
+    echo "ssl_bump bump                     ssl_bump          all"; \
+    echo "ssl_bump splice                   ssl_splice        all"; \
+    echo "ssl_bump splice                   localhost"; \
+    echo ""; \
+    echo "sslproxy_flags                    DONT_VERIFY_PEER"; \
+    echo "sslproxy_flags                    NO_SESSION_REUSE"; \
+    echo ""; \
+    echo "sslproxy_options                  NO_SSLv2,NO_SSLv3"; \
+    echo "sslproxy_cipher                   ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256"; \
+    echo ""; \
+    echo "sslproxy_cert_error               allow              all"; \
+    echo ""; \
   fi; \
   echo "request_header_access             X-Forwarded-For    deny all"; \
   echo "request_header_access             Via                deny all"; \
   echo ""; \
   echo "reply_header_access               X-Forwarded-For    deny all"; \
   echo "reply_header_access               Via                deny all"; \
+  echo ""; \
   echo "reply_header_access               Alternate-Protocol deny all"; \
   echo "reply_header_access               Alt-Svc            deny all"; \
   echo ""; \
@@ -131,13 +131,12 @@ fi
   echo "http_access                       allow              localnet"; \
   echo "http_access                       deny               all"; \
   echo ""; \
-  echo "cache_replacement_policy          heap               LFUDA"; \
-  echo "memory_replacement_policy         heap               GDSF"; \
+  echo "coredump_dir                      ${SQUID_CACHE_DIR}"; \
   echo ""; \
   echo "cache_mgr                         ${SQUID_CACHE_MANAGER}"; \
+  echo "cache_mem                         ${SQUID_CACHE_MEMORY_SIZE}      MB"; \
   echo "cache_dir                         ${SQUID_CACHE_STORE_MODE} ${SQUID_CACHE_DIR} ${SQUID_CACHE_SIZE} ${SQUID_CACHE_L1_SIZE} ${SQUID_CACHE_L2_SIZE}"; \
   echo ""; \
-  echo "cache_mem                         ${SQUID_CACHE_MEMORY_SIZE}      MB"; \
   echo "cache_swap_low                    ${SQUID_CACHE_SWAP_LOW}"; \
   echo "cache_swap_high                   ${SQUID_CACHE_SWAP_HIGH}"; \
   echo ""; \
@@ -156,15 +155,6 @@ fi
   echo "quick_abort_max                   2048                            KB"; \
   echo "quick_abort_pct                   90"; \
   echo ""; \
-  echo "coredump_dir                      ${SQUID_CACHE_DIR}"; \
-  echo ""; \
-  # echo "refresh_pattern ^ftp:             1440  20% 10080"; \
-  # echo "refresh_pattern ^gopher:          1440   0% 1440"; \
-  # echo "refresh_pattern -i (/cgi-bin/|\?) 0      0% 0"; \
-  # echo "refresh_pattern -i .              0     90% 4320"; \
-  # echo ""; \
-  # echo "max_stale                         1 day"; \
-  # echo ""; \
 } > /etc/squid/squid.conf
 # ------------------------------------------------
 # Squid initialize cache directory
