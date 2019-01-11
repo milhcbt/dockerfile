@@ -10,7 +10,7 @@ networks:
 
 services:
   postgresql:
-    image: 'dimaskiddo/alpine:postgresql-9.6'
+    image: 'dimaskiddo/ubuntu:postgresql-9.6'
     networks:
       - odoonet
     ports:

@@ -1,0 +1,66 @@
+#!/bin/bash
+
+set -e
+
+echo "--------------------------------------------------"
+echo "Dockerfile Build Tools"
+echo "Email: dimas.restu@student.upi.edu"
+echo "--------------------------------------------------"
+
+echo ""
+echo "[1] Run Some Housekeeping"
+echo "--------------------------------------------------"
+mkdir -p /run \
+  && mkdir -p /run/mysqld \
+  && mkdir -p /etc \
+  && mkdir -p /etc/mysql \
+  && chown -R root:root /run \
+  && chown -R root:root /run/mysqld \
+  && chown -R root:root /var/run \
+  && chown -R root:root /etc \
+  && chown -R root:root /etc/mysql \
+  && chown -R root:root /usr/local/docker \
+  && chown -R root:root /usr/local/docker/bin \
+  && chmod 775 /run \
+  && chmod 775 /run/mysqld \
+  && chmod 775 /var/run \
+  && chmod 775 /etc \
+  && chmod 775 /etc/mysql \
+  && chmod 775 /usr/local/docker \
+  && chmod 775 /usr/local/docker/bin \
+  && chmod 775 /usr/local/docker/bin/build \
+  && chmod 775 /usr/local/docker/bin/entrypoint
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[2] Installing MariaDB"
+echo "--------------------------------------------------"
+apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8 \
+  && echo "deb http://kartolo.sby.datautama.net.id/mariadb/repo/${MARIADB_VERSION}/ubuntu xenial main" | tee /etc/apt/sources.list.d/mariadb.list \
+  && apt-get -y -o Acquire::Check-Valid-Until=false update \
+  && apt-get -y -o Acquire::Check-Valid-Until=false --no-install-recommends install \
+      mariadb-server \
+  && apt-get -y -o Acquire::Check-Valid-Until=false autoremove \
+  && apt-get -y -o Acquire::Check-Valid-Until=false clean
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[3] Configuring MySQL"
+echo "--------------------------------------------------"
+rm -rf /etc/mysql/* \
+  && rm -rf /var/lib/mysql/* \
+  && mkdir -p /var/lib \
+  && mkdir -p /var/lib/mysql \
+  && mkdir -p /var/lib/mysql/data \
+  && chown -R root:root /var/lib \
+  && chown -R root:root /var/lib/mysql \
+  && chown -R root:root /var/lib/mysql/data \
+  && chmod 775 /var/lib \
+  && chmod 775 /var/lib/mysql \
+  && chmod 775 /var/lib/mysql/data
+echo "--------------------------------------------------"
+
+
+exit 0

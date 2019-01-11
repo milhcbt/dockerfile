@@ -32,11 +32,12 @@ echo ""
 echo "[2] Installing Dependencies"
 echo "--------------------------------------------------"
 apt-get -y -o Acquire::Check-Valid-Until=false update \
-  && apt-get -y -o Acquire::Check-Valid-Until=false install \
+  && apt-get -y -o Acquire::Check-Valid-Until=false --no-install-recommends install \
       node-less \
       python-pip \
       python-gevent \
       python-renderpm \
+      python-setuptools \
       python-watchdog \
   && apt-get -y -o Acquire::Check-Valid-Until=false autoremove \
   && apt-get -y -o Acquire::Check-Valid-Until=false clean
@@ -44,7 +45,7 @@ echo "--------------------------------------------------"
 
 
 echo ""
-echo "[3] Installing Python Pip Libraries"
+echo "[3] Installing Python PIP Libraries"
 echo "--------------------------------------------------"
 pip install --no-cache-dir psycogreen==1.0
 echo "--------------------------------------------------"
