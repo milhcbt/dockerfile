@@ -1,0 +1,90 @@
+#!/bin/bash
+
+set -e
+
+echo "--------------------------------------------------"
+echo "Dockerfile Build Tools"
+echo "Email: dimas.restu@student.upi.edu"
+echo "--------------------------------------------------"
+
+echo ""
+echo "[1] Run Some Housekeeping"
+echo "--------------------------------------------------"
+mkdir -p /run \
+  && mkdir -p /run/postgresql \
+  && mkdir -p /var/lib \
+  && mkdir -p /var/lib/pgsql \
+  && mkdir -p /var/lib/pgsql/data \
+  && mkdir -p /etc \
+  && mkdir -p /etc/pgsql \
+  && chown -R root:root /run \
+  && chown -R root:root /run/postgresql \
+  && chown -R root:root /var/run \
+  && chown -R root:root /var/lib \
+  && chown -R root:root /var/lib/pgsql \
+  && chown -R root:root /var/lib/pgsql/data \
+  && chown -R root:root /etc \
+  && chown -R root:root /etc/pgsql \
+  && chown -R root:root /usr/local/docker \
+  && chown -R root:root /usr/local/docker/bin \
+  && chmod 775 /run \
+  && chmod 775 /run/postgresql \
+  && chmod 775 /var/run \
+  && chmod 775 /var/lib \
+  && chmod 775 /var/lib/pgsql \
+  && chmod 775 /var/lib/pgsql/data \
+  && chmod 775 /etc \
+  && chmod 775 /etc/pgsql \
+  && chmod 775 /usr/local/docker \
+  && chmod 775 /usr/local/docker/bin \
+  && chmod 775 /usr/local/docker/bin/build \
+  && chmod 775 /usr/local/docker/bin/entrypoint
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[2] Installing GoSU"
+echo "--------------------------------------------------"
+wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture)" \
+	&& wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture).asc" \
+	&& export GNUPGHOME="$(mktemp -d)" \
+	&& gpg --batch --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
+	&& gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
+	&& { command -v gpgconf > /dev/null && gpgconf --kill all || :; } \
+	&& rm -rf "$GNUPGHOME" /usr/local/bin/gosu.asc
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[3] Configuring GoSU"
+echo "--------------------------------------------------"
+chmod 755 /usr/local/bin/gosu \
+	&& gosu nobody true
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[4] Installing PostgreSQL"
+echo "--------------------------------------------------"
+apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8 \
+  && echo 'deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main' | tee /etc/apt/sources.list.d/postgresql.list \
+  && apt-get -y -o Acquire::Check-Valid-Until=false update \
+  && apt-get -y -o Acquire::Check-Valid-Until=false --no-install-recommends install \
+      postgresql-${POSTGRESQL_VERSION} \
+      postgresql-client-${POSTGRESQL_VERSION} \
+      postgresql-contrib-${POSTGRESQL_VERSION} \
+  && apt-get -y -o Acquire::Check-Valid-Until=false autoremove \
+  && apt-get -y -o Acquire::Check-Valid-Until=false clean
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[5] Configuring PostgreSQL"
+echo "--------------------------------------------------"
+rm -rf /etc/postgresql-common \
+  && rm -rf /var/lib/postgresql \
+  && sed -i -e "/user:x:901:0:User:\/root:\/sbin\/nologin/d" /etc/passwd
+echo "--------------------------------------------------"
+
+
+exit 0
