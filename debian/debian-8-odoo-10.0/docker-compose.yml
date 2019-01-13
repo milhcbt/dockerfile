@@ -1,0 +1,42 @@
+version: '2'
+
+volumes:
+  odoo_data: {}
+  pgsql_data: {}
+
+networks:
+  odoonet:
+    driver: bridge
+
+services:
+  postgresql:
+    image: 'dimaskiddo/debian:postgresql-9.6'
+    networks:
+      - odoonet
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRESQL_USER=odoo
+      - POSTGRESQL_PASSWORD=odoo
+      - POSTGRESQL_ROOT_PASSWORD=odoo
+      - POSTGRESQL_DATABASE=odoo
+    volumes:
+      - pgsql_data:/var/lib/pgsql/data
+    restart: always
+
+  odoo:
+    image: 'dimaskiddo/debian:odoo-10.0'
+    networks:
+      - odoonet
+    ports:
+      - 8069:8069
+    environment:
+      - ODOO_DB_HOST=postgresql
+      - ODOO_DB_PORT=5432
+      - ODOO_DB_USER=odoo
+      - ODOO_DB_PASSWORD=odoo
+    volumes:
+      - odoo_data:/var/lib/odoo
+    depends_on:
+      - postgresql
+    restart: always

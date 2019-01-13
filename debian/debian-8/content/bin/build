@@ -1,0 +1,70 @@
+#!/bin/bash
+
+set -e
+
+echo "--------------------------------------------------"
+echo "Dockerfile Build Tools"
+echo "Email: dimas.restu@student.upi.edu"
+echo "--------------------------------------------------"
+
+echo ""
+echo "[1] Run Some Housekeeping"
+echo "--------------------------------------------------"
+chmod 770 /root \
+  && chmod 664 /root/.bashrc \
+  && chmod 664 /root/.profile \
+  && chmod 664 /etc/passwd \
+  && chown -R root:root /usr/local/docker \
+  && chown -R root:root /usr/local/docker/etc/apt \
+  && chmod 775 /usr/local/docker \
+  && chmod 775 /usr/local/docker/etc/apt \
+  && chmod 664 /usr/local/docker/etc/apt/sources.list \
+  && cp -R /usr/local/docker/etc/apt/sources.list /etc/apt/sources.list \
+  && cp -R /bin/sh /bin/sh.original \
+  && ln -sf /bin/bash /bin/sh \
+  && { \
+        echo ""; \
+        echo "export PS1='\[\033[01;32m\]\u@\h \[\033[01;34m\]\W \$ \[\033[00m\]'"; \
+        echo "export TERM=xterm"; \
+        echo ""; \
+     } >> /root/.bashrc \
+  && { \
+        echo ""; \
+        echo "set nocompatible"; \
+        echo "set number"; \
+        echo ""; \
+     } >> /root/.vimrc \
+  && echo "user:x:1000:0:User:/root:/sbin/nologin" >> /etc/passwd
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[2] Installing Base Tools"
+echo "--------------------------------------------------"
+apt-get -y -o Acquire::Check-Valid-Until=false update \
+  && apt-get -y -o Acquire::Check-Valid-Until=false --no-install-recommends install \
+      apt-utils \
+      apt-transport-https \
+      bash \
+      ca-certificates \
+      curl \
+      htop \
+      nano \
+      grep \
+      gzip \
+      net-tools \
+      dnsutils \
+      rsync \
+      software-properties-common \
+      tar \
+      ttf-dejavu \
+      tzdata \
+      unzip \
+      vim-tiny \
+      wget \
+      zip \
+  && apt-get -y -o Acquire::Check-Valid-Until=false autoremove \
+  && apt-get -y -o Acquire::Check-Valid-Until=false clean
+echo "--------------------------------------------------"
+
+exit
