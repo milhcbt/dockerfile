@@ -9,7 +9,7 @@ networks:
 
 services:
   restheart:
-    image: 'dimaskiddo/alpine:restheart-3.2'
+    image: 'dimaskiddo/alpine:restheart-3.5.0'
     networks:
       - restnet
     ports:
