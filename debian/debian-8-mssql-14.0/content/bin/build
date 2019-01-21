@@ -1,0 +1,107 @@
+#!/bin/bash
+
+set -e
+
+echo "--------------------------------------------------"
+echo "Dockerfile Build Tools"
+echo "Email: dimas.restu@student.upi.edu"
+echo "--------------------------------------------------"
+
+echo ""
+echo "[1] Run Some Housekeeping"
+echo "--------------------------------------------------"
+mkdir -p /run \
+  && mkdir -p /run/mssql \
+  && mkdir -p /opt \
+  && mkdir -p /opt/mssql \
+  && mkdir -p /var/opt \
+  && mkdir -p /var/opt/mssql \
+  && mkdir -p /etc \
+  && mkdir -p /etc/mysql \
+  && chown -R root:root /run \
+  && chown -R root:root /run/mssql \
+  && chown -R root:root /opt \
+  && chown -R root:root /opt/mssql \
+  && chown -R root:root /var/opt \
+  && chown -R root:root /var/opt/mssql \
+  && chown -R root:root /etc \
+  && chown -R root:root /etc/mysql \
+  && chown -R root:root /usr/local/docker \
+  && chown -R root:root /usr/local/docker/bin \
+  && chown -R root:root /usr/local/docker/opt \
+  && chown -R root:root /usr/local/docker/opt/mssql \
+  && chown -R root:root /usr/local/docker/opt/mssql/bin \
+  && chmod 775 /run \
+  && chmod 775 /run/mssql \
+  && chmod 775 /opt \
+  && chmod 775 /opt/mssql \
+  && chmod 775 /var/opt \
+  && chmod 775 /var/opt/mssql \
+  && chmod 775 /etc \
+  && chmod 775 /etc/mysql \
+  && chmod 775 /usr/local/docker \
+  && chmod 775 /usr/local/docker/bin \
+  && chmod 775 /usr/local/docker/bin/build \
+  && chmod 775 /usr/local/docker/bin/entrypoint \
+  && chmod 775 /usr/local/docker/opt \
+  && chmod 775 /usr/local/docker/opt/mssql \
+  && chmod 775 /usr/local/docker/opt/mssql/bin \
+  && chmod 775 /usr/local/docker/opt/mssql/bin/mssql-conf
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[2] Installing GoSU"
+echo "--------------------------------------------------"
+wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture)" \
+	&& wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture).asc" \
+	&& export GNUPGHOME="$(mktemp -d)" \
+	&& gpg --batch --keyserver keyserver.ubuntu.com --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
+	&& gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
+	&& { command -v gpgconf > /dev/null && gpgconf --kill all || :; } \
+	&& rm -rf "$GNUPGHOME" /usr/local/bin/gosu.asc
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[3] Configuring GoSU"
+echo "--------------------------------------------------"
+chmod 755 /usr/local/bin/gosu \
+	&& gosu nobody true
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[4] Installing Microsoft SQL Server"
+echo "--------------------------------------------------"
+curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg \
+  && install -o root -g root -m 644 microsoft.gpg /etc/apt/trusted.gpg.d/ \
+  && rm -f microsoft.gpg \
+  && curl https://packages.microsoft.com/config/ubuntu/16.04/mssql-server-${MSSQL_REPO_VERSION}.list | tee /etc/apt/sources.list.d/mssql-server-${MSSQL_REPO_VERSION}.list \
+  && apt-get -y -o Acquire::Check-Valid-Until=false update \
+  && apt-get -y -o Acquire::Check-Valid-Until=false --no-install-recommends install \
+      mssql-server \
+      sqsh \
+  && apt-get -y -o Acquire::Check-Valid-Until=false autoremove \
+  && apt-get -y -o Acquire::Check-Valid-Until=false clean
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[5] Configuring Microsoft SQL Server"
+echo "--------------------------------------------------"
+rm -rf /var/opt/mssql/* \
+  && rm -f /opt/mssql/bin/mssql-conf \
+  && rm -f /opt/mssql/lib/mssql-conf/mssqlconfhelper.py \
+  && mv /usr/local/docker/opt/mssql/bin/mssql-conf /opt/mssql/bin/mssql-conf \
+  && mv /usr/local/docker/opt/mssql/lib/mssql-conf/mssqlconfhelper.py /opt/mssql/lib/mssql-conf/mssqlconfhelper.py \
+  && chmod 755 /opt/mssql/bin/mssql-conf \
+  && chmod 755 /opt/mssql/lib/mssql-conf/mssqlconfhelper.py \
+  && rm -rf /usr/local/docker/opt \
+  && sed -i -e "s/^mssql:\(.*\):[0-9]\+:[0-9]\+:.*:.*:.*/mssql:\1:1000:0::\/root:\/sbin\/nologin/g" /etc/passwd \
+  && sed -i -e "/user:x:1000:0:User:\/root:\/sbin\/nologin/d" /etc/passwd \
+  && usermod -aG mssql mssql
+echo "--------------------------------------------------"
+
+
+exit 0

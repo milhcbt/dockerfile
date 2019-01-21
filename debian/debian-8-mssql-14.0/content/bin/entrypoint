@@ -1,0 +1,99 @@
+#!/bin/sh -e
+
+
+# Add Custom UserID as "User" User
+if [ "$(id -u)" != "0" ]; then
+  sed "s/^mssql:\(.*\):[0-9]\+:[0-9]\+:.*:.*:.*/mssql:\1:$(id -u):0::\/root:\/sbin\/nologin/g" < /etc/passwd > /tmp/passwd \
+  && cat /tmp/passwd > /etc/passwd \
+  && rm -f /tmp/passwd
+fi
+
+
+# Prepare var/opt directory due to volume
+if [ ! -d /var/opt ]; then
+  mkdir -p /var/opt \
+  && chown mssql:root /var/opt \
+  && chmod 775 /var/opt
+fi
+
+
+# Prepare var/opt/mssql directory due to volume
+if [ ! -d /var/opt/mssql ]; then
+  mkdir -p /var/opt/mssql \
+  && chown mssql:root /var/opt/mssql \
+  && chmod 775 /var/opt/mssql
+fi
+
+
+# Prepare var/opt/mssql/.system directory due to volume
+if [ ! -d /var/opt/mssql/.system ]; then
+  mkdir -p /var/opt/mssql/.system \
+  && chown mssql:root /var/opt/mssql/.system \
+  && chmod 775 /var/opt/mssql/.system
+fi
+
+
+# Prepare var/opt/mssql/data directory due to volume
+if [ ! -d /var/opt/mssql/data ]; then
+  mkdir -p /var/opt/mssql/data \
+  && chown mssql:root /var/opt/mssql/data \
+  && chmod 775 /var/opt/mssql/data
+fi
+
+
+# Prepare var/opt/mssql/log directory due to volume
+if [ ! -d /var/opt/mssql/log ]; then
+  mkdir -p /var/opt/mssql/log \
+  && chown mssql:root /var/opt/mssql/log \
+  && chmod 775 /var/opt/mssql/log
+fi
+
+
+# Prepare var/opt/mssql/secrets directory due to volume
+if [ ! -d /var/opt/mssql/secrets ]; then
+  mkdir -p /var/opt/mssql/secrets \
+  && chown mssql:root /var/opt/mssql/secrets \
+  && chmod 775 /var/opt/mssql/secrets
+fi
+
+
+# Prepare Microsoft SQL Server configuration
+IS_PASSWORD='^[a-zA-Z0-9_~!@#$%^&*()-=<>,.?;:|]+$'
+# ------------------------------------------------
+# Microsoft SQL Server variable configuration
+MSSQL_PID=${MSSQL_PID:-Express}
+MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD:-}
+# ------------------------------------------------
+# Validate Microsoft SQL Server credentials variable configuration
+if [[ ! -z $MSSQL_SA_PASSWORD ]]; then
+  if ! [[ $MSSQL_SA_PASSWORD =~ $IS_PASSWORD ]]; then
+    echo "Failed to configure MSSQL_SA_PASSWORD variable. Fallback to default MSSQL_SA_PASSWORD value as P@ssw0rd"
+    MSSQL_SA_PASSWORD="P@ssw0rd"
+  fi
+else
+  echo "Failed to configure MSSQL_SA_PASSWORD variable. Fallback to default MSSQL_SA_PASSWORD value as P@ssw0rd"
+  MSSQL_SA_PASSWORD="P@ssw0rd"
+fi
+# ------------------------------------------------
+# Microsoft SQL Server Fix Execution User function
+function gosu_mssql() {
+  if [ "$(id -u)" != "0" ]; then
+    "$@"
+  else
+    gosu mssql "$@"
+  fi
+}
+# ------------------------------------------------
+# Configuring Microsoft SQL Server credentials
+MSSQL_PID="${MSSQL_PID}" MSSQL_SA_PASSWORD="${MSSQL_SA_PASSWORD}" ACCEPT_EULA="Y" gosu_mssql /opt/mssql/bin/mssql-conf -n setup
+# ------------------------------------------------
+# Cleaning-up configuration variable
+unset MSSQL_PID MSSQL_SA_PASSWORD
+
+
+# Execute Everything from Entries
+if [ "$(id -u)" != "0" ]; then
+  "$@"
+else
+  gosu mssql "$@"
+fi

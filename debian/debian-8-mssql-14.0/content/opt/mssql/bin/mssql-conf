@@ -1,0 +1,35 @@
+#!/bin/bash
+# Don't generate .pyc files
+export PYTHONDONTWRITEBYTECODE=1
+
+# Make sure the mssql.conf exists and proper
+# rw permissions are set for owner and group
+#
+function touchConfig() {
+    configPath=/var/opt/mssql
+    configFile=${configPath}/mssql.conf
+    mkdir -p $configPath
+    touch $configFile
+    chmod --quiet ug=rw $configFile
+}
+
+# See if the user is root or has permissions to mssql
+CMD="exec $(dirname $0)/../lib/mssql-conf/mssql-conf.py $@"
+if [ "$(id -u)" == "0" ]; then
+    # User is root, execute as is and mssql-conf will handle accordingly. This is required because certain actions
+    # can only be executed as root. For all others the tool will step down to mssql internally
+    touchConfig
+    /bin/bash -c "$CMD"
+    exit 0
+fi
+# If user is simply doing a --help or -h execute it without permissions check
+if [ "$1" != "--help" ] && [ "$1" != "-h" ] && [ "$1" != "" ]; then
+    touchConfig
+    /bin/bash -c "$CMD"
+    exit 0
+else
+    #Not root and not running as mssql.
+    #The conf tool will handle this case and display the proper error prompt. The -help option will work.
+    /bin/bash -c "$CMD"
+    exit 0
+fi
