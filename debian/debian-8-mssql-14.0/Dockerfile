@@ -3,7 +3,7 @@ MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
 # Setting-up Environment
 ENV GOSU_VERSION=1.11 \
-    MSSQL_REPO_VERSION=2017 \
+    MSSQL_SERVER_VERSION=2017 \
     PATH=$PATH:/opt/mssql/bin
 
 # Copying Prequisites Configuration
