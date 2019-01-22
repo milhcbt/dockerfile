@@ -1,0 +1,144 @@
+#!/bin/bash
+
+set -e
+
+echo "--------------------------------------------------"
+echo "Dockerfile Build Tools"
+echo "Email: dimas.restu@student.upi.edu"
+echo "--------------------------------------------------"
+
+echo ""
+echo "[1] Run Some Housekeeping"
+echo "--------------------------------------------------"
+mkdir -p /run \
+  && mkdir -p /run/php \
+  && mkdir -p /var/www/lib \
+  && mkdir -p /var/www/lib/php/7.1 \
+  && mkdir -p /var/www/lib/php/7.1/sessions \
+  && mkdir -p /var/www/lib/php/7.1/uploads \
+  && mkdir -p /var/www/logs/php \
+  && mkdir -p /var/www/logs/php/7.1 \
+  && chown -R root:root /run \
+  && chown -R root:root /run/php \
+  && chown -R root:root /var/www/lib \
+  && chown -R root:root /var/www/lib/php/7.1 \
+  && chown -R root:root /var/www/lib/php/7.1/sessions \
+  && chown -R root:root /var/www/lib/php/7.1/uploads \
+  && chown -R root:root /var/www/logs/php \
+  && chown -R root:root /var/www/logs/php/7.1 \
+  && chown -R root:root /usr/local/docker \
+  && chown -R root:root /usr/local/docker/bin \
+  && chown -R root:root /usr/local/docker/etc \
+  && chown -R root:root /usr/local/docker/html \
+  && chmod 775 /run \
+  && chmod 775 /run/php \
+  && chmod 775 /var/www/lib \
+  && chmod 775 /var/www/lib/php/7.1 \
+  && chmod 775 /var/www/lib/php/7.1/sessions \
+  && chmod 775 /var/www/lib/php/7.1/uploads \
+  && chmod 775 /var/www/logs/php \
+  && chmod 775 /var/www/logs/php/7.1 \
+  && chmod 775 /usr/local/docker \
+  && chmod 775 /usr/local/docker/bin \
+  && chmod 775 /usr/local/docker/bin/build \
+  && chmod 775 /usr/local/docker/bin/entrypoint \
+  && chmod 775 /usr/local/docker/etc \
+  && chmod 775 /usr/local/docker/etc/supervisor \
+  && chmod 664 /usr/local/docker/etc/supervisor/supervisord.conf \
+  && chmod 775 /usr/local/docker/etc/supervisor/conf.d \
+  && chmod 664 /usr/local/docker/etc/supervisor/conf.d/01-apache.conf \
+  && chmod 664 /usr/local/docker/etc/supervisor/conf.d/02-phpfpm.conf \
+  && chmod 775 /usr/local/docker/etc/apache2 \
+  && chmod 664 /usr/local/docker/etc/apache2/apache2.conf \
+  && chmod 664 /usr/local/docker/etc/apache2/ports.conf \
+  && chmod 775 /usr/local/docker/etc/php \
+  && chmod 775 /usr/local/docker/etc/php/7.1 \
+  && chmod 775 /usr/local/docker/etc/php/7.1/fpm \
+  && chmod 664 /usr/local/docker/etc/php/7.1/fpm/php.ini \
+  && chmod 664 /usr/local/docker/etc/php/7.1/fpm/php-fpm.conf \
+  && chmod 664 /usr/local/docker/etc/php/7.1/fpm/pool.d/www.conf \
+  && chmod 775 /usr/local/docker/html \
+  && chmod 664 /usr/local/docker/html/index.php \
+  && chmod 664 /usr/local/docker/html/info.php \
+  && rm -f /usr/local/docker/html/index.html
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[2] Installing PHP"
+echo "--------------------------------------------------"
+curl -ssL -o /etc/apt/trusted.gpg.d/sury.gpg https://packages.sury.org/php/apt.gpg \
+  && echo "deb https://packages.sury.org/php jessie main" | tee /etc/apt/sources.list.d/ondrej-php.list \
+  && apt-get -y -o Acquire::Check-Valid-Until=false update \
+  && apt-get -y -o Acquire::Check-Valid-Until=false --no-install-recommends install \
+      php7.1-curl \
+      php7.1-fileinfo \
+      php7.1-gd \
+      php7.1-intl \
+      php7.1-imagick \
+      php7.1-imap \
+      php7.1-mcrypt \
+      php7.1-mbstring \
+      php7.1-memcache \
+      php7.1-opcache \
+      php7.1-pdo \
+      php7.1-pspell \
+      php7.1-recode \
+      php7.1-mongo \
+      php7.1-mysqlnd \
+      php7.1-pgsql \
+      php7.1-sqlite \
+      php7.1-tidy \
+      php7.1-tokenizer \
+      php7.1-xml \
+      php7.1-xmlrpc \
+      php7.1-xsl \
+      php7.1-zip \
+      php7.1-fpm \
+  && apt-get -y -o Acquire::Check-Valid-Until=false autoremove \
+  && apt-get -y -o Acquire::Check-Valid-Until=false clean
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[3] Installing PHP Composer"
+echo "--------------------------------------------------"
+curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
+  && chmod 755 /usr/local/bin/composer \
+  && rm -rf /root/.composer \
+  && ln -sf /var/www/etc/composer /root/.composer
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[4] Configuring PHP"
+echo "--------------------------------------------------"
+cp /etc/php/7.1/fpm/php.ini /etc/php/7.1/fpm/php.ini.original \
+  && cp /etc/php/7.1/fpm/php-fpm.conf /etc/php/7.1/fpm/php-fpm.conf.original \
+  && cp /etc/php/7.1/fpm/pool.d/www.conf /etc/php/7.1/fpm/pool.d/www.conf.original \
+  && touch /var/www/logs/php/7.1/php7.1-fpm.log \
+  && touch /run/php/php7.1-fpm.pid \
+  && rm -rf /etc/php/7.1/fpm/php.ini \
+  && rm -rf /etc/php/7.1/fpm/php-fpm.conf \
+  && rm -rf /etc/php/7.1/fpm/pool.d/www.conf \
+  && rm -rf /var/lib/php/* \
+  && ln -sf /var/www/etc/php/7.1/fpm/php.ini /etc/php/7.1/fpm/php.ini \
+  && ln -sf /var/www/etc/php/7.1/fpm/php-fpm.conf /etc/php/7.1/fpm/php-fpm.conf \
+  && ln -sf /var/www/etc/php/7.1/fpm/pool.d/www.conf /etc/php/7.1/fpm/pool.d/www.conf \
+  && chown -R root:root /var/lib/php \
+  && chown -R root:root /var/www/logs/php/7.1/php7.1-fpm.log \
+  && chown -R root:root /run/php/php7.1-fpm.pid \
+  && chmod 775 /var/lib/php \
+  && chmod 664 /var/www/logs/php/7.1/php7.1-fpm.log \
+  && chmod 664 /run/php/php7.1-fpm.pid
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[5] Configuring Supervisor"
+echo "--------------------------------------------------"
+rm -rf /etc/supervisor
+echo "--------------------------------------------------"
+
+
+exit 0
