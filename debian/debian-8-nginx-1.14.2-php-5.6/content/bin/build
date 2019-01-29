@@ -1,0 +1,144 @@
+#!/bin/bash
+
+set -e
+
+echo "--------------------------------------------------"
+echo "Dockerfile Build Tools"
+echo "Email: dimas.restu@student.upi.edu"
+echo "--------------------------------------------------"
+
+echo ""
+echo "[1] Run Some Housekeeping"
+echo "--------------------------------------------------"
+mkdir -p /run \
+  && mkdir -p /run/php \
+  && mkdir -p /var/www/lib \
+  && mkdir -p /var/www/lib/php/5.6 \
+  && mkdir -p /var/www/lib/php/5.6/sessions \
+  && mkdir -p /var/www/lib/php/5.6/uploads \
+  && mkdir -p /var/www/logs/php \
+  && mkdir -p /var/www/logs/php/5.6 \
+  && chown -R root:root /run \
+  && chown -R root:root /run/php \
+  && chown -R root:root /var/www/lib \
+  && chown -R root:root /var/www/lib/php/5.6 \
+  && chown -R root:root /var/www/lib/php/5.6/sessions \
+  && chown -R root:root /var/www/lib/php/5.6/uploads \
+  && chown -R root:root /var/www/logs/php \
+  && chown -R root:root /var/www/logs/php/5.6 \
+  && chown -R root:root /usr/local/docker \
+  && chown -R root:root /usr/local/docker/bin \
+  && chown -R root:root /usr/local/docker/etc \
+  && chown -R root:root /usr/local/docker/html \
+  && chmod 775 /run \
+  && chmod 775 /run/php \
+  && chmod 775 /var/www/lib \
+  && chmod 775 /var/www/lib/php/5.6 \
+  && chmod 775 /var/www/lib/php/5.6/sessions \
+  && chmod 775 /var/www/lib/php/5.6/uploads \
+  && chmod 775 /var/www/logs/php \
+  && chmod 775 /var/www/logs/php/5.6 \
+  && chmod 775 /usr/local/docker \
+  && chmod 775 /usr/local/docker/bin \
+  && chmod 775 /usr/local/docker/bin/build \
+  && chmod 775 /usr/local/docker/bin/entrypoint \
+  && chmod 775 /usr/local/docker/etc \
+  && chmod 775 /usr/local/docker/etc/supervisor \
+  && chmod 664 /usr/local/docker/etc/supervisor/supervisord.conf \
+  && chmod 775 /usr/local/docker/etc/supervisor/conf.d \
+  && chmod 664 /usr/local/docker/etc/supervisor/conf.d/01-nginx.conf \
+  && chmod 664 /usr/local/docker/etc/supervisor/conf.d/02-phpfpm.conf \
+  && chmod 775 /usr/local/docker/etc/nginx \
+  && chmod 664 /usr/local/docker/etc/nginx/nginx.conf \
+  && chmod 664 /usr/local/docker/etc/nginx/sites-available/default \
+  && chmod 775 /usr/local/docker/etc/php \
+  && chmod 775 /usr/local/docker/etc/php/5.6 \
+  && chmod 775 /usr/local/docker/etc/php/5.6/fpm \
+  && chmod 664 /usr/local/docker/etc/php/5.6/fpm/php.ini \
+  && chmod 664 /usr/local/docker/etc/php/5.6/fpm/php-fpm.conf \
+  && chmod 664 /usr/local/docker/etc/php/5.6/fpm/pool.d/www.conf \
+  && chmod 775 /usr/local/docker/html \
+  && chmod 664 /usr/local/docker/html/index.php \
+  && chmod 664 /usr/local/docker/html/info.php \
+  && rm -f /usr/local/docker/html/index.html
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[2] Installing PHP"
+echo "--------------------------------------------------"
+curl -ssL -o /etc/apt/trusted.gpg.d/sury.gpg https://packages.sury.org/php/apt.gpg \
+  && echo "deb https://packages.sury.org/php jessie main" | tee /etc/apt/sources.list.d/ondrej-php.list \
+  && apt-get -y -o Acquire::Check-Valid-Until=false update \
+  && apt-get -y -o Acquire::Check-Valid-Until=false --no-install-recommends install \
+      php5.6-curl \
+      php5.6-fileinfo \
+      php5.6-gd \
+      php5.6-intl \
+      php5.6-imagick \
+      php5.6-imap \
+      php5.6-mcrypt \
+      php5.6-mbstring \
+      php5.6-memcache \
+      php5.6-opcache \
+      php5.6-pdo \
+      php5.6-pspell \
+      php5.6-recode \
+      php5.6-mongo \
+      php5.6-mysqlnd \
+      php5.6-pgsql \
+      php5.6-sqlite \
+      php5.6-tidy \
+      php5.6-tokenizer \
+      php5.6-xml \
+      php5.6-xmlrpc \
+      php5.6-xsl \
+      php5.6-zip \
+      php5.6-fpm \
+  && apt-get -y -o Acquire::Check-Valid-Until=false autoremove \
+  && apt-get -y -o Acquire::Check-Valid-Until=false clean
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[3] Installing PHP Composer"
+echo "--------------------------------------------------"
+curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
+  && chmod 755 /usr/local/bin/composer \
+  && rm -rf /root/.composer \
+  && ln -sf /var/www/etc/composer /root/.composer
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[4] Configuring PHP"
+echo "--------------------------------------------------"
+cp /etc/php/5.6/fpm/php.ini /etc/php/5.6/fpm/php.ini.original \
+  && cp /etc/php/5.6/fpm/php-fpm.conf /etc/php/5.6/fpm/php-fpm.conf.original \
+  && cp /etc/php/5.6/fpm/pool.d/www.conf /etc/php/5.6/fpm/pool.d/www.conf.original \
+  && touch /var/www/logs/php/5.6/php5.6-fpm.log \
+  && touch /run/php/php5.6-fpm.pid \
+  && rm -rf /etc/php/5.6/fpm/php.ini \
+  && rm -rf /etc/php/5.6/fpm/php-fpm.conf \
+  && rm -rf /etc/php/5.6/fpm/pool.d/www.conf \
+  && rm -rf /var/lib/php/* \
+  && ln -sf /var/www/etc/php/5.6/fpm/php.ini /etc/php/5.6/fpm/php.ini \
+  && ln -sf /var/www/etc/php/5.6/fpm/php-fpm.conf /etc/php/5.6/fpm/php-fpm.conf \
+  && ln -sf /var/www/etc/php/5.6/fpm/pool.d/www.conf /etc/php/5.6/fpm/pool.d/www.conf \
+  && chown -R root:root /var/lib/php \
+  && chown -R root:root /var/www/logs/php/5.6/php5.6-fpm.log \
+  && chown -R root:root /run/php/php5.6-fpm.pid \
+  && chmod 775 /var/lib/php \
+  && chmod 664 /var/www/logs/php/5.6/php5.6-fpm.log \
+  && chmod 664 /run/php/php5.6-fpm.pid
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[5] Configuring Supervisor"
+echo "--------------------------------------------------"
+rm -rf /etc/supervisor
+echo "--------------------------------------------------"
+
+
+exit 0

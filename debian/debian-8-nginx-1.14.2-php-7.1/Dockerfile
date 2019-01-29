@@ -1,5 +1,8 @@
-FROM dimaskiddo/debian:php-7.1-apache-novol
+FROM dimaskiddo/debian:nginx-1.14.2-novol
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
+
+# Setting-up Environment
+ENV PATH $PATH:/root/.composer/vendor/bin
 
 # Change Working User to "Root"
 USER root
@@ -21,10 +24,10 @@ USER user
 # Set Labels Used in OpenShift to Describe the Builder Images
 LABEL release=1 \
       vendor="Debian" \
-      summary="Virtual Machine (VM) like container platform with Apache 2.4 & PHP 7.1 + PHP Microsoft SQL Server" \
+      summary="Virtual Machine (VM) like container platform with Nginx 1.14.2 & PHP 7.1" \
       maintainer="Dimas Restu Hidayanto <dimas.restu@student.upi.edu>" \
-      io.k8s.description="Debian (8.x) with Apache 2.4 & PHP 7.1 + PHP Microsoft SQL Server" \
-      io.k8s.display-name="Debian (8.x) with Apache 2.4 & PHP 7.1 + PHP Microsoft SQL Server" \
-      io.openshift.tags="builder,debian,apache,php,php-mssql" \
+      io.k8s.description="Debian (8.x) with Nginx 1.14.2 & PHP 7.1" \
+      io.k8s.display-name="Debian (8.x) with Nginx 1.14.2 & PHP 7.1" \
+      io.openshift.tags="builder,debian,nginx,php" \
       io.openshift.expose-services="8080:http,8443:https" \
       io.openshift.non-scalable="false"

@@ -1,0 +1,70 @@
+#!/bin/bash
+
+set -e
+
+echo "--------------------------------------------------"
+echo "Dockerfile Build Tools"
+echo "Email: dimas.restu@student.upi.edu"
+echo "--------------------------------------------------"
+
+echo ""
+echo "[1] Installing Microsoft SQL Server Driver"
+echo "--------------------------------------------------"
+curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg \
+  && install -o root -g root -m 644 microsoft.gpg /etc/apt/trusted.gpg.d/ \
+  && rm -f microsoft.gpg \
+  && curl https://packages.microsoft.com/config/debian/8/prod.list > /etc/apt/sources.list.d/mssql-release.list \
+  && apt-get -y -o Acquire::Check-Valid-Until=false update \
+  && ACCEPT_EULA=Y \
+      apt-get -y -o Acquire::Check-Valid-Until=false --no-install-recommends install \
+      msodbcsql17 \
+  && apt-get -y -o Acquire::Check-Valid-Until=false autoremove \
+  && apt-get -y -o Acquire::Check-Valid-Until=false clean
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[2] Installing PHP Development for Microsoft SQL Server Connector"
+echo "--------------------------------------------------"
+apt-get -y -o Acquire::Check-Valid-Until=false update \
+  && apt-get -y -o Acquire::Check-Valid-Until=false install \
+      php-pear \
+      php7.1-dev \
+      unixodbc-dev \
+  && apt-get -y -o Acquire::Check-Valid-Until=false autoremove \
+  && apt-get -y -o Acquire::Check-Valid-Until=false clean
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[3] Installing & Compilling Microsoft SQL Server Connector"
+echo "--------------------------------------------------"
+pecl install sqlsrv \
+  && { \
+        echo "; configuration for php common module"; \
+        echo "; priority=20"; \
+        echo "extension=sqlsrv.so"; \
+     } > /etc/php/7.1/fpm/conf.d/20-sqlsrv.ini
+
+pecl install pdo_sqlsrv \
+  && { \
+        echo "; configuration for php common module"; \
+        echo "; priority=30"; \
+        echo "extension=pdo_sqlsrv.so"; \
+     } > /etc/php/7.1/fpm/conf.d/30-pdo_sqlsrv.ini
+echo "--------------------------------------------------"
+
+
+echo ""
+echo "[4] Removing PHP Development for Microsoft SQL Server Connector"
+echo "--------------------------------------------------"
+apt-get -y -o Acquire::Check-Valid-Until=false purge \
+    php-pear \
+    php7.1-dev \
+    unixodbc-dev \
+  && apt-get -y -o Acquire::Check-Valid-Until=false --purge autoremove \
+  && apt-get -y -o Acquire::Check-Valid-Until=false clean
+echo "--------------------------------------------------"
+
+
+exit 0
