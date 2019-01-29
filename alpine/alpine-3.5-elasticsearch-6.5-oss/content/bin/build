@@ -43,8 +43,8 @@ mkdir -p $ES_HOME \
 && chown -R root:root $ES_HOME \
 && chmod -R 664 $ES_HOME \
 && cd $ES_HOME \
-&& wget -O elasticsearch.tar.gz.asc https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${ES_VERSION}.tar.gz.asc \
-&& wget -O elasticsearch.tar.gz https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${ES_VERSION}.tar.gz \
+&& wget -O elasticsearch.tar.gz.asc https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-oss-${ES_VERSION}.tar.gz.asc \
+&& wget -O elasticsearch.tar.gz https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-oss-${ES_VERSION}.tar.gz \
 && export GNUPGHOME="$(mktemp -d)" \
 && gpg --keyserver keyserver.ubuntu.com --recv-keys "$ES_GPG_KEY" \
 && gpg --batch --verify elasticsearch.tar.gz.asc elasticsearch.tar.gz \

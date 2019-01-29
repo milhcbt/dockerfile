@@ -35,10 +35,10 @@ USER user
 # Set Labels Used in OpenShift to Describe the Builder Images
 LABEL release=1 \
       vendor="Alpine" \
-      summary="Virtual Machine (VM) like container platform with ElasticSearch 6.5" \
+      summary="Virtual Machine (VM) like container platform with ElasticSearch 6.5 OSS" \
       maintainer="Dimas Restu Hidayanto <dimas.restu@student.upi.edu>" \
-      io.k8s.description="Alpine (3.x) with ElasticSearch 6.5" \
-      io.k8s.display-name="Alpine (3.x) with ElasticSearch 6.5" \
-      io.openshift.tags="builder,alpine,elasticsearch" \
+      io.k8s.description="Alpine (3.x) with ElasticSearch 6.5 OSS" \
+      io.k8s.display-name="Alpine (3.x) with ElasticSearch 6.5 OSS" \
+      io.openshift.tags="builder,alpine,elasticsearch-oss" \
       io.openshift.expose-services="9200:elasticsearch-http,9300:elasticsearch-transport" \
       io.openshift.non-scalable="false"
