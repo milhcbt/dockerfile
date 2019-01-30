@@ -25,6 +25,8 @@ if [[ -n $ES_DOMAIN ]]; then
 else
   ES_NODE_NAME=${ES_NODE_NAME:-"${ES_HOST_NAME}"}
 fi
+ES_XPACK_LICENSE=${ES_XPACK_LICENSE:-"basic"}
+ES_ACTION_AUTO_CREATE_INDEX=${ES_ACTION_AUTO_CREATE_INDEX:-".security,.monitoring*,.watches,.triggered_watches,.watcher-history*,.ml*"}
 ES_MEMORY_LOCK=${ES_MEMORY_LOCK:-"false"}
 
 
@@ -71,7 +73,7 @@ fi
 
 # Configure ElasticSearch Arguments
 declare -a ES_ARGS
-ES_ARGS+=("-Ebootstrap.memory_lock=${ES_MEMORY_LOCK}" "-Ehttp.enabled=true" "-Ehttp.port=${ES_HTTP_PORT}" "-Etransport.tcp.port=${ES_TCP_PORT}" "-Enetwork.host=0.0.0.0" "-Enode.name=${ES_NODE_NAME}")
+ES_ARGS+=("-Eaction.auto_create_index=${ES_ACTION_AUTO_CREATE_INDEX}" "-Ebootstrap.memory_lock=${ES_MEMORY_LOCK}" "-Ehttp.enabled=true" "-Ehttp.port=${ES_HTTP_PORT}" "-Etransport.tcp.port=${ES_TCP_PORT}" "-Enetwork.host=0.0.0.0" "-Enode.name=${ES_NODE_NAME}")
 
 if [[ -n $ES_ARGS_OPTS ]]; then
   for ES_ARGS_OPTS_DATA in `echo $ES_ARGS_OPTS`
@@ -95,7 +97,15 @@ export ES_JAVA_OPTS="-Des.cgroups.hierarchy.override=/ ${ES_JAVA_OPTS}"
 
 # Execute Everything from Entries
 if [ "$(id -u)" != "0" ]; then
-  exec "$@" "${ES_ARGS[@]}"
+  if [[ $1 == "elasticsearch" ]]; then
+    exec "$@" "${ES_ARGS[@]}"
+  else
+    exec "$@"
+  fi
 else
-  su-exec user "$@" "${ES_ARGS[@]}"
+  if [[ $1 == "elasticsearch" ]]; then
+    su-exec user "$@" "${ES_ARGS[@]}"
+  else
+    su-exec user "$@"
+  fi
 fi

@@ -97,7 +97,15 @@ export ES_JAVA_OPTS="-Des.cgroups.hierarchy.override=/ ${ES_JAVA_OPTS}"
 
 # Execute Everything from Entries
 if [ "$(id -u)" != "0" ]; then
-  exec "$@" "${ES_ARGS[@]}"
+  if [[ $1 == "elasticsearch" ]]; then
+    exec "$@" "${ES_ARGS[@]}"
+  else
+    exec "$@"
+  fi
 else
-  su-exec user "$@" "${ES_ARGS[@]}"
+  if [[ $1 == "elasticsearch" ]]; then
+    su-exec user "$@" "${ES_ARGS[@]}"
+  else
+    su-exec user "$@"
+  fi
 fi
